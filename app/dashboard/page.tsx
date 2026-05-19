@@ -3,15 +3,89 @@
 import { useState } from "react";
 import Link from "next/link";
 
-/* ─── DATA ─── */
-const subjects = [
-  { id: 1, name: "Mathematics",        icon: "📐", color: "bg-blue-600",   progress: 78, files: 12, notes: 8,  deadline: "Exam — Jun 3"         },
-  { id: 2, name: "Physics",            icon: "⚛️", color: "bg-purple-600", progress: 55, files: 9,  notes: 5,  deadline: "Assignment — May 28"   },
-  { id: 3, name: "English Literature", icon: "📖", color: "bg-pink-600",   progress: 90, files: 15, notes: 11, deadline: "Essay — May 24"        },
-  { id: 4, name: "Chemistry",          icon: "🧪", color: "bg-cyan-600",   progress: 42, files: 7,  notes: 4,  deadline: "Lab Report — Jun 1"    },
-  { id: 5, name: "History",            icon: "🏛️", color: "bg-amber-600",  progress: 65, files: 10, notes: 7,  deadline: "Presentation — Jun 7"  },
-  { id: 6, name: "Computer Science",   icon: "💻", color: "bg-green-600",  progress: 88, files: 18, notes: 14, deadline: "Project — Jun 10"      },
+/* ─── TYPES ─── */
+type FileItem = { name: string; size: string; type: "pdf" | "doc" | "ppt" | "img" | "other"; added: string };
+type Folder   = { id: number; name: string; icon: string; color: string; colorLight: string; progress: number; files: FileItem[]; deadline: string };
+
+/* ─── FOLDER DATA ─── */
+const folderData: Folder[] = [
+  {
+    id: 1, name: "Mathematics", icon: "📐", color: "bg-blue-600", colorLight: "bg-blue-50",
+    progress: 78, deadline: "Exam — Jun 3",
+    files: [
+      { name: "Calculus Notes — Chapter 7.pdf",  size: "1.2 MB", type: "pdf", added: "2h ago"     },
+      { name: "Past Papers 2023.pdf",             size: "3.4 MB", type: "pdf", added: "Yesterday"  },
+      { name: "Revision Slides.pptx",             size: "2.1 MB", type: "ppt", added: "2 days ago" },
+      { name: "Formula Sheet.pdf",                size: "0.4 MB", type: "pdf", added: "3 days ago" },
+    ],
+  },
+  {
+    id: 2, name: "Physics", icon: "⚛️", color: "bg-purple-600", colorLight: "bg-purple-50",
+    progress: 55, deadline: "Assignment — May 28",
+    files: [
+      { name: "Newton's Laws Summary.docx",       size: "0.8 MB", type: "doc", added: "Yesterday"  },
+      { name: "Lab Report Template.docx",         size: "0.3 MB", type: "doc", added: "3 days ago" },
+      { name: "Wave Mechanics Slides.pptx",       size: "4.1 MB", type: "ppt", added: "4 days ago" },
+    ],
+  },
+  {
+    id: 3, name: "English Literature", icon: "📖", color: "bg-pink-600", colorLight: "bg-pink-50",
+    progress: 90, deadline: "Essay — May 24",
+    files: [
+      { name: "Macbeth Essay Draft.docx",         size: "0.6 MB", type: "doc", added: "Yesterday"  },
+      { name: "Shakespeare Analysis.pdf",         size: "1.8 MB", type: "pdf", added: "2 days ago" },
+      { name: "Poetry Anthology.pdf",             size: "2.2 MB", type: "pdf", added: "5 days ago" },
+      { name: "Essay Rubric.pdf",                 size: "0.2 MB", type: "pdf", added: "1 week ago" },
+      { name: "Reading List.docx",                size: "0.1 MB", type: "doc", added: "1 week ago" },
+    ],
+  },
+  {
+    id: 4, name: "Chemistry", icon: "🧪", color: "bg-cyan-600", colorLight: "bg-cyan-50",
+    progress: 42, deadline: "Lab Report — Jun 1",
+    files: [
+      { name: "Periodic Table Flashcards.pdf",    size: "1.5 MB", type: "pdf", added: "2 days ago" },
+      { name: "Titration Lab Notes.docx",         size: "0.7 MB", type: "doc", added: "3 days ago" },
+      { name: "Organic Chemistry Diagrams.pdf",   size: "2.9 MB", type: "pdf", added: "5 days ago" },
+    ],
+  },
+  {
+    id: 5, name: "History", icon: "🏛️", color: "bg-amber-600", colorLight: "bg-amber-50",
+    progress: 65, deadline: "Presentation — Jun 7",
+    files: [
+      { name: "WW2 Timeline.pptx",               size: "3.2 MB", type: "ppt", added: "3 days ago" },
+      { name: "Cold War Essay.docx",              size: "0.9 MB", type: "doc", added: "4 days ago" },
+      { name: "Primary Sources.pdf",              size: "5.1 MB", type: "pdf", added: "1 week ago" },
+    ],
+  },
+  {
+    id: 6, name: "Computer Science", icon: "💻", color: "bg-green-600", colorLight: "bg-green-50",
+    progress: 88, deadline: "Project — Jun 10",
+    files: [
+      { name: "Algorithm Notes.pdf",              size: "1.1 MB", type: "pdf", added: "1h ago"     },
+      { name: "Project Proposal.docx",            size: "0.5 MB", type: "doc", added: "Yesterday"  },
+      { name: "Database Schema.pdf",              size: "0.8 MB", type: "pdf", added: "2 days ago" },
+      { name: "UI Mockups.png",                   size: "2.4 MB", type: "img", added: "3 days ago" },
+      { name: "Code Review Slides.pptx",          size: "1.7 MB", type: "ppt", added: "4 days ago" },
+    ],
+  },
 ];
+
+/* ─── FILE TYPE HELPERS ─── */
+const fileIcon: Record<string, string> = { pdf: "📄", doc: "📝", ppt: "📊", img: "🖼️", other: "📎" };
+const fileColor: Record<string, string> = {
+  pdf:   "bg-red-50   text-red-500   border-red-100",
+  doc:   "bg-blue-50  text-blue-500  border-blue-100",
+  ppt:   "bg-orange-50 text-orange-500 border-orange-100",
+  img:   "bg-green-50 text-green-500 border-green-100",
+  other: "bg-slate-50 text-slate-500 border-slate-100",
+};
+
+/* ─── LEGACY subjects alias (used by DashboardContent FolderCard) ─── */
+const subjects = folderData.map(f => ({
+  id: f.id, name: f.name, icon: f.icon, color: f.color,
+  progress: f.progress, files: f.files.length, notes: Math.floor(f.files.length * 0.6),
+  deadline: f.deadline,
+}));
 
 const recentFiles = [
   { name: "Calculus Notes — Chapter 7.pdf",  subject: "Mathematics",        time: "2h ago",    icon: "📄" },
@@ -41,6 +115,223 @@ const navItems = [
   { id: "enrollment", label: "Enrollment",  icon: "🎓" },
   { id: "fees",       label: "Fees",        icon: "💰" },
 ];
+
+/* ─── MY FOLDERS VIEW ─── */
+function MyFolders() {
+  const [openFolder, setOpenFolder] = useState<Folder | null>(null);
+  const [search, setSearch]         = useState("");
+  const [showModal, setShowModal]   = useState(false);
+  const [newName, setNewName]       = useState("");
+  const [folders, setFolders]       = useState<Folder[]>(folderData);
+
+  /* filtered files inside open folder */
+  const filteredFiles = openFolder
+    ? openFolder.files.filter(f => f.name.toLowerCase().includes(search.toLowerCase()))
+    : [];
+
+  function addFolder() {
+    if (!newName.trim()) return;
+    const icons = ["📘","📗","📙","📕","📓"];
+    const colors = ["bg-indigo-600","bg-teal-600","bg-rose-600","bg-violet-600","bg-lime-600"];
+    const lights = ["bg-indigo-50","bg-teal-50","bg-rose-50","bg-violet-50","bg-lime-50"];
+    const idx = folders.length % icons.length;
+    setFolders(prev => [...prev, {
+      id: Date.now(), name: newName.trim(), icon: icons[idx],
+      color: colors[idx], colorLight: lights[idx],
+      progress: 0, deadline: "No deadline set", files: [],
+    }]);
+    setNewName("");
+    setShowModal(false);
+  }
+
+  /* ── open folder drill-down ── */
+  if (openFolder) {
+    const folder = folders.find(f => f.id === openFolder.id) ?? openFolder;
+    return (
+      <div className="flex flex-col gap-5">
+        {/* breadcrumb */}
+        <div className="flex items-center gap-2 text-sm">
+          <button onClick={() => { setOpenFolder(null); setSearch(""); }}
+            className="text-blue-500 hover:text-blue-700 font-semibold transition-colors">
+            My Folders
+          </button>
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-600 font-semibold">{folder.name}</span>
+        </div>
+
+        {/* folder header */}
+        <div className={`${folder.colorLight} rounded-2xl p-5 border border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-4`}>
+          <div className={`w-14 h-14 rounded-2xl ${folder.color} flex items-center justify-center text-3xl shadow-md`}>
+            {folder.icon}
+          </div>
+          <div className="flex-1">
+            <h2 className="text-slate-800 font-extrabold text-xl">{folder.name}</h2>
+            <p className="text-slate-400 text-sm mt-0.5">
+              {folder.files.length} files · Next: <span className="text-slate-600 font-semibold">{folder.deadline}</span>
+            </p>
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex-1 max-w-xs h-2 bg-white rounded-full overflow-hidden border border-slate-200">
+                <div className={`h-full ${folder.color} rounded-full transition-all`} style={{ width: `${folder.progress}%` }} />
+              </div>
+              <span className="text-xs font-semibold text-slate-500">{folder.progress}% complete</span>
+            </div>
+          </div>
+          <button className={`${folder.color} text-white text-sm font-bold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity shadow-sm`}>
+            + Upload File
+          </button>
+        </div>
+
+        {/* search */}
+        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2 shadow-sm">
+          <span className="text-slate-400">🔍</span>
+          <input
+            value={search} onChange={e => setSearch(e.target.value)}
+            placeholder={`Search in ${folder.name}...`}
+            className="flex-1 text-sm text-slate-600 placeholder-slate-300 bg-transparent focus:outline-none"
+          />
+        </div>
+
+        {/* files list */}
+        {filteredFiles.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-slate-100 p-10 text-center shadow-sm">
+            <div className="text-4xl mb-3">📂</div>
+            <p className="text-slate-400 text-sm">{search ? "No files match your search." : "This folder is empty."}</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            {/* table header */}
+            <div className="grid grid-cols-12 px-5 py-3 border-b border-slate-100 bg-slate-50">
+              <span className="col-span-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">File Name</span>
+              <span className="col-span-2 text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:block">Type</span>
+              <span className="col-span-2 text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:block">Size</span>
+              <span className="col-span-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Added</span>
+            </div>
+            {filteredFiles.map((f, i) => (
+              <div key={i}
+                className="grid grid-cols-12 px-5 py-3.5 border-b border-slate-50 hover:bg-blue-50 cursor-pointer transition-colors items-center last:border-0">
+                <div className="col-span-6 flex items-center gap-3 min-w-0">
+                  <span className={`w-8 h-8 rounded-lg border flex items-center justify-center text-base shrink-0 ${fileColor[f.type]}`}>
+                    {fileIcon[f.type]}
+                  </span>
+                  <span className="text-slate-700 text-sm font-medium truncate">{f.name}</span>
+                </div>
+                <div className="col-span-2 hidden sm:block">
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${fileColor[f.type]}`}>
+                    {f.type.toUpperCase()}
+                  </span>
+                </div>
+                <span className="col-span-2 text-slate-400 text-xs hidden sm:block">{f.size}</span>
+                <div className="col-span-2 flex items-center justify-between">
+                  <span className="text-slate-400 text-xs">{f.added}</span>
+                  <button className="text-slate-300 hover:text-blue-500 transition-colors text-sm ml-2" title="Download">↓</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ── folder grid ── */
+  return (
+    <div className="flex flex-col gap-6">
+      {/* header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-slate-800 font-extrabold text-2xl">My Folders</h2>
+          <p className="text-slate-400 text-sm mt-0.5">{folders.length} subject folders · {folders.reduce((a, f) => a + f.files.length, 0)} total files</p>
+        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors shadow-md shadow-blue-200 flex items-center gap-2"
+        >
+          <span className="text-base">＋</span> New Folder
+        </button>
+      </div>
+
+      {/* folder grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {folders.map(folder => (
+          <button
+            key={folder.id}
+            onClick={() => setOpenFolder(folder)}
+            className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all text-left p-5 group"
+          >
+            {/* top row */}
+            <div className="flex items-start justify-between mb-4">
+              <div className={`w-12 h-12 rounded-2xl ${folder.color} flex items-center justify-center text-2xl shadow-md`}>
+                {folder.icon}
+              </div>
+              <span className="text-slate-300 group-hover:text-blue-400 transition-colors text-lg">→</span>
+            </div>
+
+            {/* name */}
+            <h3 className="text-slate-800 font-bold text-base mb-1">{folder.name}</h3>
+            <p className="text-slate-400 text-xs mb-4">
+              {folder.files.length} files · {Math.floor(folder.files.length * 0.6)} notes
+            </p>
+
+            {/* progress */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className={`h-full ${folder.color} rounded-full`} style={{ width: `${folder.progress}%` }} />
+              </div>
+              <span className="text-xs font-semibold text-slate-400 shrink-0">{folder.progress}%</span>
+            </div>
+
+            {/* deadline chip */}
+            <div className={`inline-flex items-center gap-1.5 ${folder.colorLight} rounded-full px-3 py-1`}>
+              <span className="text-xs">📌</span>
+              <span className="text-xs font-semibold text-slate-600">{folder.deadline}</span>
+            </div>
+          </button>
+        ))}
+
+        {/* add folder tile */}
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl p-5 flex flex-col items-center justify-center gap-3 hover:border-blue-300 hover:bg-blue-50 transition-all min-h-[180px] group"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-white border-2 border-dashed border-slate-200 group-hover:border-blue-300 flex items-center justify-center text-2xl transition-colors">
+            ＋
+          </div>
+          <span className="text-slate-400 group-hover:text-blue-500 text-sm font-semibold transition-colors">New Folder</span>
+        </button>
+      </div>
+
+      {/* new folder modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/20 z-50 flex items-center justify-center p-4" onClick={() => setShowModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm flex flex-col gap-4" onClick={e => e.stopPropagation()}>
+            <h3 className="text-slate-800 font-extrabold text-lg">Create New Folder</h3>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-slate-500 text-xs font-semibold uppercase tracking-widest">Folder Name</label>
+              <input
+                autoFocus
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && addFolder()}
+                placeholder="e.g. Biology, Art History..."
+                className="bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-xl px-4 py-3 text-slate-800 placeholder-slate-300 text-sm outline-none transition"
+              />
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setShowModal(false)}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-sm py-2.5 rounded-xl transition-colors">
+                Cancel
+              </button>
+              <button onClick={addFolder}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-2.5 rounded-xl transition-colors shadow-md shadow-blue-200">
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ─── SIDEBAR ─── */
 function Sidebar({ active, setActive, mobileOpen, setMobileOpen }: {
@@ -314,7 +605,7 @@ export default function DashboardPage() {
         </header>
 
         <main className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
-          <DashboardContent />
+          {activeNav === "subjects" ? <MyFolders /> : <DashboardContent />}
         </main>
       </div>
     </div>
