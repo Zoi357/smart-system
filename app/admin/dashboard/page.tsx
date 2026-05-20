@@ -56,6 +56,9 @@ function Sidebar({ active, setActive, mobileOpen, setMobileOpen }: {
 
         {/* logo */}
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
+          <div className="w-8 h-8 rounded-full overflow-hidden border border-white/20 shrink-0">
+            <img src="/image.png" alt="Benedicto College" className="w-full h-full object-cover" />
+          </div>
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-extrabold text-base shadow-lg">
             IN
           </div>
@@ -765,7 +768,12 @@ export default function AdminDashboardPage() {
               <span className="text-xl">🔔</span>
               <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold cursor-pointer shadow-md">AD</div>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full overflow-hidden border border-slate-200 shrink-0">
+                <img src="/image.png" alt="BC" className="w-full h-full object-cover" />
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold cursor-pointer shadow-md">AD</div>
+            </div>
           </div>
         </header>
 

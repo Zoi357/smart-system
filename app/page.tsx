@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import LoadingScreen from "./components/LoadingScreen";
 
 /* ── live clock ── */
 function Clock() {
@@ -63,18 +64,25 @@ const services = [
 ];
 
 export default function KioskHome() {
+  const [loaded, setLoaded] = useState(false);
+
   return (
-    <div className="min-h-screen kiosk-bg flex flex-col" suppressHydrationWarning>
+    <>
+      {!loaded && <LoadingScreen onDone={() => setLoaded(true)} />}
+      <div className={`min-h-screen kiosk-bg flex flex-col transition-opacity duration-500 ${loaded ? "opacity-100" : "opacity-0"}`} suppressHydrationWarning>
 
       {/* ── top bar ── */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-blue-100 glass-dark">
         <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full overflow-hidden border border-slate-200 shrink-0">
+            <img src="/image.png" alt="Benedicto College" className="w-full h-full object-cover" />
+          </div>
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-lg shadow-md shadow-blue-200">
             IN
           </div>
           <div>
             <div className="text-slate-800 font-bold text-base leading-tight">INFORM</div>
-            <div className="text-slate-400 text-xs">Student Information System</div>
+            <div className="text-slate-400 text-xs">Benedicto College</div>
           </div>
         </div>
 
@@ -189,5 +197,6 @@ export default function KioskHome() {
         </div>
       </footer>
     </div>
+    </>
   );
 }

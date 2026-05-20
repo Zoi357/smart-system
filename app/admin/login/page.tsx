@@ -68,10 +68,20 @@ export default function AdminLoginPage() {
       >
         {/* logo */}
         <div className="flex flex-col items-center gap-3">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-lg">
-            IN
+          <div className="flex items-center gap-3">
+            {/* BC logo */}
+            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white/20 shrink-0 shadow-lg">
+              <img src="/image.png" alt="Benedicto College" className="w-full h-full object-cover" />
+            </div>
+            {/* divider */}
+            <div className="w-px h-10 bg-white/20" />
+            {/* IN logo */}
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-lg">
+              IN
+            </div>
           </div>
           <div className="text-white font-bold text-xl tracking-tight">INFORM</div>
+          <div className="text-indigo-300 text-xs text-center">Benedicto College &middot; Student Information System</div>
           <div className="flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 rounded-full px-4 py-1.5">
             <span className="text-sm">&#128737;</span>
             <span className="text-indigo-300 text-xs font-semibold tracking-wide">Administrator Access</span>

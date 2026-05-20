@@ -213,21 +213,28 @@ function AIChat() {
     setMsgs(newMsgs);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
-      /* pass history for context (#3) */
-      const reply = getAIResponse(text, newMsgs);
-      /* find which topic matched for context tracking */
-      const lower = text.toLowerCase();
-      let matchedTopic = "general";
-      let bestScore = 0;
-      for (const qa of KB) {
-        let score = 0;
-        for (const p of qa.patterns) { if (lower.includes(p)) score += p.split(" ").length; }
-        if (score > bestScore) { bestScore = score; matchedTopic = qa.topic; }
-      }
-      setMsgs(prev => [...prev, { role: "ai", text: reply, topic: matchedTopic, feedback: null }]);
-      setTyping(false);
-    }, 700);
+
+    /* call Gemini via our API route */
+    fetch("/api/jobert", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: text.trim(),
+        /* send last 6 messages as history for context */
+        history: newMsgs.slice(-6).map(m => ({ role: m.role, text: m.text })),
+      }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        const reply = data.reply ?? data.error ?? "Sorry, I could not get a response. Please try again.";
+        setMsgs(prev => [...prev, { role: "ai", text: reply, topic: "gemini", feedback: null }]);
+      })
+      .catch(() => {
+        /* fallback to local KB if API fails */
+        const reply = getAIResponse(text, newMsgs);
+        setMsgs(prev => [...prev, { role: "ai", text: reply, topic: "fallback", feedback: null }]);
+      })
+      .finally(() => setTyping(false));
   }
 
   /* #6 thumbs feedback */
@@ -276,7 +283,7 @@ function AIChat() {
             <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm shrink-0">AI</div>
             <div className="flex-1 min-w-0">
               <div className="text-white font-bold text-sm">JOBERT</div>
-              <div className="text-blue-200 text-xs">INFORM Assistant &middot; Context-aware</div>
+              <div className="text-blue-200 text-xs">Powered by Gemini AI &middot; BC Assistant</div>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
@@ -421,11 +428,20 @@ export default function LoginPage() {
 
         {/* logo */}
         <div className="flex flex-col items-center gap-2">
-          <div className="w-16 h-16 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-blue-200">
-            IN
+          <div className="flex items-center gap-3">
+            {/* BC logo */}
+            <div className="w-14 h-14 rounded-full overflow-hidden shadow-md border-2 border-slate-100 shrink-0">
+              <img src="/image.png" alt="Benedicto College" className="w-full h-full object-cover" />
+            </div>
+            {/* divider */}
+            <div className="w-px h-10 bg-slate-200" />
+            {/* IN logo */}
+            <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-blue-200 shrink-0">
+              IN
+            </div>
           </div>
           <div className="text-slate-800 font-bold text-xl tracking-tight">INFORM</div>
-          <div className="text-slate-400 text-xs">Student Information System</div>
+          <div className="text-slate-400 text-xs">Benedicto College &middot; Student Information System</div>
         </div>
 
         <div className="w-full h-px bg-slate-100" />
