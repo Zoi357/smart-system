@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-/* ── Gemini REST endpoint ── */
-const GEMINI_URL =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+/* ── Ollama REST endpoint (local) ── */
+const OLLAMA_URL = "http://localhost:11434/api/generate";
 
 /* ── JOBERT system prompt ── */
 const SYSTEM_PROMPT = `You are JOBERT, the official AI assistant of the INFORM Student Information System at Benedicto College (Cebu, Philippines).
@@ -50,72 +49,54 @@ Rules:
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("=== JOBERT API CALLED (Ollama) ===");
+    
     const { message, history } = await req.json();
+    console.log("Message received:", message);
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "GEMINI_API_KEY not configured" },
-        { status: 500 }
-      );
-    }
+    /* build conversation history for Ollama */
+    const conversationHistory = (history || [])
+      .slice(-6)
+      .map((m: { role: string; text: string }) => `${m.role === "user" ? "User" : "Assistant"}: ${m.text}`)
+      .join("\n");
 
-    /* build conversation history for Gemini */
-    const contents = [
-      /* inject system prompt as first user turn */
-      {
-        role: "user",
-        parts: [{ text: `[SYSTEM INSTRUCTIONS - follow these always]\n${SYSTEM_PROMPT}` }],
-      },
-      {
-        role: "model",
-        parts: [{ text: "Understood. I am JOBERT, the INFORM Assistant at Benedicto College. I will only answer questions about the INFORM system and Benedicto College. How can I help you?" }],
-      },
-      /* add conversation history */
-      ...(history || []).slice(-6).map((m: { role: string; text: string }) => ({
-        role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.text }],
-      })),
-      /* current message */
-      {
-        role: "user",
-        parts: [{ text: message }],
-      },
-    ];
+    const prompt = `${SYSTEM_PROMPT}
 
-    const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+Conversation history:
+${conversationHistory}
+
+User: ${message}
+Assistant:`;
+
+    console.log("Sending request to Ollama API...");
+    const response = await fetch(OLLAMA_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 512,
-          topP: 0.9,
-        },
-        safetySettings: [
-          { category: "HARM_CATEGORY_HARASSMENT",        threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-          { category: "HARM_CATEGORY_HATE_SPEECH",       threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-        ],
+        model: "mistral",
+        prompt: prompt,
+        stream: false,
+        temperature: 0.7,
       }),
+      signal: AbortSignal.timeout(120000), // 2 minute timeout
     });
+
+    console.log("Ollama API response status:", response.status);
 
     if (!response.ok) {
       const err = await response.text();
-      console.error("Gemini API error:", err);
-      return NextResponse.json({ error: "Gemini API error" }, { status: 500 });
+      console.error("Ollama API error response:", err);
+      return NextResponse.json({ error: "Ollama API error", details: err }, { status: 500 });
     }
 
     const data = await response.json();
-    const text =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      "I'm sorry, I couldn't generate a response. Please try again.";
+    console.log("Ollama API response received");
+    
+    const text = data?.response ?? "I'm sorry, I couldn't generate a response. Please try again.";
 
-    return NextResponse.json({ reply: text });
+    return NextResponse.json({ reply: text.trim() });
   } catch (err) {
     console.error("JOBERT route error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error", details: String(err) }, { status: 500 });
   }
 }
