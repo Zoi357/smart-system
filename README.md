@@ -1,293 +1,251 @@
-# INFORM – Smart Student Service
+# INFORM - Smart Student Information Management System
 
-A full-stack web application for **Benedicto College** that gives students a self-service portal to manage enrollment, grades, attendance, payments, and document requests — with an admin verification workflow and an AI assistant (JOBERT) powered by the Gemini API.
+A modern, web-based student academic records and service management system for **Cebu Far East Institute (CFEI)** designed specifically for Senior High School (SHS) students.
 
----
+## 🎓 Overview
 
-## Tech Stack
+INFORM is a comprehensive platform that streamlines academic management for SHS institutions. It provides students, teachers, and administrators with an integrated system to manage enrollment, grades, schedules, tuition, and academic records.
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4, TypeScript |
-| Backend | Node.js, Express 4 |
-| Database | MySQL 8 |
-| Authentication | JWT (HTTP-only cookies) |
-| AI Assistant | Google Gemini API |
-| Notifications | Firebase Cloud Messaging (in-app fallback included) |
+## ✨ Key Features
 
----
+### For Students
+- **Dashboard**: Personalized student portal with quick access to grades, schedule, and tuition information
+- **Enrollment System**: Complete SHS enrollment form with automatic Student ID and LRN generation
+- **Grades Management**: View subject grades, GWA (General Weighted Average), and performance metrics
+- **Schedule Viewer**: Class timetable with room locations and teacher information
+- **Tuition Tracking**: Monitor tuition payments and outstanding balances
+- **JOBERT AI Assistant**: Intelligent chatbot powered by Ollama/Mistral for academic guidance
+- **Dark/Light Mode**: Toggle between dark and light themes for comfortable viewing
+- **Credentials Display**: Auto-generated LRN, Student ID, and temporary password upon enrollment
 
-## Project Structure
+### For Teachers
+- **Teacher Login**: Dedicated teacher authentication portal
+- **Grade Management**: Submit and manage student grades
+- **Class Information**: View assigned classes and student rosters
 
-```
-IMPLEMENTATION-OF-A-SMART-STUDENT-SERVICE-/
-├── app/                        # Next.js frontend (App Router)
-│   ├── admin/
-│   │   ├── dashboard/          # Admin dashboard page
-│   │   └── login/              # Admin login page
-│   ├── api/
-│   │   └── jobert/route.ts     # JOBERT AI assistant API route
-│   ├── components/
-│   │   └── LoadingScreen.tsx
-│   ├── dashboard/page.tsx      # Student dashboard
-│   ├── login/page.tsx          # Student login
-│   └── globals.css
-│
-└── server/                     # Express backend
-    ├── config/
-    │   ├── db.js               # MySQL connection pool
-    │   └── env.js              # Environment variables
-    ├── controllers/            # Request handlers
-    ├── database/
-    │   ├── migrate.js          # Creates tables + seeds data
-    │   └── schema.sql          # Full MySQL schema
-    ├── middleware/             # JWT auth guards, error handler
-    ├── models/                 # Database query layer
-    ├── routes/                 # Express route definitions
-    ├── utils/
-    │   ├── grading.js          # Philippine Grading Scale helpers
-    │   └── notify.js           # Notification helper
-    └── index.js                # Express entry point
-```
+### For Administrators
+- **Admin Dashboard**: Comprehensive overview of student enrollment and academic metrics
+- **Student Management**: View and manage all enrolled students
+- **Grades Oversight**: Monitor grade submissions and academic performance
+- **Enrollment Tracking**: Track new and returning student enrollments
+- **Tuition Records**: Monitor payment status and outstanding balances
+- **Announcements**: Post and manage school announcements
 
----
+## 🏫 SHS Structure
 
-## Getting Started
+The system is tailored for Senior High School with:
+- **Tracks**: TVL, STEM, GAS, HUMMS, ABM
+- **Grade Levels**: Grade 11 and Grade 12
+- **Student Status**: New Student or Old Student
+- **Auto-generated IDs**: Student ID (STU-YYYYMMDDXXXX) and LRN (12-digit unique number)
+
+## 🛠️ Tech Stack
+
+### Frontend
+- **Next.js 16** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Bootstrap 5** - Responsive UI components
+- **CSS3** - Custom animations and gradients
+
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - API server
+- **SQLite** - Database (with migration support)
+
+### AI Integration
+- **Ollama** - Local LLM server
+- **Mistral Model** - Language model for JOBERT assistant
+
+## 🎨 Design Features
+
+- **Premium Dark Theme**: Sophisticated navy/slate gradient backgrounds
+- **Animated Gradients**: Smooth, flowing background animations
+- **Glowing Logo**: CFEI logo with RGB glow effect
+- **Glass Morphism**: Modern frosted glass card effects
+- **Responsive Design**: Mobile-first approach with Bootstrap grid
+- **Color Scheme**: Blue (#1e40af), Red (#dc2626), Yellow (#fbbf24)
+
+## 📋 Enrollment Process
+
+1. Student selects "Enroll Now" from home page
+2. Fills comprehensive enrollment form with:
+   - Personal information (name, DOB, contact)
+   - Educational background
+   - Parent/Guardian information
+   - 2x2 ID photo upload
+3. Reviews and accepts Terms & Conditions
+4. Receives auto-generated credentials:
+   - **LRN**: Learner Reference Number
+   - **Student ID**: Unique identifier
+   - **Password**: Temporary password (CFEI@2026)
+
+## 🔐 Authentication
+
+### Student Login
+- Student ID or LRN
+- Password
+- Secure session management
+
+### Teacher Login
+- Teacher ID (T001-T004)
+- Password
+- Demo credentials available for testing
+
+### Admin Login
+- Admin credentials
+- Full system access
+
+## 🚀 Getting Started
 
 ### Prerequisites
-
 - Node.js 18+
-- MySQL 8+
-- A Google Gemini API key (for JOBERT)
+- npm or yarn
+- Ollama (for AI features)
+- Mistral model downloaded locally
 
----
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/YOUR-USERNAME/IMPLEMENTATION-OF-A-SMART-STUDENT-SERVICE-.git
-cd IMPLEMENTATION-OF-A-SMART-STUDENT-SERVICE-
-```
-
----
-
-### 2. Set up the backend
+### Installation
 
 ```bash
-cd server
+# Clone the repository
+git clone https://github.com/Zoi357/smart-system.git
+cd smart-system
+
+# Install dependencies
 npm install
-```
 
-Create a `.env` file inside the `server/` folder:
+# Set up environment variables
+cp .env.example .env.local
 
-```env
-PORT=4000
-JWT_SECRET=your_jwt_secret_here
-JWT_EXPIRES_IN=24h
-ADMIN_JWT_SECRET=your_admin_jwt_secret_here
-
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=smart_student_service
-```
-
-Run the migration to create all tables and seed initial data:
-
-```bash
+# Run database migrations
 npm run migrate
-```
 
-Start the backend server:
-
-```bash
+# Start development server
 npm run dev
 ```
 
-The API will be available at `http://localhost:4000`.
-
----
-
-### 3. Set up the frontend
-
-From the project root:
+### Running Ollama
 
 ```bash
-npm install
+# Start Ollama server (runs on localhost:11434)
+ollama serve
+
+# In another terminal, pull Mistral model
+ollama pull mistral
 ```
 
-Create a `.env.local` file in the project root:
+## 📁 Project Structure
 
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
+```
+├── app/
+│   ├── admin/              # Admin dashboard and login
+│   ├── dashboard/          # Student dashboard
+│   ├── enrollment/         # Enrollment form
+│   ├── login/              # Student login
+│   ├── teacher/            # Teacher login
+│   ├── api/                # API routes
+│   ├── components/         # Reusable components
+│   ├── globals.css         # Global styles
+│   └── layout.tsx          # Root layout
+├── server/
+│   ├── config/             # Database and environment config
+│   ├── controllers/        # Business logic
+│   ├── models/             # Data models
+│   ├── middleware/         # Express middleware
+│   ├── database/           # Database schema and migrations
+│   └── index.js            # Server entry point
+├── public/                 # Static assets
+└── package.json            # Dependencies
 ```
 
-Start the frontend:
+## 🔄 API Endpoints
 
-```bash
-npm run dev
-```
+### Authentication
+- `POST /api/auth/login` - Student login
+- `POST /api/auth/teacher-login` - Teacher login
+- `POST /api/auth/logout` - Logout
 
-The app will be available at `http://localhost:3000`.
+### Student
+- `GET /api/student/dashboard` - Get dashboard data
+- `GET /api/student/grades` - Get student grades
+- `GET /api/student/schedule` - Get class schedule
+- `GET /api/student/tuition` - Get tuition information
+
+### Enrollment
+- `POST /api/enrollment/submit` - Submit enrollment form
+- `GET /api/enrollment/status` - Check enrollment status
+
+### JOBERT AI
+- `POST /api/jobert` - Send message to AI assistant
+
+## 🎯 Demo Credentials
+
+### Student
+- **Student ID**: STU-2024-001
+- **Password**: (Set during enrollment)
+
+### Teacher
+- **Teacher ID**: T001
+- **Password**: Teacher@2026
+
+### Admin
+- **Username**: admin
+- **Password**: (Configure in environment)
+
+## 🌙 Dark/Light Mode
+
+Students can toggle between dark and light modes using the button in the top-right corner of the dashboard. Preferences are session-based.
+
+## 📱 Responsive Design
+
+- **Desktop**: Full-featured interface with all options visible
+- **Tablet**: Optimized layout with touch-friendly buttons
+- **Mobile**: Simplified interface with collapsible sections
+
+## 🔒 Security Features
+
+- Password hashing with bcrypt
+- JWT token authentication
+- CORS protection
+- Input validation and sanitization
+- SQL injection prevention
+- Session management
+
+## 📊 Database Schema
+
+- **Users**: Student, teacher, and admin accounts
+- **Students**: Student profile and enrollment information
+- **Grades**: Subject grades and GWA calculations
+- **Schedule**: Class timetables and room assignments
+- **Tuition**: Fee records and payment tracking
+- **Announcements**: School announcements and notifications
+- **Audit**: Activity logging for compliance
+
+## 🚧 Future Enhancements
+
+- [ ] Payment gateway integration
+- [ ] Document request system (TOR, certificates)
+- [ ] Parent portal access
+- [ ] Mobile app (React Native)
+- [ ] Advanced analytics dashboard
+- [ ] Email notifications
+- [ ] SMS alerts
+- [ ] Attendance tracking
+
+## 📝 License
+
+This project is proprietary software for Cebu Far East Institute.
+
+## 👥 Contributors
+
+- **Development**: Zoi357
+- **Original Repository**: KazukiMutsiMutsi
+
+## 📧 Support
+
+For issues, questions, or feature requests, please contact the development team.
 
 ---
 
-## Database Tables
+**Built with ❤️ for Cebu Far East Institute**
 
-| Table | Purpose |
-|---|---|
-| `students` | Student accounts and login info |
-| `teachers` | Teacher accounts |
-| `admins` | Admin accounts |
-| `subjects` | Available subjects with capacity |
-| `enrollments` | Enrollment records per student per semester |
-| `enrollment_subjects` | Many-to-many: enrollment ↔ subjects |
-| `grades` | Student grades per subject |
-| `attendance` | Attendance records per subject |
-| `payments` | Tuition and fee payment records |
-| `documents` | Document requests (TOR, certificates, etc.) |
-| `notifications` | In-app and push notification records |
-| `audit_log` | Admin action history |
-| `enrollment_config` | Active semester and enrollment deadline |
-
----
-
-## API Reference
-
-### Base URL
-```
-http://localhost:4000/api
-```
-
-### Health Check
-```
-GET /health
-```
-
-### Student Authentication
-```
-POST /auth/login          { student_id, password }
-POST /auth/logout
-GET  /auth/me             🔒 student token required
-```
-
-### Student Services (all require student token)
-```
-GET  /enrollment
-GET  /enrollment/subjects
-POST /enrollment          { subjects: [id, ...] }
-
-GET  /grades
-GET  /attendance
-
-GET  /payments
-POST /payments            { fee_item, amount }
-
-GET  /documents
-GET  /documents/types
-POST /documents           { document_type, purpose, copies }
-
-GET  /notifications
-POST /notifications/read
-POST /notifications/register-token  { device_token }
-```
-
-### Admin (all require admin token except login/logout)
-```
-POST /admin/login         { admin_id, password }
-POST /admin/logout
-
-GET  /admin/dashboard
-GET  /admin/students/search?q=<name or student_id>
-GET  /admin/audit-log
-
-GET  /admin/enrollments
-PATCH /admin/enrollments/:id/approve
-PATCH /admin/enrollments/:id/reject   { rejection_reason }
-
-GET  /admin/payments
-PATCH /admin/payments/:id/verify
-
-GET  /admin/documents
-PATCH /admin/documents/:id/approve   { expected_release_date }
-PATCH /admin/documents/:id/reject    { rejection_reason }
-```
-
----
-
-## Demo Credentials
-
-### Students
-| Student ID | Password | Name | Course |
-|---|---|---|---|
-| 202400001 | jamie123 | Jamie Santos | BSCS Year 2 |
-| 202400002 | maria456 | Maria Reyes | BSED Year 1 |
-| 202400003 | carlo789 | Carlo Dela Cruz | BSBA Year 3 |
-| 202400004 | ana2024 | Ana Villanueva | BSN Year 2 |
-| 202400005 | luis2024 | Luis Fernandez | BSCS Year 4 |
-
-### Admins
-| Admin ID | Password | Office |
-|---|---|---|
-| ADMIN001 | admin2024 | Registrar Office |
-| ADMIN002 | cashier2024 | Cashier Office |
-
----
-
-## Grading Scale
-
-The system uses the **Philippine Grading Scale**:
-
-| Percentage | Letter Grade |
-|---|---|
-| 99 – 100% | 1.00 |
-| 96 – 98% | 1.25 |
-| 93 – 95% | 1.50 |
-| 90 – 92% | 1.75 |
-| 87 – 89% | 2.00 |
-| 84 – 86% | 2.25 |
-| 81 – 83% | 2.50 |
-| 78 – 80% | 2.75 |
-| 75 – 77% | 3.00 |
-| Below 75% | 5.00 (Failed) |
-
-GWA is computed as the arithmetic mean of letter-grade equivalents.
-
----
-
-## Workflow
-
-```
-Student Login
-     ↓
-Dashboard (select service)
-     ↓
-Submit Request (enrollment / payment / document)
-     ↓
-Admin Reviews Pending Requests
-     ↓
-Admin Approves or Rejects
-     ↓
-Student Receives Notification
-```
-
----
-
-## Token Expiry
-
-| Role | Expiry |
-|---|---|
-| Student | 24 hours |
-| Admin | 8 hours |
-
----
-
-## Security Notes
-
-- Passwords are hashed with **bcrypt** (cost factor 10)
-- JWTs are stored in **HTTP-only, SameSite=Strict** cookies
-- Student and admin tokens use **separate secrets**
-- Admin routes are protected by a dedicated `role: "admin"` JWT claim
-- Accounts are locked for **15 minutes** after 5 consecutive failed login attempts
-- `.env` files are excluded from version control via `.gitignore`
+*Last Updated: May 28, 2026*
