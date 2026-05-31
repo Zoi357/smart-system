@@ -40,6 +40,7 @@ export default function EnrollmentPage() {
   const [showTerms, setShowTerms] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const handleTermsScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
@@ -97,8 +98,8 @@ export default function EnrollmentPage() {
       return;
     }
 
-    // Show terms and conditions modal
-    setShowTerms(true);
+    // Show confirmation modal first
+    setShowConfirmation(true);
   };
 
   const handleConfirmEnrollment = () => {
@@ -188,8 +189,11 @@ export default function EnrollmentPage() {
               <div className="mb-3">
                 <strong>Status:</strong> {formData.studentStatus === "new" ? "New Student" : "Old Student"}
               </div>
+              <div className="mb-3">
+                <strong>Pathway:</strong> {formData.course}
+              </div>
               <div>
-                <strong>Track:</strong> {formData.course} - Grade {formData.year}
+                <strong>Grade Level:</strong> Grade {formData.year} · Term 1 (June-September 2026)
               </div>
             </div>
 
@@ -238,6 +242,76 @@ export default function EnrollmentPage() {
 
   return (
     <>
+      {/* Confirmation Modal */}
+      {showConfirmation && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center px-3" style={{ background: "rgba(0,0,0,0.5)", zIndex: 9999 }}>
+          <div className="card border-0 shadow-lg rounded-3 overflow-hidden" style={{ maxWidth: 500, width: "100%" }}>
+            {/* Header */}
+            <div className="p-4 text-white text-center" style={{ background: "linear-gradient(135deg,#1e40af,#dc2626)" }}>
+              <h2 className="fw-black fs-5 mb-0">✓ Verify Your Information</h2>
+            </div>
+
+            {/* Content */}
+            <div className="card-body p-4">
+              <p className="text-dark mb-4">
+                Please review your information below. Make sure everything is correct before proceeding to the agreement.
+              </p>
+
+              {/* Information Summary */}
+              <div className="alert alert-info mb-4">
+                <div className="mb-2">
+                  <strong>Name:</strong> {formData.firstName} {formData.middleName && formData.middleName + " "}{formData.lastName}
+                </div>
+                <div className="mb-2">
+                  <strong>Email:</strong> {formData.email}
+                </div>
+                <div className="mb-2">
+                  <strong>Phone:</strong> {formData.phone}
+                </div>
+                <div className="mb-2">
+                  <strong>Pathway:</strong> {formData.course}
+                </div>
+                <div className="mb-2">
+                  <strong>Grade Level:</strong> Grade {formData.year}
+                </div>
+                <div className="mb-2">
+                  <strong>Status:</strong> {formData.studentStatus === "new" ? "New Student" : "Old Student"}
+                </div>
+                <div>
+                  <strong>Address:</strong> {formData.address}
+                </div>
+              </div>
+
+              <p className="text-muted small mb-0">
+                Is all your information correct?
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-top bg-light d-flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirmation(false)}
+                className="btn btn-outline-secondary flex-grow-1 rounded-2 fw-bold"
+              >
+                Edit Information
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfirmation(false);
+                  setShowTerms(true);
+                }}
+                className="btn btn-primary flex-grow-1 rounded-2 fw-bold"
+                style={{ background: "linear-gradient(135deg, #1e40af, #dc2626)", border: "none" }}
+              >
+                Proceed to Agreement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Terms and Conditions Modal */}
       {showTerms && (
         <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center px-3" style={{ background: "rgba(0,0,0,0.5)", zIndex: 9999, overflowY: "auto" }}>
@@ -520,9 +594,9 @@ export default function EnrollmentPage() {
               />
             </div>
 
-            {/* Track */}
+            {/* Pathway */}
             <div className="col-md-6">
-              <label className="form-label fw-semibold text-muted small">Track *</label>
+              <label className="form-label fw-semibold text-muted small">Pathway *</label>
               <select
                 name="course"
                 value={formData.course}
@@ -530,12 +604,9 @@ export default function EnrollmentPage() {
                 className="form-select rounded-2"
                 required
               >
-                <option value="">Select a track</option>
-                <option value="TVL">Technical-Vocational-Livelihood (TVL)</option>
-                <option value="STEM">Science, Technology, Engineering, Mathematics (STEM)</option>
-                <option value="GAS">General Academic Strand (GAS)</option>
-                <option value="HUMMS">Humanities and Social Sciences (HUMMS)</option>
-                <option value="ABM">Accountancy, Business, and Management (ABM)</option>
+                <option value="">Select a pathway</option>
+                <option value="Academic">Academic Pathway (STEM, GAS, HUMMS, ABM)</option>
+                <option value="TechPro">Technical-Professional (TechPro) Pathway (TVL)</option>
               </select>
             </div>
 

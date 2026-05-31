@@ -7,12 +7,12 @@ const ConfigModel     = require("../models/configModel");
 async function getMyAttendance(req, res, next) {
   try {
     const { student_id } = req.student;
-    const { active_semester } = await ConfigModel.getEnrollmentConfig();
+    const { active_term } = await ConfigModel.getEnrollmentConfig();
 
-    const rows     = await AttendanceModel.findByStudentAndSemester(student_id, active_semester);
+    const rows     = await AttendanceModel.findByStudentAndTerm(student_id, active_term);
     const enriched = rows.map((r) => AttendanceModel.enrichRecord(r));
 
-    res.json({ semester: active_semester, attendance: enriched });
+    res.json({ term: active_term, attendance: enriched });
   } catch (err) { next(err); }
 }
 

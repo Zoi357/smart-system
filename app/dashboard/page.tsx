@@ -166,7 +166,7 @@ function GradesView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onA
       <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
         <div>
           <h2 className="fw-black fs-4 text-white mb-0">My Grades</h2>
-          <p className="text-white-50 small mb-0">1st Semester · 2025–2026</p>
+          <p className="text-white-50 small mb-0">Term 1 · 2025–2026</p>
         </div>
         <div className="d-flex flex-column align-items-center gap-1 flex-shrink-0">
           <div className="bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 px-4 py-2 text-center">
@@ -180,7 +180,7 @@ function GradesView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onA
       <div className="row g-3">
         {gradeData.map((g, i) => (
           <div key={i} className="col-12 col-sm-6">
-            <div className="card border-0 shadow-sm rounded-3 h-100">
+            <div className="card-elevated border-0 rounded-3 h-100">
               <div className="card-body p-4">
                 <div className="d-flex align-items-center gap-3 mb-3">
                   <div className="rounded-3 bg-primary d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 40, height: 40, fontSize: 20 }}>{g.icon}</div>
@@ -195,7 +195,7 @@ function GradesView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onA
                 </div>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <span className="text-muted small">{g.pct}%</span>
-                  <span className={`badge ${g.status === "Excellent" ? "bg-success-subtle text-success border border-success-subtle" : "bg-primary-subtle text-primary border border-primary-subtle"}`}>{g.status}</span>
+                  <span className={`badge-status ${g.status === "Excellent" ? "badge-active" : "badge-pending"}`}>{g.status}</span>
                 </div>
                 <button onClick={() => onAskJobert(`I got ${g.grade} (${g.pct}%) in ${g.subject} with ${g.teacher}. Can you explain this grade and give me tips to improve?`)}
                   className="btn btn-outline-primary btn-sm w-100" style={{ fontSize: 12 }}>🤖 Ask JOBERT about this grade</button>
@@ -221,7 +221,7 @@ function ScheduleView({ onBack, onAskJobert, darkMode }: { onBack: () => void; o
       <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
         <div>
           <h2 className="fw-black fs-4 text-white mb-0">My Schedule</h2>
-          <p className="text-white-50 small mb-0">1st Semester · 2025–2026</p>
+          <p className="text-white-50 small mb-0">Term 1 · 2025–2026</p>
         </div>
         <button onClick={() => onAskJobert(`Today is ${day}. My classes are: ${subjectList}. Can you give me study tips for each subject?`)}
           className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 flex-shrink-0" style={{ fontSize: 12 }}>🤖 Study tips for today</button>
@@ -236,7 +236,7 @@ function ScheduleView({ onBack, onAskJobert, darkMode }: { onBack: () => void; o
       </div>
       <div className="d-flex flex-column gap-2">
         {timetable[day].map((cls, i) => (
-          <div key={i} className="card border-0 shadow-sm rounded-3">
+          <div key={i} className="card-elevated border-0 rounded-3">
             <div className="card-body p-3 d-flex align-items-center gap-3">
               <span className="font-mono text-muted flex-shrink-0" style={{ fontSize: 12, width: 110 }}>{cls.time}</span>
               <div className={`rounded-3 bg-${cls.color} d-flex align-items-center justify-content-center flex-shrink-0`} style={{ width: 44, height: 44, fontSize: 22 }}>{cls.icon}</div>
@@ -267,7 +267,7 @@ function TuitionView({ onBack, onAskJobert, darkMode }: { onBack: () => void; on
       <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
         <div>
           <h2 className="fw-black fs-4 text-white mb-0">Tuition Fee</h2>
-          <p className="text-white-50 small mb-0">1st Semester · 2025–2026</p>
+          <p className="text-white-50 small mb-0">Term 1 · 2025–2026</p>
         </div>
         <button onClick={() => onAskJobert(`I have an unpaid balance of ₱${balance.toLocaleString()} for: ${unpaidList}. How do I pay my tuition?`)}
           className="btn btn-outline-primary btn-sm flex-shrink-0" style={{ fontSize: 12 }}>🤖 How do I pay?</button>
@@ -286,14 +286,14 @@ function TuitionView({ onBack, onAskJobert, darkMode }: { onBack: () => void; on
           </div>
         ))}
       </div>
-      <div className="card border-0 shadow-sm rounded-3">
+      <div className="card-elevated border-0 shadow-sm rounded-3">
         <ul className="list-group list-group-flush rounded-3">
           {fees.map((f, i) => (
             <li key={i} className="list-group-item d-flex align-items-center justify-content-between px-4 py-3">
               <span className="small fw-medium text-dark">{f.label}</span>
               <div className="d-flex align-items-center gap-3">
                 <span className="small fw-semibold text-dark">₱{f.amount.toLocaleString()}</span>
-                <span className={`badge ${f.paid ? "bg-success-subtle text-success border border-success-subtle" : "bg-danger-subtle text-danger border border-danger-subtle"}`}>
+                <span className={`badge-status ${f.paid ? "badge-active" : "badge-pending"}`}>
                   {f.paid ? "Paid" : "Unpaid"}
                 </span>
               </div>
@@ -313,13 +313,13 @@ const tiles = [
   { id: "tuition"  as const, label: "Tuition Fee",   icon: "💰", color: "#1e3a6e" },
 ];
 
-function DashboardHome({ setPanel, onAskJobert, darkMode }: { setPanel: (p: "grades"|"schedule"|"tuition"|"library") => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
+function DashboardHome({ setPanel, onAskJobert, darkMode }: { setPanel: (p: "grades"|"schedule"|"tuition") => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
   return (
-    <div className="card border-0 shadow-lg rounded-3 overflow-hidden" style={{ maxWidth: 640, width: "100%", background: darkMode ? "#fff" : "#f8fafc" }}>
+    <div className="dashboard-card border-0 shadow-lg rounded-3 overflow-hidden" style={{ maxWidth: 640, width: "100%", background: darkMode ? "#fff" : "#f8fafc", padding: 0 }}>
       {/* Hero banner */}
       <div className="p-5 text-white text-center" style={{ background: "linear-gradient(135deg,#1e3a6e,#2563eb)" }}>
         <div className="fw-black fs-3 mb-1">Welcome, Jamie Santos</div>
-        <div className="text-white-50 small">STU-2024-001 · STEM Grade 11 · 1st Semester SY 2025–2026</div>
+        <div className="text-white-50 small">STU-2024-001 · STEM Grade 11 · Term 1 SY 2025–2026</div>
         <div className="d-flex justify-content-center gap-2 mt-3 flex-wrap">
           <span className="badge bg-white bg-opacity-20 border border-white border-opacity-25 text-dark px-3 py-2">🎓 Active Student</span>
           <span className="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">🔔 Enrollment Open</span>

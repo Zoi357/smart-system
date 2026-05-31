@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS students (
   student_id      VARCHAR(12)  NOT NULL UNIQUE,
   password        VARCHAR(255) NOT NULL,
   full_name       VARCHAR(100) NOT NULL,
-  course          VARCHAR(50)  NOT NULL,
-  year_level      TINYINT UNSIGNED NOT NULL DEFAULT 1,
-  semester        VARCHAR(50)  NOT NULL,
+  pathway         VARCHAR(50)  NOT NULL,
+  grade_level     TINYINT UNSIGNED NOT NULL DEFAULT 11,
+  term            VARCHAR(50)  NOT NULL,
   email           VARCHAR(100) NOT NULL,
   device_token    TEXT         NULL,
   failed_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
@@ -63,13 +63,13 @@ CREATE TABLE IF NOT EXISTS subjects (
 CREATE TABLE IF NOT EXISTS enrollments (
   id               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   student_id       VARCHAR(12)  NOT NULL,
-  semester         VARCHAR(50)  NOT NULL,
+  term             VARCHAR(50)  NOT NULL,
   status           ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   rejection_reason TEXT         NULL,
   admin_id         VARCHAR(20)  NULL,
   admin_timestamp  DATETIME     NULL,
   created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_student_semester (student_id, semester),
+  UNIQUE KEY uq_student_term (student_id, term),
   FOREIGN KEY (student_id) REFERENCES students(student_id)
 );
 
@@ -89,9 +89,9 @@ CREATE TABLE IF NOT EXISTS grades (
   subject_id  INT UNSIGNED NOT NULL,
   teacher_id  INT UNSIGNED NOT NULL,
   percentage  DECIMAL(5,2) NOT NULL,
-  semester    VARCHAR(50)  NOT NULL,
+  term        VARCHAR(50)  NOT NULL,
   created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_grade (student_id, subject_id, semester),
+  UNIQUE KEY uq_grade (student_id, subject_id, term),
   FOREIGN KEY (student_id) REFERENCES students(student_id),
   FOREIGN KEY (subject_id) REFERENCES subjects(id),
   FOREIGN KEY (teacher_id) REFERENCES teachers(id)
@@ -104,9 +104,9 @@ CREATE TABLE IF NOT EXISTS attendance (
   subject_id     INT UNSIGNED NOT NULL,
   total_meetings SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   days_present   SMALLINT UNSIGNED NOT NULL DEFAULT 0,
-  semester       VARCHAR(50)  NOT NULL,
+  term           VARCHAR(50)  NOT NULL,
   created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_attendance (student_id, subject_id, semester),
+  UNIQUE KEY uq_attendance (student_id, subject_id, term),
   FOREIGN KEY (student_id) REFERENCES students(student_id),
   FOREIGN KEY (subject_id) REFERENCES subjects(id)
 );
@@ -164,6 +164,6 @@ CREATE TABLE IF NOT EXISTS audit_log (
 -- ── Enrollment Config ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS enrollment_config (
   id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  active_semester VARCHAR(50)  NOT NULL,
+  active_term     VARCHAR(50)  NOT NULL,
   deadline        DATETIME     NOT NULL
 );

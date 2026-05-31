@@ -13,12 +13,12 @@ async function getMyEnrollment(req, res, next) {
   try {
     const { student_id } = req.student;
     const config = await ConfigModel.getEnrollmentConfig();
-    const enrollment = await EnrollmentModel.findByStudentAndSemester(
-      student_id, config.active_semester
+    const enrollment = await EnrollmentModel.findByStudentAndTerm(
+      student_id, config.active_term
     );
 
     if (!enrollment) {
-      return res.json({ enrollment: null, message: "No enrollment found for this semester." });
+      return res.json({ enrollment: null, message: "No enrollment found for this term." });
     }
 
     // Enrich subject IDs with full details
@@ -75,12 +75,12 @@ async function submitEnrollment(req, res, next) {
       });
     }
 
-    const existing = await EnrollmentModel.findByStudentAndSemester(
-      student_id, config.active_semester
+    const existing = await EnrollmentModel.findByStudentAndTerm(
+      student_id, config.active_term
     );
     if (existing) {
       return res.status(409).json({
-        error:  "You already have an enrollment record for this semester.",
+        error:  "You already have an enrollment record for this term.",
         status: existing.status,
       });
     }
@@ -100,7 +100,7 @@ async function submitEnrollment(req, res, next) {
 
     const enrollment = await EnrollmentModel.create({
       student_id,
-      semester: config.active_semester,
+      term: config.active_term,
       subjects,
     });
 

@@ -143,16 +143,21 @@ export default function KioskHome() {
             <p className="text-white-50 mt-3 fs-5" style={{ maxWidth: 600, margin: "0 auto" }}>Streamlined academic management for Cebu Far East Institute. Access your records, enrollment, and academic information in one unified platform.</p>
           </div>
 
-          {/* Enrollment banner */}
-          <div className="glass rounded-3 px-5 py-4 d-flex flex-column flex-sm-row align-items-center gap-4 animate-fade-in delay-2 border-start border-5" style={{ maxWidth: 640, width: "100%", borderColor: "#f59e0b" }}>
-            <div className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 56, height: 56, fontSize: 28, background: "linear-gradient(135deg, #f59e0b, #d97706)" }}>📋</div>
+          {/* Enrollment banner - Enhanced Card */}
+          <div className="card-accent-line px-5 py-4 d-flex flex-column flex-sm-row align-items-center gap-4 animate-fade-in delay-2" style={{ maxWidth: 640, width: "100%" }}>
+            <div className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 56, height: 56, fontSize: 28, background: "linear-gradient(135deg, #fbbf24, #f59e0b)" }}>📋</div>
             <div className="flex-grow-1">
               <div className="fw-bold text-dark mb-1">Enrollment Period is Now Open</div>
               <div className="text-muted small">
                 Don&apos;t miss the deadline! Enroll by <strong className="text-dark">June 15, 2026</strong>.
               </div>
             </div>
-            <Link href="/enrollment" className="btn btn-sm fw-bold flex-shrink-0 px-4" style={{ background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#fff", border: "none" }}>Enroll Now</Link>
+            <Link href="/enrollment" className="btn btn-gradient-icon flex-shrink-0">
+              <span>Enroll Now</span>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M 3 8 L 13 8 M 10 5 L 13 8 L 10 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
           </div>
 
           {/* Login buttons */}
@@ -200,13 +205,13 @@ export default function KioskHome() {
             </Link>
           </div>
 
-          {/* Quick services */}
+          {/* Quick services - Enhanced Cards */}
           <div className="animate-fade-in delay-4" style={{ maxWidth: 720, width: "100%" }}>
-            <p className="text-muted text-center text-uppercase small fw-semibold mb-3 ls-wide">Quick Access Services</p>
+            <p className="caption text-center mb-3">Quick Access Services</p>
             <div className="row g-3">
               {services.map((s) => (
                 <div key={s.label} className="col-6 col-sm-3">
-                  <Link href="/login" className="service-tile h-100">
+                  <Link href="/login" className="card-elevated h-100 d-flex flex-column align-items-center justify-content-center gap-2 p-3 text-decoration-none">
                     {s.icon}
                     <span className="fw-semibold small text-dark">{s.label}</span>
                     <span className="text-muted" style={{ fontSize: 11 }}>{s.desc}</span>

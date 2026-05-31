@@ -147,7 +147,7 @@ function Overview({ setActive }: { setActive: (s: string) => void }) {
         style={{ background:"linear-gradient(135deg,#6366f1,#7c3aed)", boxShadow:"0 8px 32px rgba(99,102,241,0.25)" }}>
         <div>
           <h2 className="text-white fw-black fs-4 mb-1">Welcome back, Admin 👋</h2>
-          <p className="text-white-50 small mb-0"><span className="text-white fw-semibold">{unpaidCount} students</span> have unpaid tuition this semester.</p>
+          <p className="text-white-50 small mb-0"><span className="text-white fw-semibold">{unpaidCount} students</span> have unpaid tuition this term.</p>
         </div>
         <div className="d-flex align-items-center gap-3 rounded-3 px-4 py-3 flex-shrink-0" style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.3)" }}>
           <span style={{ fontSize:28 }}>🎓</span>
@@ -458,7 +458,7 @@ function TuitionPanel() {
   const totalBalance   = records.reduce((a,r)=>a+r.balance,0);
   return (
     <div className="d-flex flex-column gap-4">
-      <div><h2 className="fw-black fs-4 text-dark mb-0">Tuition Records</h2><p className="text-muted small mb-0">1st Semester · Academic Year 2025–2026</p></div>
+      <div><h2 className="fw-black fs-4 text-dark mb-0">Tuition Records</h2><p className="text-muted small mb-0">Term 1 · Academic Year 2025–2026</p></div>
       <div className="row g-3">
         {[
           { label:"Total Assessment",  value:`₱${(records.length*22050).toLocaleString()}`, cls:"bg-light border-secondary"                                },
