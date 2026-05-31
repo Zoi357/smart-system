@@ -106,11 +106,10 @@ export default function KioskHome() {
         {/* ── Navbar ── */}
         <nav className="navbar glass border-bottom px-3 px-md-4 py-3">
           <div className="d-flex align-items-center gap-3">
-            <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle border" style={{ width: 36, height: 36, objectFit: "cover" }} />
-            <div className="d-flex align-items-center justify-content-center rounded-3 bg-primary text-white fw-black" style={{ width: 40, height: 40, fontSize: 16 }}>IN</div>
+            <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle border" style={{ width: 50, height: 50, objectFit: "cover" }} />
             <div>
-              <div className="fw-bold text-dark lh-1">INFORM</div>
-              <div className="text-muted" style={{ fontSize: 11 }}>Cebu Far East Institute</div>
+              <div className="fw-bold text-dark lh-1" style={{ fontSize: "1.3rem" }}>Cebu Far East Institute</div>
+              <div className="text-muted" style={{ fontSize: 11 }}>Student Information System</div>
             </div>
           </div>
 
