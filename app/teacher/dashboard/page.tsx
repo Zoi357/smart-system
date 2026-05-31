@@ -17,6 +17,15 @@ const subjects = [
   { id: 3, code: "MATH201", name: "Calculus I", units: 4, enrolled: 28, max: 35 },
 ];
 
+const teacherSchedule = [
+  { day: "Monday", time: "07:30–08:30", subject: "Algebra I", room: "Room 301", enter: "07:25", leave: "08:35" },
+  { day: "Monday", time: "08:30–09:30", subject: "Geometry", room: "Room 205", enter: "08:25", leave: "09:35" },
+  { day: "Tuesday", time: "07:30–09:00", subject: "Calculus I", room: "Sci. Lab", enter: "07:20", leave: "09:05" },
+  { day: "Wednesday", time: "07:30–08:30", subject: "Algebra I", room: "Room 301", enter: "07:25", leave: "08:35" },
+  { day: "Thursday", time: "07:30–09:00", subject: "Calculus I", room: "Sci. Lab", enter: "07:20", leave: "09:05" },
+  { day: "Friday", time: "07:30–08:30", subject: "Algebra I", room: "Room 301", enter: "07:25", leave: "08:35" },
+];
+
 const students = [
   { id: "STU-2024-001", name: "Jamie Santos", pathway: "Academic", grade: 11, status: "Active" },
   { id: "STU-2024-002", name: "Maria Reyes", pathway: "Academic", grade: 11, status: "Active" },
@@ -30,6 +39,12 @@ const grades = [
   { student_id: "STU-2024-002", name: "Maria Reyes", subject: "Algebra I", percentage: 87, term: "Term 1" },
   { student_id: "STU-2024-003", name: "Carlo Dela Cruz", subject: "Calculus I", percentage: 95, term: "Term 1" },
   { student_id: "STU-2024-005", name: "Luis Fernandez", subject: "Calculus I", percentage: 88, term: "Term 1" },
+];
+
+const gradeRequestsTeacher = [
+  { id: 1, student: "Jamie Santos", subject: "Algebra I", status: "pending", requestedAt: "2h ago" },
+  { id: 2, student: "Maria Reyes", subject: "Algebra I", status: "pending", requestedAt: "1h ago" },
+  { id: 3, student: "Carlo Dela Cruz", subject: "Calculus I", status: "approved", requestedAt: "30m ago" },
 ];
 
 const attendance = [
@@ -46,7 +61,7 @@ const recentActivity = [
   { action: "Attendance Updated", name: "Luis Fernandez", time: "Yesterday", icon: "✓" },
 ];
 
-type Panel = "overview" | "subjects" | "students" | "grades" | "attendance";
+type Panel = "overview" | "subjects" | "schedule" | "students" | "grades" | "attendance" | "requests";
 
 /* ── Back Button ── */
 function BackBtn({ onClick }: { onClick: () => void }) {
@@ -107,8 +122,10 @@ function OverviewPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
         <div className="row g-3">
           {[
             { id: "subjects", label: "My Classes", icon: "📚", bg: "#3b82f6" },
+            { id: "schedule", label: "My Schedule", icon: "📅", bg: "#06b6d4" },
             { id: "students", label: "My Students", icon: "🎓", bg: "#8b5cf6" },
             { id: "grades", label: "Submit Grades", icon: "📊", bg: "#14b8a6" },
+            { id: "requests", label: "Grade Requests", icon: "📨", bg: "#ec4899" },
             { id: "attendance", label: "Attendance", icon: "✓", bg: "#f59e0b" },
           ].map(q => (
             <div key={q.id} className="col-6 col-sm-4 col-lg-2">
@@ -168,6 +185,79 @@ function OverviewPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ── Schedule Panel ── */
+function SchedulePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+  const todayIdx = Math.min(new Date().getDay() - 1, 4);
+  const [day, setDay] = useState(days[todayIdx >= 0 ? todayIdx : 0]);
+  const daySchedule = teacherSchedule.filter(s => s.day === day);
+
+  return (
+    <div className="d-flex flex-column gap-4">
+      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
+        <div><h2 className="fw-black fs-4 text-dark mb-0">My Teaching Schedule</h2><p className="text-muted small mb-0">Term 1 · 2025–2026</p></div>
+      </div>
+      <div className="d-flex gap-2 overflow-auto pb-1">
+        {days.map(d => (
+          <button key={d} onClick={() => setDay(d)}
+            className={`btn btn-sm flex-shrink-0 ${day === d ? "btn-primary shadow-sm" : "btn-outline-secondary"}`}>
+            {d.slice(0, 3)}
+          </button>
+        ))}
+      </div>
+      {daySchedule.length === 0 ? (
+        <div className="card border-0 shadow-sm rounded-3">
+          <div className="card-body p-4 text-center text-muted">
+            <p className="small mb-0">No classes scheduled for {day}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="d-flex flex-column gap-2">
+          {daySchedule.map((cls, i) => (
+            <div key={i} className="card border-0 shadow-sm rounded-3">
+              <div className="card-body p-4">
+                <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
+                  <div>
+                    <div className="fw-bold text-dark mb-1">{cls.subject}</div>
+                    <div className="text-muted small">📍 {cls.room}</div>
+                  </div>
+                  <span className="badge bg-primary-subtle text-primary border border-primary-subtle">{cls.time}</span>
+                </div>
+                <div className="row g-3">
+                  <div className="col-6 col-sm-3">
+                    <div className="rounded-3 p-3 bg-light border">
+                      <div className="text-muted small mb-1">📍 Room</div>
+                      <div className="fw-bold text-dark">{cls.room}</div>
+                    </div>
+                  </div>
+                  <div className="col-6 col-sm-3">
+                    <div className="rounded-3 p-3 bg-success bg-opacity-10 border border-success border-opacity-25">
+                      <div className="text-muted small mb-1">🚪 Enter</div>
+                      <div className="fw-bold text-success">{cls.enter}</div>
+                    </div>
+                  </div>
+                  <div className="col-6 col-sm-3">
+                    <div className="rounded-3 p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25">
+                      <div className="text-muted small mb-1">🚪 Leave</div>
+                      <div className="fw-bold text-danger">{cls.leave}</div>
+                    </div>
+                  </div>
+                  <div className="col-6 col-sm-3">
+                    <div className="rounded-3 p-3 bg-info bg-opacity-10 border border-info border-opacity-25">
+                      <div className="text-muted small mb-1">👥 Students</div>
+                      <div className="fw-bold text-info">{subjects.find(s => s.name === cls.subject)?.enrolled || 0}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -324,6 +414,120 @@ function GradesPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   );
 }
 
+/* ── Grade Requests Panel ── */
+function RequestsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+  const [requests, setRequests] = useState(gradeRequestsTeacher);
+
+  function handleRequest(id: number, action: "approve" | "reject") {
+    setRequests(prev =>
+      prev.map(r =>
+        r.id === id
+          ? { ...r, status: action === "approve" ? "approved" : "rejected" }
+          : r
+      )
+    );
+  }
+
+  const pending = requests.filter(r => r.status === "pending");
+  const processed = requests.filter(r => r.status !== "pending");
+
+  return (
+    <div className="d-flex flex-column gap-4">
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+        <div><h2 className="fw-black fs-4 text-dark mb-0">Grade Requests</h2><p className="text-muted small mb-0">Manage student grade requests for Term 3</p></div>
+      </div>
+
+      {/* Stats */}
+      <div className="row g-3">
+        {[
+          { label: "Pending", value: pending.length, icon: "⏳", cls: "bg-warning-subtle border-warning-subtle text-warning" },
+          { label: "Approved", value: requests.filter(r => r.status === "approved").length, icon: "✓", cls: "bg-success-subtle border-success-subtle text-success" },
+          { label: "Rejected", value: requests.filter(r => r.status === "rejected").length, icon: "✕", cls: "bg-danger-subtle border-danger-subtle text-danger" },
+        ].map(s => (
+          <div key={s.label} className="col-4">
+            <div className={`card border rounded-3 ${s.cls}`}>
+              <div className="card-body p-3 text-center">
+                <div className="text-muted small mb-1">{s.label}</div>
+                <div className="fw-black fs-3">{s.value}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pending Requests */}
+      {pending.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">⏳ Pending Requests</h3>
+          <div className="d-flex flex-column gap-2">
+            {pending.map(req => (
+              <div key={req.id} className="card border-0 shadow-sm rounded-3">
+                <div className="card-body p-4">
+                  <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
+                    <div>
+                      <div className="fw-bold text-dark">{req.student}</div>
+                      <div className="text-muted small">{req.subject} · Requested {req.requestedAt}</div>
+                    </div>
+                    <span className="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button
+                      onClick={() => handleRequest(req.id, "approve")}
+                      className="btn btn-success btn-sm flex-grow-1"
+                      style={{ fontSize: 12 }}
+                    >
+                      ✓ Approve
+                    </button>
+                    <button
+                      onClick={() => handleRequest(req.id, "reject")}
+                      className="btn btn-danger btn-sm flex-grow-1"
+                      style={{ fontSize: 12 }}
+                    >
+                      ✕ Reject
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Processed Requests */}
+      {processed.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">✓ Processed Requests</h3>
+          <div className="d-flex flex-column gap-2">
+            {processed.map(req => (
+              <div key={req.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div>
+                      <div className="fw-bold small text-dark">{req.student}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>{req.subject}</div>
+                    </div>
+                    <span className={`badge ${req.status === "approved" ? "bg-success-subtle text-success border border-success-subtle" : "bg-danger-subtle text-danger border border-danger-subtle"}`}>
+                      {req.status === "approved" ? "✓ Approved" : "✕ Rejected"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {requests.length === 0 && (
+        <div className="card border-0 shadow-sm rounded-3">
+          <div className="card-body p-4 text-center text-muted">
+            <p className="small mb-0">No grade requests at this time.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Attendance Panel ── */
 function AttendancePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   const [selectedSubject, setSelectedSubject] = useState(subjects[0].id);
@@ -395,8 +599,10 @@ export default function TeacherDashboardPage() {
         <div className="card-body p-4">
           {panel === "overview" && <OverviewPanel setPanel={setPanel} />}
           {panel === "subjects" && <><BackBtn onClick={() => setPanel("overview")} /><SubjectsPanel setPanel={setPanel} /></>}
+          {panel === "schedule" && <><BackBtn onClick={() => setPanel("overview")} /><SchedulePanel setPanel={setPanel} /></>}
           {panel === "students" && <><BackBtn onClick={() => setPanel("overview")} /><StudentsPanel setPanel={setPanel} /></>}
           {panel === "grades" && <><BackBtn onClick={() => setPanel("overview")} /><GradesPanel setPanel={setPanel} /></>}
+          {panel === "requests" && <><BackBtn onClick={() => setPanel("overview")} /><RequestsPanel setPanel={setPanel} /></>}
           {panel === "attendance" && <><BackBtn onClick={() => setPanel("overview")} /><AttendancePanel setPanel={setPanel} /></>}
         </div>
 

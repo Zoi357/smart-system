@@ -103,40 +103,44 @@ function JobertChat({ initialPrompt }: { initialPrompt?: string }) {
 
 /* ── Data ── */
 const gradeData = [
-  { subject:"Mathematics",        icon:"📐", grade:"A",  pct:92, teacher:"Mr. Dela Cruz",  status:"Excellent" },
-  { subject:"Physics",            icon:"⚛️", grade:"B+", pct:87, teacher:"Ms. Villanueva", status:"Passing"   },
-  { subject:"English Literature", icon:"📖", grade:"A+", pct:96, teacher:"Ms. Santos",     status:"Excellent" },
-  { subject:"Chemistry",          icon:"🧪", grade:"B",  pct:81, teacher:"Mr. Fernandez",  status:"Passing"   },
-  { subject:"History",            icon:"🏛️", grade:"B+", pct:85, teacher:"Ms. Reyes",      status:"Passing"   },
-  { subject:"Computer Science",   icon:"💻", grade:"A",  pct:93, teacher:"Mr. Uy",         status:"Excellent" },
+  { subject:"Mathematics",        icon:"📐", term1:{grade:"A",  pct:92}, term2:{grade:"A-", pct:90}, term3:null, teacher:"Mr. Dela Cruz",  status:"Excellent" },
+  { subject:"Physics",            icon:"⚛️", term1:{grade:"B+", pct:87}, term2:{grade:"B+", pct:88}, term3:null, teacher:"Ms. Villanueva", status:"Passing"   },
+  { subject:"English Literature", icon:"📖", term1:{grade:"A+", pct:96}, term2:{grade:"A",  pct:94}, term3:null, teacher:"Ms. Santos",     status:"Excellent" },
+  { subject:"Chemistry",          icon:"🧪", term1:{grade:"B",  pct:81}, term2:{grade:"B+", pct:84}, term3:null, teacher:"Mr. Fernandez",  status:"Passing"   },
+  { subject:"History",            icon:"🏛️", term1:{grade:"B+", pct:85}, term2:{grade:"A-", pct:89}, term3:null, teacher:"Ms. Reyes",      status:"Passing"   },
+  { subject:"Computer Science",   icon:"💻", term1:{grade:"A",  pct:93}, term2:{grade:"A",  pct:95}, term3:null, teacher:"Mr. Uy",         status:"Excellent" },
 ];
 
-const timetable: Record<string, { time:string; subject:string; icon:string; room:string; color:string }[]> = {
+const gradeRequests = [
+  { id:1, subject:"Mathematics", teacher:"Mr. Dela Cruz", status:"pending", requestedAt:"2h ago" },
+];
+
+const timetable: Record<string, { time:string; subject:string; icon:string; room:string; color:string; teacher:string; enter:string; leave:string }[]> = {
   Monday:[
-    { time:"07:30–08:30", subject:"Mathematics",        icon:"📐", room:"Room 301", color:"primary"   },
-    { time:"08:30–09:30", subject:"English Literature", icon:"📖", room:"Room 205", color:"danger"    },
-    { time:"10:00–11:00", subject:"Computer Science",   icon:"💻", room:"ICT Lab",  color:"success"   },
-    { time:"13:00–14:00", subject:"Physical Education", icon:"🏃", room:"Gym",      color:"warning"   },
+    { time:"07:30–08:30", subject:"Mathematics",        icon:"📐", room:"Room 301", color:"primary",   teacher:"Ms. Maria Santos", enter:"07:25", leave:"08:35" },
+    { time:"08:30–09:30", subject:"English Literature", icon:"📖", room:"Room 205", color:"danger",    teacher:"Mr. Juan Dela Cruz", enter:"08:25", leave:"09:35" },
+    { time:"10:00–11:00", subject:"Computer Science",   icon:"💻", room:"ICT Lab",  color:"success",   teacher:"Mr. Carlos Fernandez", enter:"09:55", leave:"11:05" },
+    { time:"13:00–14:00", subject:"Physical Education", icon:"🏃", room:"Gym",      color:"warning",   teacher:"Coach Maria", enter:"12:55", leave:"14:05" },
   ],
   Tuesday:[
-    { time:"07:30–09:00", subject:"Physics",   icon:"⚛️", room:"Sci. Lab", color:"purple"  },
-    { time:"09:00–10:30", subject:"Chemistry", icon:"🧪", room:"Chem Lab", color:"info"    },
-    { time:"13:00–14:30", subject:"History",   icon:"🏛️", room:"Room 108", color:"warning" },
+    { time:"07:30–09:00", subject:"Physics",   icon:"⚛️", room:"Sci. Lab", color:"purple",  teacher:"Ms. Ana Reyes", enter:"07:20", leave:"09:05" },
+    { time:"09:00–10:30", subject:"Chemistry", icon:"🧪", room:"Chem Lab", color:"info",    teacher:"Dr. Luis Fernandez", enter:"08:55", leave:"10:35" },
+    { time:"13:00–14:30", subject:"History",   icon:"🏛️", room:"Room 108", color:"warning", teacher:"Mr. Juan Dela Cruz", enter:"12:55", leave:"14:35" },
   ],
   Wednesday:[
-    { time:"07:30–08:30", subject:"Mathematics",        icon:"📐", room:"Room 301", color:"primary" },
-    { time:"08:30–09:30", subject:"English Literature", icon:"📖", room:"Room 205", color:"danger"  },
-    { time:"10:00–11:00", subject:"Computer Science",   icon:"💻", room:"ICT Lab",  color:"success" },
+    { time:"07:30–08:30", subject:"Mathematics",        icon:"📐", room:"Room 301", color:"primary", teacher:"Ms. Maria Santos", enter:"07:25", leave:"08:35" },
+    { time:"08:30–09:30", subject:"English Literature", icon:"📖", room:"Room 205", color:"danger",  teacher:"Mr. Juan Dela Cruz", enter:"08:25", leave:"09:35" },
+    { time:"10:00–11:00", subject:"Computer Science",   icon:"💻", room:"ICT Lab",  color:"success", teacher:"Mr. Carlos Fernandez", enter:"09:55", leave:"11:05" },
   ],
   Thursday:[
-    { time:"07:30–09:00", subject:"Physics",   icon:"⚛️", room:"Sci. Lab", color:"purple"  },
-    { time:"09:00–10:30", subject:"Chemistry", icon:"🧪", room:"Chem Lab", color:"info"    },
-    { time:"13:00–14:30", subject:"History",   icon:"🏛️", room:"Room 108", color:"warning" },
+    { time:"07:30–09:00", subject:"Physics",   icon:"⚛️", room:"Sci. Lab", color:"purple",  teacher:"Ms. Ana Reyes", enter:"07:20", leave:"09:05" },
+    { time:"09:00–10:30", subject:"Chemistry", icon:"🧪", room:"Chem Lab", color:"info",    teacher:"Dr. Luis Fernandez", enter:"08:55", leave:"10:35" },
+    { time:"13:00–14:30", subject:"History",   icon:"🏛️", room:"Room 108", color:"warning", teacher:"Mr. Juan Dela Cruz", enter:"12:55", leave:"14:35" },
   ],
   Friday:[
-    { time:"07:30–08:30", subject:"Mathematics",        icon:"📐", room:"Room 301", color:"primary" },
-    { time:"08:30–09:30", subject:"Computer Science",   icon:"💻", room:"ICT Lab",  color:"success" },
-    { time:"10:00–11:00", subject:"English Literature", icon:"📖", room:"Room 205", color:"danger"  },
+    { time:"07:30–08:30", subject:"Mathematics",        icon:"📐", room:"Room 301", color:"primary", teacher:"Ms. Maria Santos", enter:"07:25", leave:"08:35" },
+    { time:"08:30–09:30", subject:"Computer Science",   icon:"💻", room:"ICT Lab",  color:"success", teacher:"Mr. Carlos Fernandez", enter:"08:25", leave:"09:35" },
+    { time:"10:00–11:00", subject:"English Literature", icon:"📖", room:"Room 205", color:"danger",  teacher:"Mr. Juan Dela Cruz", enter:"09:55", leave:"11:05" },
   ],
 };
 
@@ -159,14 +163,35 @@ function BackBtn({ onClick }: { onClick: () => void }) {
 
 /* ── Grades View ── */
 function GradesView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
-  const avg = Math.round(gradeData.reduce((a, g) => a + g.pct, 0) / gradeData.length);
+  const [selectedTerm, setSelectedTerm] = useState<"term1" | "term2" | "term3">("term1");
+  const [requests, setRequests] = useState(gradeRequests);
+  
+  const termGrades = gradeData.map(g => ({
+    ...g,
+    currentGrade: selectedTerm === "term1" ? g.term1 : selectedTerm === "term2" ? g.term2 : g.term3,
+    hasRequested: requests.some(r => r.subject === g.subject),
+  }));
+  
+  const avg = Math.round(
+    termGrades
+      .filter(g => g.currentGrade)
+      .reduce((a, g) => a + (g.currentGrade?.pct || 0), 0) / 
+    termGrades.filter(g => g.currentGrade).length
+  );
+
+  function requestTerm3Grade(subject: string, teacher: string) {
+    if (!requests.some(r => r.subject === subject)) {
+      setRequests([...requests, { id: Date.now(), subject, teacher, status: "pending", requestedAt: "just now" }]);
+    }
+  }
+
   return (
     <div className="d-flex flex-column gap-4 w-100">
       <BackBtn onClick={onBack} />
       <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
         <div>
           <h2 className="fw-black fs-4 text-white mb-0">My Grades</h2>
-          <p className="text-white-50 small mb-0">Term 1 · 2025–2026</p>
+          <p className="text-white-50 small mb-0">School Year 2025–2026</p>
         </div>
         <div className="d-flex flex-column align-items-center gap-1 flex-shrink-0">
           <div className="bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 px-4 py-2 text-center">
@@ -177,32 +202,105 @@ function GradesView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onA
             className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 12 }}>🤖 Ask JOBERT to explain</button>
         </div>
       </div>
-      <div className="row g-3">
-        {gradeData.map((g, i) => (
-          <div key={i} className="col-12 col-sm-6">
-            <div className="card-elevated border-0 rounded-3 h-100">
-              <div className="card-body p-4">
-                <div className="d-flex align-items-center gap-3 mb-3">
-                  <div className="rounded-3 bg-primary d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 40, height: 40, fontSize: 20 }}>{g.icon}</div>
-                  <div className="flex-grow-1 overflow-hidden">
-                    <div className="fw-bold small text-dark text-truncate">{g.subject}</div>
-                    <div className="text-muted" style={{ fontSize: 11 }}>{g.teacher}</div>
+
+      {/* Term Selector */}
+      <div className="d-flex gap-2">
+        {[
+          { id: "term1" as const, label: "Term 1", color: "primary" },
+          { id: "term2" as const, label: "Term 2", color: "success" },
+          { id: "term3" as const, label: "Term 3", color: "warning" },
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setSelectedTerm(t.id)}
+            className={`btn btn-sm flex-grow-1 ${selectedTerm === t.id ? `btn-${t.color} shadow-sm` : "btn-outline-secondary"}`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Term 3 Request Info */}
+      {selectedTerm === "term3" && (
+        <div className="alert alert-info border-0 rounded-3 d-flex align-items-start gap-3" role="alert">
+          <span style={{ fontSize: 20 }}>ℹ️</span>
+          <div>
+            <div className="fw-bold small">Term 3 Grades</div>
+            <div className="text-muted small">Request Term 3 grades from your teachers. Once approved, your grades will appear here.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Pending Requests */}
+      {requests.length > 0 && (
+        <div className="card border-0 rounded-3 bg-warning bg-opacity-10 border border-warning border-opacity-25">
+          <div className="card-body p-3">
+            <div className="fw-bold small text-dark mb-2">📋 Pending Grade Requests</div>
+            <div className="d-flex flex-column gap-2">
+              {requests.map(req => (
+                <div key={req.id} className="d-flex align-items-center justify-content-between p-2 rounded-2 bg-white">
+                  <div className="small">
+                    <div className="fw-semibold text-dark">{req.subject}</div>
+                    <div className="text-muted" style={{ fontSize: 11 }}>{req.teacher} · {req.requestedAt}</div>
                   </div>
-                  <div className="fw-black fs-4 text-primary flex-shrink-0">{g.grade}</div>
+                  <span className={`badge ${req.status === "pending" ? "bg-warning-subtle text-warning border border-warning-subtle" : "bg-success-subtle text-success border border-success-subtle"}`}>
+                    {req.status === "pending" ? "⏳ Pending" : "✓ Approved"}
+                  </span>
                 </div>
-                <div className="progress mb-2" style={{ height: 6 }}>
-                  <div className="progress-bar bg-primary" style={{ width: `${g.pct}%` }} />
-                </div>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <span className="text-muted small">{g.pct}%</span>
-                  <span className={`badge-status ${g.status === "Excellent" ? "badge-active" : "badge-pending"}`}>{g.status}</span>
-                </div>
-                <button onClick={() => onAskJobert(`I got ${g.grade} (${g.pct}%) in ${g.subject} with ${g.teacher}. Can you explain this grade and give me tips to improve?`)}
-                  className="btn btn-outline-primary btn-sm w-100" style={{ fontSize: 12 }}>🤖 Ask JOBERT about this grade</button>
-              </div>
+              ))}
             </div>
           </div>
-        ))}
+        </div>
+      )}
+
+      {/* Grades Grid */}
+      <div className="row g-3">
+        {termGrades.map((g, i) => {
+          const hasGrade = g.currentGrade !== null;
+          const hasRequested = g.hasRequested;
+
+          return (
+            <div key={i} className="col-12 col-sm-6">
+              <div className={`card-elevated border-0 rounded-3 h-100 ${!hasGrade && selectedTerm === "term3" ? "opacity-75" : ""}`}>
+                <div className="card-body p-4">
+                  <div className="d-flex align-items-center gap-3 mb-3">
+                    <div className="rounded-3 bg-primary d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 40, height: 40, fontSize: 20 }}>{g.icon}</div>
+                    <div className="flex-grow-1 overflow-hidden">
+                      <div className="fw-bold small text-dark text-truncate">{g.subject}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>{g.teacher}</div>
+                    </div>
+                    {hasGrade && g.currentGrade && <div className="fw-black fs-4 text-primary flex-shrink-0">{g.currentGrade.grade}</div>}
+                  </div>
+
+                  {hasGrade && g.currentGrade ? (
+                    <>
+                      <div className="progress mb-2" style={{ height: 6 }}>
+                        <div className="progress-bar bg-primary" style={{ width: `${g.currentGrade.pct}%` }} />
+                      </div>
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <span className="text-muted small">{g.currentGrade.pct}%</span>
+                        <span className={`badge-status ${g.currentGrade.pct >= 90 ? "badge-active" : "badge-pending"}`}>{g.status}</span>
+                      </div>
+                      <button onClick={() => onAskJobert(`I got ${g.currentGrade!.grade} (${g.currentGrade!.pct}%) in ${g.subject} with ${g.teacher}. Can you explain this grade and give me tips to improve?`)}
+                        className="btn btn-outline-primary btn-sm w-100" style={{ fontSize: 12 }}>🤖 Ask JOBERT about this grade</button>
+                    </>
+                  ) : selectedTerm === "term3" ? (
+                    <button
+                      onClick={() => requestTerm3Grade(g.subject, g.teacher)}
+                      disabled={hasRequested}
+                      className={`btn w-100 ${hasRequested ? "btn-secondary" : "btn-primary"}`}
+                      style={{ fontSize: 12 }}
+                    >
+                      {hasRequested ? "✓ Request Sent" : "📨 Request Grade"}
+                    </button>
+                  ) : (
+                    <div className="text-center text-muted small">No grade available</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -237,15 +335,41 @@ function ScheduleView({ onBack, onAskJobert, darkMode }: { onBack: () => void; o
       <div className="d-flex flex-column gap-2">
         {timetable[day].map((cls, i) => (
           <div key={i} className="card-elevated border-0 rounded-3">
-            <div className="card-body p-3 d-flex align-items-center gap-3">
-              <span className="font-mono text-muted flex-shrink-0" style={{ fontSize: 12, width: 110 }}>{cls.time}</span>
-              <div className={`rounded-3 bg-${cls.color} d-flex align-items-center justify-content-center flex-shrink-0`} style={{ width: 44, height: 44, fontSize: 22 }}>{cls.icon}</div>
-              <div className="flex-grow-1">
-                <div className="fw-bold small text-dark">{cls.subject}</div>
-                <div className="text-muted" style={{ fontSize: 11 }}>📍 {cls.room}</div>
+            <div className="card-body p-4">
+              <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
+                <div className="d-flex align-items-center gap-3 flex-grow-1">
+                  <div className={`rounded-3 bg-${cls.color} d-flex align-items-center justify-content-center flex-shrink-0`} style={{ width: 44, height: 44, fontSize: 22 }}>{cls.icon}</div>
+                  <div className="flex-grow-1">
+                    <div className="fw-bold small text-dark">{cls.subject}</div>
+                    <div className="text-muted" style={{ fontSize: 11 }}>👨‍🏫 {cls.teacher}</div>
+                  </div>
+                </div>
+                <span className="badge bg-primary-subtle text-primary border border-primary-subtle flex-shrink-0">{cls.time}</span>
               </div>
-              <button onClick={() => onAskJobert(`Give me a quick study tip for ${cls.subject} class at ${cls.time} in ${cls.room}.`)}
-                className="btn btn-link btn-sm p-0 text-primary flex-shrink-0" title="Ask JOBERT">🤖</button>
+              <div className="row g-2">
+                <div className="col-6 col-sm-3">
+                  <div className="rounded-3 p-2 bg-light border text-center">
+                    <div className="text-muted" style={{ fontSize: 10 }}>📍 Room</div>
+                    <div className="fw-bold small text-dark">{cls.room}</div>
+                  </div>
+                </div>
+                <div className="col-6 col-sm-3">
+                  <div className="rounded-3 p-2 bg-success bg-opacity-10 border border-success border-opacity-25 text-center">
+                    <div className="text-muted" style={{ fontSize: 10 }}>🚪 Enter</div>
+                    <div className="fw-bold small text-success">{cls.enter}</div>
+                  </div>
+                </div>
+                <div className="col-6 col-sm-3">
+                  <div className="rounded-3 p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-center">
+                    <div className="text-muted" style={{ fontSize: 10 }}>� Leave</div>
+                    <div className="fw-bold small text-danger">{cls.leave}</div>
+                  </div>
+                </div>
+                <div className="col-6 col-sm-3">
+                  <button onClick={() => onAskJobert(`Give me a quick study tip for ${cls.subject} class at ${cls.time} in ${cls.room}.`)}
+                    className="btn btn-link btn-sm p-0 text-primary w-100" title="Ask JOBERT" style={{ fontSize: 12 }}>🤖 Ask JOBERT</button>
+                </div>
+              </div>
             </div>
           </div>
         ))}

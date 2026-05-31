@@ -5,14 +5,21 @@ import Link from "next/link";
 
 /* ── Data ── */
 const students = [
-  { id:"STU-2024-001", name:"Jamie Santos",    track:"STEM", grade:11, gwa:1.75, status:"Active",   tuition:"Paid"   },
-  { id:"STU-2024-002", name:"Maria Reyes",     track:"HUMMS", grade:11, gwa:2.00, status:"Active",   tuition:"Unpaid" },
-  { id:"STU-2024-003", name:"Carlo Dela Cruz", track:"ABM", grade:12, gwa:1.50, status:"Active",   tuition:"Paid"   },
-  { id:"STU-2024-004", name:"Ana Villanueva",  track:"GAS",  grade:11, gwa:2.25, status:"Inactive", tuition:"Unpaid" },
-  { id:"STU-2024-005", name:"Luis Fernandez",  track:"STEM", grade:12, gwa:1.25, status:"Active",   tuition:"Paid"   },
-  { id:"STU-2024-006", name:"Rosa Bautista",   track:"TVL", grade:11, gwa:2.50, status:"Active",   tuition:"Paid"   },
-  { id:"STU-2024-007", name:"Mark Uy",         track:"ABM", grade:12, gwa:3.00, status:"Active",   tuition:"Unpaid" },
-  { id:"STU-2024-008", name:"Lena Cruz",       track:"HUMMS",  grade:11, gwa:1.75, status:"Active",   tuition:"Paid"   },
+  { id:"STU-2024-001", name:"Jamie Santos",    track:"STEM", grade:11, gwa:1.75, status:"Active",   tuition:"Paid",   room:1 },
+  { id:"STU-2024-002", name:"Maria Reyes",     track:"HUMMS", grade:11, gwa:2.00, status:"Active",   tuition:"Unpaid", room:2 },
+  { id:"STU-2024-003", name:"Carlo Dela Cruz", track:"ABM", grade:12, gwa:1.50, status:"Active",   tuition:"Paid",   room:3 },
+  { id:"STU-2024-004", name:"Ana Villanueva",  track:"GAS",  grade:11, gwa:2.25, status:"Inactive", tuition:"Unpaid", room:4 },
+  { id:"STU-2024-005", name:"Luis Fernandez",  track:"STEM", grade:12, gwa:1.25, status:"Active",   tuition:"Paid",   room:1 },
+  { id:"STU-2024-006", name:"Rosa Bautista",   track:"TVL", grade:11, gwa:2.50, status:"Active",   tuition:"Paid",   room:2 },
+  { id:"STU-2024-007", name:"Mark Uy",         track:"ABM", grade:12, gwa:3.00, status:"Active",   tuition:"Unpaid", room:3 },
+  { id:"STU-2024-008", name:"Lena Cruz",       track:"HUMMS",  grade:11, gwa:1.75, status:"Active",   tuition:"Paid",   room:4 },
+];
+
+const teachers = [
+  { id:"T001", name:"Maria Santos",      subjects:["Mathematics", "Physics"], room:1 },
+  { id:"T002", name:"Juan Dela Cruz",    subjects:["English Literature", "History"], room:2 },
+  { id:"T003", name:"Ana Reyes",         subjects:["Chemistry", "Biology"], room:3 },
+  { id:"T004", name:"Carlos Fernandez",  subjects:["Computer Science", "Information Technology"], room:4 },
 ];
 
 const announcements = [
@@ -31,10 +38,19 @@ const recentActivity = [
   { action:"Announcement posted",      name:"Admin",           time:"Yesterday", icon:"📢" },
 ];
 
+const allGradeRequests = [
+  { id: 1, student: "Jamie Santos", teacher: "Mr. Dela Cruz", subject: "Algebra I", status: "pending", requestedAt: "2h ago" },
+  { id: 2, student: "Maria Reyes", teacher: "Mr. Dela Cruz", subject: "Algebra I", status: "pending", requestedAt: "1h ago" },
+  { id: 3, student: "Carlo Dela Cruz", teacher: "Mr. Fernandez", subject: "Calculus I", status: "approved", requestedAt: "30m ago" },
+  { id: 4, student: "Luis Fernandez", teacher: "Ms. Villanueva", subject: "Physics", status: "rejected", requestedAt: "1h ago" },
+];
+
 const navItems = [
   { id:"overview",      label:"Overview",      icon:"🏠" },
   { id:"students",      label:"Students",      icon:"🎓" },
+  { id:"teachers",      label:"Teachers",      icon:"👨‍🏫" },
   { id:"grades",        label:"Grades",        icon:"📊" },
+  { id:"requests",      label:"Grade Requests", icon:"📨" },
   { id:"enrollment",    label:"Enrollment",    icon:"📋" },
   { id:"tuition",       label:"Tuition",       icon:"💰" },
   { id:"announcements", label:"Announcements", icon:"📢" },
@@ -280,13 +296,14 @@ function StudentsPanel() {
                 <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing:"0.05em" }}>ID</th>
                 <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Track</th>
                 <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>GWA</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Room</th>
                 <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Status</th>
                 <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Tuition</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0
-                ? <tr><td colSpan={7} className="text-center text-muted py-4 small">No students found.</td></tr>
+                ? <tr><td colSpan={8} className="text-center text-muted py-4 small">No students found.</td></tr>
                 : filtered.map((s, i) => (
                   <tr key={s.id} style={{ cursor:"pointer" }}>
                     <td className="ps-4 text-muted small">{i + 1}</td>
@@ -299,6 +316,7 @@ function StudentsPanel() {
                     <td className="d-none d-sm-table-cell font-mono text-muted small">{s.id}</td>
                     <td className="d-none d-lg-table-cell text-muted small">{s.track} Grade {s.grade}</td>
                     <td className="d-none d-lg-table-cell fw-bold text-primary small">{s.gwa}</td>
+                    <td className="d-none d-lg-table-cell text-muted small"><span className="badge bg-info-subtle text-info border border-info-subtle">Room {s.room}</span></td>
                     <td><span className={`badge ${s.status === "Active" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}`}>{s.status}</span></td>
                     <td><span className={`badge ${s.tuition === "Paid" ? "bg-primary-subtle text-primary border border-primary-subtle" : "bg-danger-subtle text-danger border border-danger-subtle"}`}>{s.tuition}</span></td>
                   </tr>
@@ -512,6 +530,161 @@ function TuitionPanel() {
   );
 }
 
+/* ── Teachers Panel ── */
+function TeachersPanel() {
+  const [search, setSearch] = useState("");
+  const filtered = teachers.filter(t => 
+    t.name.toLowerCase().includes(search.toLowerCase()) || 
+    t.id.toLowerCase().includes(search.toLowerCase()) ||
+    t.subjects.some(s => s.toLowerCase().includes(search.toLowerCase()))
+  );
+
+  return (
+    <div className="d-flex flex-column gap-4">
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+        <div><h2 className="fw-black fs-4 text-dark mb-0">Teachers</h2><p className="text-muted small mb-0">{teachers.length} faculty members</p></div>
+        <button className="btn btn-primary btn-sm fw-bold shadow-sm">+ Add Teacher</button>
+      </div>
+      <div className="input-group shadow-sm" style={{ maxWidth: 400 }}>
+        <span className="input-group-text bg-white">🔍</span>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, ID, or subject..." className="form-control border-start-0" />
+      </div>
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div className="table-responsive">
+          <table className="table table-hover mb-0">
+            <thead className="table-light">
+              <tr>
+                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing:"0.05em" }}>#</th>
+                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Name</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing:"0.05em" }}>ID</th>
+                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Subjects</th>
+                <th className="small text-muted fw-semibold text-uppercase text-center" style={{ letterSpacing:"0.05em" }}>Room</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0
+                ? <tr><td colSpan={5} className="text-center text-muted py-4 small">No teachers found.</td></tr>
+                : filtered.map((t, i) => (
+                  <tr key={t.id} style={{ cursor:"pointer" }}>
+                    <td className="ps-4 text-muted small">{i + 1}</td>
+                    <td>
+                      <div className="d-flex align-items-center gap-2">
+                        <div className="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center text-success fw-bold flex-shrink-0" style={{ width:28, height:28, fontSize:11 }}>{initials(t.name)}</div>
+                        <span className="small fw-medium text-dark">{t.name}</span>
+                      </div>
+                    </td>
+                    <td className="d-none d-sm-table-cell font-mono text-muted small">{t.id}</td>
+                    <td>
+                      <div className="d-flex flex-wrap gap-1">
+                        {t.subjects.map((s, idx) => (
+                          <span key={idx} className="badge bg-primary-subtle text-primary border border-primary-subtle" style={{ fontSize: 11 }}>{s}</span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="text-center">
+                      <span className="badge bg-warning-subtle text-warning border border-warning-subtle fw-bold">Room {t.room}</span>
+                    </td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Grade Requests Panel (Admin) ── */
+function AdminRequestsPanel() {
+  const [requests, setRequests] = useState(allGradeRequests);
+
+  function handleRequest(id: number, action: "approve" | "reject") {
+    setRequests(prev =>
+      prev.map(r =>
+        r.id === id
+          ? { ...r, status: action === "approve" ? "approved" : "rejected" }
+          : r
+      )
+    );
+  }
+
+  const pending = requests.filter(r => r.status === "pending");
+  const approved = requests.filter(r => r.status === "approved");
+  const rejected = requests.filter(r => r.status === "rejected");
+
+  return (
+    <div className="d-flex flex-column gap-4">
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+        <div><h2 className="fw-black fs-4 text-dark mb-0">Grade Requests</h2><p className="text-muted small mb-0">Monitor all student grade requests for Term 3</p></div>
+      </div>
+
+      {/* Stats */}
+      <div className="row g-3">
+        {[
+          { label: "Pending", value: pending.length, icon: "⏳", cls: "bg-warning-subtle border-warning-subtle text-warning" },
+          { label: "Approved", value: approved.length, icon: "✓", cls: "bg-success-subtle border-success-subtle text-success" },
+          { label: "Rejected", value: rejected.length, icon: "✕", cls: "bg-danger-subtle border-danger-subtle text-danger" },
+        ].map(s => (
+          <div key={s.label} className="col-4">
+            <div className={`card border rounded-3 ${s.cls}`}>
+              <div className="card-body p-3 text-center">
+                <div className="text-muted small mb-1">{s.label}</div>
+                <div className="fw-black fs-3">{s.value}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* All Requests Table */}
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div className="table-responsive">
+          <table className="table table-hover mb-0">
+            <thead className="table-light">
+              <tr>
+                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing:"0.05em" }}>Student</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing:"0.05em" }}>Teacher</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Subject</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Requested</th>
+                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Status</th>
+                <th className="small text-muted fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing:"0.05em" }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {requests.map(req => (
+                <tr key={req.id}>
+                  <td className="ps-4 small fw-medium text-dark">{req.student}</td>
+                  <td className="d-none d-sm-table-cell text-muted small">{req.teacher}</td>
+                  <td className="d-none d-lg-table-cell text-muted small">{req.subject}</td>
+                  <td className="d-none d-lg-table-cell text-muted small">{req.requestedAt}</td>
+                  <td>
+                    <span className={`badge ${
+                      req.status === "pending" ? "bg-warning-subtle text-warning border border-warning-subtle" :
+                      req.status === "approved" ? "bg-success-subtle text-success border border-success-subtle" :
+                      "bg-danger-subtle text-danger border border-danger-subtle"
+                    }`}>
+                      {req.status === "pending" ? "⏳ Pending" : req.status === "approved" ? "✓ Approved" : "✕ Rejected"}
+                    </span>
+                  </td>
+                  <td className="text-end pe-4">
+                    {req.status === "pending" && (
+                      <div className="d-flex gap-1 justify-content-end">
+                        <button onClick={() => handleRequest(req.id, "approve")} className="btn btn-success btn-sm" style={{ fontSize: 11 }}>✓</button>
+                        <button onClick={() => handleRequest(req.id, "reject")} className="btn btn-danger btn-sm" style={{ fontSize: 11 }}>✕</button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Announcements Panel ── */
 function AnnouncementsPanel() {
   const [items, setItems] = useState(announcements);
@@ -714,7 +887,9 @@ export default function AdminDashboardPage() {
   function renderPanel() {
     switch (activeNav) {
       case "students":      return <StudentsPanel />;
+      case "teachers":      return <TeachersPanel />;
       case "grades":        return <GradesPanel />;
+      case "requests":      return <AdminRequestsPanel />;
       case "enrollment":    return <EnrollmentPanel />;
       case "tuition":       return <TuitionPanel />;
       case "announcements": return <AnnouncementsPanel />;
