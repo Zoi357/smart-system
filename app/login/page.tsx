@@ -154,11 +154,33 @@ export default function LoginPage() {
   const [error, setError]         = useState("");
   const [showHint, setShowHint]   = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showRegistrarModal, setShowRegistrarModal] = useState(false);
+  const [inquiryForm, setInquiryForm] = useState({ name: "", email: "", inquiry: "", inquiryType: "general" });
+  const [inquirySubmitted, setInquirySubmitted] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
     setForm({ ...form, [name]: name === "id" ? value.replace(/\D/g, "") : value });
     setError("");
+  }
+
+  function handleInquiryChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    const { name, value } = e.target;
+    setInquiryForm({ ...inquiryForm, [name]: value });
+  }
+
+  function handleInquirySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!inquiryForm.name || !inquiryForm.email || !inquiryForm.inquiry) {
+      alert("Please fill in all fields");
+      return;
+    }
+    setInquirySubmitted(true);
+    setTimeout(() => {
+      setShowRegistrarModal(false);
+      setInquirySubmitted(false);
+      setInquiryForm({ name: "", email: "", inquiry: "", inquiryType: "general" });
+    }, 2000);
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -183,7 +205,7 @@ export default function LoginPage() {
           <div className="d-flex align-items-center gap-3">
             <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle border" style={{ width: 56, height: 56, objectFit: "cover" }} />
             <div className="vr" />
-            <div className="rounded-3 bg-primary d-flex align-items-center justify-content-center text-white fw-black shadow" style={{ width: 56, height: 56, fontSize: 22 }}>IN</div>
+            <img src="/newimlogo.png" alt="INFORM" className="rounded-3 shadow" style={{ width: 56, height: 56, objectFit: "cover" }} />
           </div>
           <div className="fw-bold fs-5 text-dark">INFORM</div>
           <div className="text-muted" style={{ fontSize: 12 }}>Cebu Far East Institute · Student Information System</div>
@@ -262,11 +284,108 @@ export default function LoginPage() {
 
         <p className="text-muted small text-center mb-0">
           Need help?{" "}
-          <a href="#" className="text-primary text-decoration-none">Contact the Registrar&apos;s Office</a>
+          <button onClick={() => setShowRegistrarModal(true)} className="btn btn-link btn-sm p-0 text-primary text-decoration-none" style={{ fontSize: "inherit" }}>Contact the Registrar&apos;s Office</button>
         </p>
       </div>
 
       <p className="text-muted small mt-4">© 2026 Cebu Far East Institute. All rights reserved.</p>
+
+      {/* Registrar Inquiry Modal */}
+      {showRegistrarModal && (
+        <div className="modal-enhanced d-flex align-items-center justify-content-center" style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1050, display: "flex" }}>
+          <div className="modal-content" style={{ maxWidth: 500, width: "90%", maxHeight: "90vh", overflowY: "auto" }}>
+            <div className="modal-header">
+              <h5 className="modal-title text-white fw-bold">Contact Registrar's Office</h5>
+              <button type="button" className="btn-close btn-close-white" onClick={() => setShowRegistrarModal(false)} />
+            </div>
+            <div className="modal-body">
+              {inquirySubmitted ? (
+                <div className="text-center py-4">
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
+                  <h6 className="fw-bold text-dark mb-2">Inquiry Submitted Successfully!</h6>
+                  <p className="text-muted small mb-0">The Registrar's Office will contact you soon at {inquiryForm.email}</p>
+                </div>
+              ) : (
+                <form onSubmit={handleInquirySubmit} className="d-flex flex-column gap-3">
+                  <div>
+                    <label className="form-label text-dark fw-semibold small">Full Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={inquiryForm.name}
+                      onChange={handleInquiryChange}
+                      placeholder="Enter your full name"
+                      className="form-control rounded-xl"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label text-dark fw-semibold small">Email Address</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={inquiryForm.email}
+                      onChange={handleInquiryChange}
+                      placeholder="your.email@example.com"
+                      className="form-control rounded-xl"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label text-dark fw-semibold small">Inquiry Type</label>
+                    <select
+                      name="inquiryType"
+                      value={inquiryForm.inquiryType}
+                      onChange={handleInquiryChange}
+                      className="form-select rounded-xl"
+                    >
+                      <option value="general">General Inquiry</option>
+                      <option value="enrollment">Enrollment</option>
+                      <option value="documents">Document Request (TOR, Certificate)</option>
+                      <option value="grades">Grades & Academic Records</option>
+                      <option value="schedule">Schedule & Classes</option>
+                      <option value="id">Lost/Replacement ID</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label text-dark fw-semibold small">Your Inquiry</label>
+                    <textarea
+                      name="inquiry"
+                      value={inquiryForm.inquiry}
+                      onChange={handleInquiryChange}
+                      placeholder="Please describe your inquiry in detail..."
+                      className="form-control rounded-xl"
+                      rows={4}
+                      required
+                    />
+                  </div>
+
+                  <div className="d-flex gap-2">
+                    <button type="submit" className="btn btn-primary flex-grow-1 rounded-xl fw-bold">
+                      Submit Inquiry
+                    </button>
+                    <button type="button" onClick={() => setShowRegistrarModal(false)} className="btn btn-outline-secondary rounded-xl fw-bold">
+                      Cancel
+                    </button>
+                  </div>
+
+                  <div className="alert alert-info py-2 px-3 small rounded-xl mb-0">
+                    <strong>📍 Registrar's Office Location:</strong><br />
+                    Room 101, Admin Building<br />
+                    <strong>📧 Email:</strong> registrar@cfei.edu.ph<br />
+                    <strong>📞 Phone:</strong> 032 345 6873<br />
+                    <strong>⏰ Hours:</strong> Mon-Fri, 8AM-5PM
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       <AIChat />
     </div>
   );

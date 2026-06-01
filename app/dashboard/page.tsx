@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type React from "react";
 import Link from "next/link";
 
-type Panel = "home" | "grades" | "schedule" | "tuition";
+type Panel = "home" | "grades" | "schedule" | "tuition" | "documents" | "notifications";
 type JMsg  = { role: "ai" | "user"; text: string; feedback?: "up" | "down" | null };
 
 /* ── JOBERT Chat ── */
@@ -150,6 +150,24 @@ const fees = [
   { label:"Laboratory Fee",       amount: 1500, paid:true  },
   { label:"Student Activity Fee", amount:  800, paid:false },
   { label:"ID / Registration",    amount:  350, paid:false },
+];
+
+const notifications = [
+  { id:1, type:"grade", title:"Grade Submitted", message:"Mr. Dela Cruz submitted your Mathematics grade: A (92%)", time:"2h ago", read:false, icon:"📊" },
+  { id:2, type:"document", title:"Document Approved", message:"Your TOR request has been approved by Admin", time:"4h ago", read:false, icon:"✓" },
+  { id:3, type:"enrollment", title:"Enrollment Confirmed", message:"Your enrollment for Term 1 has been confirmed", time:"1d ago", read:true, icon:"🎓" },
+  { id:4, type:"attendance", title:"Attendance Alert", message:"Your attendance in Physics is below 80%", time:"2d ago", read:true, icon:"⚠️" },
+];
+
+const documentRequests = [
+  { id:1, type:"TOR", status:"approved", requestedAt:"May 15, 2026", approvedAt:"May 16, 2026", approvedBy:"Admin", downloadUrl:"#" },
+  { id:2, type:"Certificate", status:"pending", requestedAt:"May 18, 2026", approvedAt:null, approvedBy:null, downloadUrl:null },
+];
+
+const availableDocuments = [
+  { id:1, type:"TOR", name:"Transcript of Records", description:"Official academic record with grades and GPA", icon:"📄" },
+  { id:2, type:"Certificate", name:"Certificate of Enrollment", description:"Proof of current enrollment status", icon:"📜" },
+  { id:3, type:"GoodStanding", name:"Good Standing Certificate", description:"Certificate showing no outstanding balances", icon:"✓" },
 ];
 
 /* ── Back button ── */
@@ -435,11 +453,170 @@ const tiles = [
   { id: "grades"   as const, label: "View Grades",   icon: "📊", color: "#1e3a6e" },
   { id: "schedule" as const, label: "View Schedule", icon: "📅", color: "#1e3a6e" },
   { id: "tuition"  as const, label: "Tuition Fee",   icon: "💰", color: "#1e3a6e" },
+  { id: "documents" as const, label: "Documents",    icon: "📄", color: "#1e3a6e" },
 ];
 
-function DashboardHome({ setPanel, onAskJobert, darkMode }: { setPanel: (p: "grades"|"schedule"|"tuition") => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
+function DashboardHome({ setPanel, onAskJobert, darkMode }: { setPanel: (p: Panel) => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
+  const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
+  const [notifs, setNotifs] = useState(notifications);
+  const unreadCount = notifs.filter(n => !n.read).length;
+  const unread = notifs.filter(n => !n.read);
+  const read = notifs.filter(n => n.read);
+
+  function markAsRead(id: number) {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }
+
+  function deleteNotification(id: number) {
+    setNotifs(prev => prev.filter(n => n.id !== id));
+  }
+  
   return (
-    <div className="dashboard-card border-0 shadow-lg rounded-3 overflow-hidden" style={{ maxWidth: 640, width: "100%", background: darkMode ? "#fff" : "#f8fafc", padding: 0 }}>
+    <div className="dashboard-card border-0 shadow-lg rounded-3 overflow-hidden position-relative" style={{ maxWidth: 640, width: "100%", background: darkMode ? "#fff" : "#f8fafc", padding: 0 }}>
+      {/* Notifications Bell Icon - Top Right */}
+      <button
+        onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
+        className="btn btn-link position-absolute top-0 end-0 m-3 p-0"
+        style={{ zIndex: 20, fontSize: 24, lineHeight: 1, color: "#fbbf24" }}
+        title="View notifications"
+      >
+        <div style={{ position: "relative", display: "inline-block" }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742.37.142.765.214 1.175.214.72 0 1.404-.337 1.84-.999.46.666 1.19.999 2.003.999.8 0 1.538-.334 1.996-.999.42.675 1.07 1 1.79 1.035-.23-1.218-.711-4.471-.711-5.957 0-.922-.184-1.702-.522-2.256A4.996 4.996 0 0 0 8 1.918z"/>
+          </svg>
+          {unreadCount > 0 && (
+            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: "10px", padding: "2px 5px", fontWeight: "bold" }}>
+              {unreadCount}
+            </span>
+          )}
+        </div>
+      </button>
+
+      {/* Notification Dropdown Panel */}
+      {showNotificationDropdown && (
+        <div
+          className="position-absolute top-0 end-0 mt-5 me-3 rounded-3 shadow-lg"
+          style={{
+            width: "360px",
+            maxHeight: "500px",
+            background: "white",
+            border: "1px solid rgba(0,0,0,0.1)",
+            zIndex: 19,
+            overflowY: "auto",
+            animation: "slideInDown 0.3s ease-out"
+          }}
+        >
+          {/* Header */}
+          <div className="px-4 py-3 border-bottom d-flex align-items-center justify-content-between" style={{ borderColor: "rgba(0,0,0,0.1)" }}>
+            <div>
+              <h6 className="fw-bold text-dark mb-0">Notifications</h6>
+              <small className="text-muted">{unreadCount} unread</small>
+            </div>
+            <button
+              onClick={() => setShowNotificationDropdown(false)}
+              className="btn btn-link btn-sm p-0 text-muted"
+              style={{ fontSize: "18px" }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Notifications List */}
+          <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+            {unread.length > 0 && (
+              <>
+                <div className="px-4 py-2" style={{ background: "rgba(0,0,0,0.02)", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                  <small className="text-muted fw-semibold">UNREAD</small>
+                </div>
+                {unread.map(n => (
+                  <div key={n.id} className="px-4 py-3 border-bottom d-flex gap-3" style={{ borderColor: "rgba(0,0,0,0.05)", background: "rgba(59,130,246,0.02)" }}>
+                    <div style={{ fontSize: "20px", minWidth: "24px" }}>{n.icon}</div>
+                    <div className="flex-grow-1">
+                      <div className="fw-bold small text-dark">{n.title}</div>
+                      <div className="text-muted" style={{ fontSize: "12px", lineHeight: "1.4" }}>{n.message}</div>
+                      <div className="text-muted" style={{ fontSize: "11px", marginTop: "4px" }}>{n.time}</div>
+                    </div>
+                    <div className="d-flex gap-1 flex-shrink-0">
+                      <button
+                        onClick={() => markAsRead(n.id)}
+                        className="btn btn-link btn-sm p-0 text-primary"
+                        style={{ fontSize: "12px" }}
+                        title="Mark as read"
+                      >
+                        ✓
+                      </button>
+                      <button
+                        onClick={() => deleteNotification(n.id)}
+                        className="btn btn-link btn-sm p-0 text-danger"
+                        style={{ fontSize: "14px" }}
+                        title="Delete"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {read.length > 0 && (
+              <>
+                <div className="px-4 py-2" style={{ background: "rgba(0,0,0,0.02)", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                  <small className="text-muted fw-semibold">READ</small>
+                </div>
+                {read.map(n => (
+                  <div key={n.id} className="px-4 py-3 border-bottom d-flex gap-3" style={{ borderColor: "rgba(0,0,0,0.05)", opacity: 0.7 }}>
+                    <div style={{ fontSize: "20px", minWidth: "24px" }}>{n.icon}</div>
+                    <div className="flex-grow-1">
+                      <div className="fw-bold small text-dark">{n.title}</div>
+                      <div className="text-muted" style={{ fontSize: "12px", lineHeight: "1.4" }}>{n.message}</div>
+                      <div className="text-muted" style={{ fontSize: "11px", marginTop: "4px" }}>{n.time}</div>
+                    </div>
+                    <button
+                      onClick={() => deleteNotification(n.id)}
+                      className="btn btn-link btn-sm p-0 text-danger flex-shrink-0"
+                      style={{ fontSize: "14px" }}
+                      title="Delete"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {notifs.length === 0 && (
+              <div className="px-4 py-5 text-center text-muted">
+                <div style={{ fontSize: "32px", marginBottom: "8px" }}>🔔</div>
+                <small>No notifications</small>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          {notifs.length > 0 && (
+            <div className="px-4 py-2 border-top text-center" style={{ borderColor: "rgba(0,0,0,0.1)" }}>
+              <button
+                onClick={() => setPanel("notifications")}
+                className="btn btn-link btn-sm p-0 text-primary"
+                style={{ fontSize: "12px" }}
+              >
+                View all notifications →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Close dropdown when clicking outside */}
+      {showNotificationDropdown && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100"
+          style={{ zIndex: 18 }}
+          onClick={() => setShowNotificationDropdown(false)}
+        />
+      )}
+
       {/* Hero banner */}
       <div className="p-5 text-white text-center" style={{ background: "linear-gradient(135deg,#1e3a6e,#2563eb)" }}>
         <div className="fw-black fs-3 mb-1">Welcome, Jamie Santos</div>
@@ -492,6 +669,202 @@ function DashboardHome({ setPanel, onAskJobert, darkMode }: { setPanel: (p: "gra
         <p className="text-muted small mb-1">© 2026 Cebu Far East Institute. All rights reserved.</p>
         <Link href="/login" className="btn btn-outline-primary btn-sm">↪ Log Out</Link>
       </div>
+    </div>
+  );
+}
+
+/* ── Documents View ── */
+function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
+  const [requests, setRequests] = useState(documentRequests);
+  const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
+
+  function requestDocument(type: string) {
+    const newRequest = {
+      id: Date.now(),
+      type,
+      status: "pending" as const,
+      requestedAt: new Date().toLocaleDateString(),
+      approvedAt: null,
+      approvedBy: null,
+      downloadUrl: null,
+    };
+    setRequests([...requests, newRequest]);
+    setSelectedDoc(null);
+  }
+
+  const pending = requests.filter(r => r.status === "pending");
+  const approved = requests.filter(r => r.status === "approved");
+
+  return (
+    <div className="d-flex flex-column gap-4 w-100">
+      <BackBtn onClick={onBack} />
+      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
+        <div>
+          <h2 className="fw-black fs-4 text-white mb-0">Documents</h2>
+          <p className="text-white-50 small mb-0">Request and download official documents</p>
+        </div>
+      </div>
+
+      {/* Available Documents */}
+      <div>
+        <p className="text-white-50 small fw-semibold mb-3">📋 Available Documents</p>
+        <div className="row g-3">
+          {availableDocuments.map(doc => (
+            <div key={doc.id} className="col-12 col-sm-6">
+              <div className="card-elevated border-0 rounded-3 h-100">
+                <div className="card-body p-4">
+                  <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
+                    <div>
+                      <div className="fw-bold text-dark" style={{ fontSize: 18 }}>{doc.icon} {doc.name}</div>
+                      <div className="text-muted small mt-1">{doc.description}</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => requestDocument(doc.type)}
+                    disabled={requests.some(r => r.type === doc.type && r.status === "pending")}
+                    className={`btn w-100 ${requests.some(r => r.type === doc.type && r.status === "pending") ? "btn-secondary" : "btn-primary"}`}
+                    style={{ fontSize: 12 }}
+                  >
+                    {requests.some(r => r.type === doc.type && r.status === "pending") ? "⏳ Request Pending" : "📨 Request Document"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Pending Requests */}
+      {pending.length > 0 && (
+        <div>
+          <p className="text-white-50 small fw-semibold mb-3">⏳ Pending Requests</p>
+          <div className="d-flex flex-column gap-2">
+            {pending.map(req => (
+              <div key={req.id} className="card border-0 rounded-3" style={{ background: "rgba(255,255,255,0.08)" }}>
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div>
+                      <div className="fw-bold small text-white">{req.type}</div>
+                      <div className="text-white-50" style={{ fontSize: 11 }}>Requested {req.requestedAt}</div>
+                    </div>
+                    <span className="badge bg-warning-subtle text-warning border border-warning-subtle">⏳ Pending</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Approved Documents */}
+      {approved.length > 0 && (
+        <div>
+          <p className="text-white-50 small fw-semibold mb-3">✓ Approved Documents</p>
+          <div className="d-flex flex-column gap-2">
+            {approved.map(req => (
+              <div key={req.id} className="card border-0 rounded-3" style={{ background: "rgba(34, 197, 94, 0.1)" }}>
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div>
+                      <div className="fw-bold small text-white">{req.type}</div>
+                      <div className="text-white-50" style={{ fontSize: 11 }}>Approved {req.approvedAt} by {req.approvedBy}</div>
+                    </div>
+                    <button className="btn btn-success btn-sm" style={{ fontSize: 11 }}>⬇️ Download</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Notifications View ── */
+function NotificationsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
+  const [notifs, setNotifs] = useState(notifications);
+
+  function markAsRead(id: number) {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }
+
+  function deleteNotification(id: number) {
+    setNotifs(prev => prev.filter(n => n.id !== id));
+  }
+
+  const unread = notifs.filter(n => !n.read);
+  const read = notifs.filter(n => n.read);
+
+  return (
+    <div className="d-flex flex-column gap-4 w-100">
+      <BackBtn onClick={onBack} />
+      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
+        <div>
+          <h2 className="fw-black fs-4 text-white mb-0">Notifications</h2>
+          <p className="text-white-50 small mb-0">{unread.length} unread notifications</p>
+        </div>
+      </div>
+
+      {/* Unread Notifications */}
+      {unread.length > 0 && (
+        <div>
+          <p className="text-white-50 small fw-semibold mb-3">🔔 Unread</p>
+          <div className="d-flex flex-column gap-2">
+            {unread.map(notif => (
+              <div key={notif.id} className="card border-0 rounded-3" style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-start gap-3">
+                    <span style={{ fontSize: 20 }}>{notif.icon}</span>
+                    <div className="flex-grow-1">
+                      <div className="fw-bold small text-white">{notif.title}</div>
+                      <div className="text-white-50 small mt-1">{notif.message}</div>
+                      <div className="text-white-50 small mt-2" style={{ fontSize: 11 }}>{notif.time}</div>
+                    </div>
+                    <div className="d-flex gap-1 flex-shrink-0">
+                      <button onClick={() => markAsRead(notif.id)} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 12 }}>✓ Read</button>
+                      <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize: 12 }}>✕</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Read Notifications */}
+      {read.length > 0 && (
+        <div>
+          <p className="text-white-50 small fw-semibold mb-3">✓ Read</p>
+          <div className="d-flex flex-column gap-2">
+            {read.map(notif => (
+              <div key={notif.id} className="card border-0 rounded-3 opacity-75" style={{ background: "rgba(255,255,255,0.05)" }}>
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-start justify-content-between gap-3">
+                    <div className="d-flex align-items-start gap-3 flex-grow-1">
+                      <span style={{ fontSize: 18 }}>{notif.icon}</span>
+                      <div>
+                        <div className="fw-bold small text-white">{notif.title}</div>
+                        <div className="text-white-50 small mt-1">{notif.message}</div>
+                      </div>
+                    </div>
+                    <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger flex-shrink-0" style={{ fontSize: 12 }}>✕</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {notifs.length === 0 && (
+        <div className="card border-0 rounded-3" style={{ background: "rgba(255,255,255,0.05)" }}>
+          <div className="card-body p-4 text-center text-white-50">
+            <p className="small mb-0">No notifications</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -596,6 +969,8 @@ export default function DashboardPage() {
       {panel === "grades"   && <div style={{ width: "100%", maxWidth: 640 }}><GradesView   onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
       {panel === "schedule" && <div style={{ width: "100%", maxWidth: 640 }}><ScheduleView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
       {panel === "tuition"  && <div style={{ width: "100%", maxWidth: 640 }}><TuitionView  onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
+      {panel === "documents" && <div style={{ width: "100%", maxWidth: 640 }}><DocumentsView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
+      {panel === "notifications" && <div style={{ width: "100%", maxWidth: 640 }}><NotificationsView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
       <JobertChat initialPrompt={jobertPrompt} />
     </div>
   );

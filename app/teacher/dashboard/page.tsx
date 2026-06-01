@@ -61,7 +61,19 @@ const recentActivity = [
   { action: "Attendance Updated", name: "Luis Fernandez", time: "Yesterday", icon: "✓" },
 ];
 
-type Panel = "overview" | "subjects" | "schedule" | "students" | "grades" | "attendance" | "requests";
+const teacherNotifications = [
+  { id: 1, type: "document", title: "Document Request", message: "Jamie Santos requested a TOR", time: "1h ago", read: false, icon: "📄" },
+  { id: 2, type: "grade", title: "Grade Submitted", message: "Your grades for Algebra I have been submitted", time: "2h ago", read: false, icon: "✓" },
+  { id: 3, type: "enrollment", title: "New Student Enrolled", message: "Rosa Bautista enrolled in your Geometry class", time: "1d ago", read: true, icon: "🎓" },
+];
+
+const documentApprovals = [
+  { id: 1, student: "Jamie Santos", type: "TOR", status: "pending", requestedAt: "May 18, 2026", icon: "📄" },
+  { id: 2, student: "Maria Reyes", type: "Certificate", status: "pending", requestedAt: "May 17, 2026", icon: "📜" },
+  { id: 3, student: "Carlo Dela Cruz", type: "TOR", status: "approved", requestedAt: "May 15, 2026", approvedAt: "May 16, 2026", icon: "✓" },
+];
+
+type Panel = "overview" | "subjects" | "schedule" | "students" | "grades" | "attendance" | "requests" | "documents" | "notifications";
 
 /* ── Back Button ── */
 function BackBtn({ onClick }: { onClick: () => void }) {
@@ -126,7 +138,9 @@ function OverviewPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
             { id: "students", label: "My Students", icon: "🎓", bg: "#8b5cf6" },
             { id: "grades", label: "Submit Grades", icon: "📊", bg: "#14b8a6" },
             { id: "requests", label: "Grade Requests", icon: "📨", bg: "#ec4899" },
-            { id: "attendance", label: "Attendance", icon: "✓", bg: "#f59e0b" },
+            { id: "documents", label: "Document Approvals", icon: "📄", bg: "#f59e0b" },
+            { id: "notifications", label: "Notifications", icon: "🔔", bg: "#ef4444" },
+            { id: "attendance", label: "Attendance", icon: "✓", bg: "#6366f1" },
           ].map(q => (
             <div key={q.id} className="col-6 col-sm-4 col-lg-2">
               <button onClick={() => setPanel(q.id as Panel)}
@@ -528,6 +542,177 @@ function RequestsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   );
 }
 
+/* ── Document Approvals Panel (Teacher) ── */
+function DocumentApprovalsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+  const [docs, setDocs] = useState(documentApprovals);
+
+  function approveDocument(id: number) {
+    setDocs(prev =>
+      prev.map(d =>
+        d.id === id
+          ? { ...d, status: "approved", approvedAt: new Date().toLocaleDateString() }
+          : d
+      )
+    );
+  }
+
+  function rejectDocument(id: number) {
+    setDocs(prev => prev.filter(d => d.id !== id));
+  }
+
+  const pending = docs.filter(d => d.status === "pending");
+  const approved = docs.filter(d => d.status === "approved");
+
+  return (
+    <div className="d-flex flex-column gap-4">
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+        <div><h2 className="fw-black fs-4 text-dark mb-0">Document Approvals</h2><p className="text-muted small mb-0">Verify and approve student document requests</p></div>
+      </div>
+
+      {/* Stats */}
+      <div className="row g-3">
+        {[
+          { label: "Pending", value: pending.length, icon: "⏳", cls: "bg-warning-subtle border-warning-subtle text-warning" },
+          { label: "Approved", value: approved.length, icon: "✓", cls: "bg-success-subtle border-success-subtle text-success" },
+        ].map(s => (
+          <div key={s.label} className="col-6">
+            <div className={`card border rounded-3 ${s.cls}`}>
+              <div className="card-body p-3 text-center">
+                <div className="text-muted small mb-1">{s.label}</div>
+                <div className="fw-black fs-3">{s.value}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pending */}
+      {pending.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">⏳ Pending Approvals</h3>
+          <div className="d-flex flex-column gap-2">
+            {pending.map(doc => (
+              <div key={doc.id} className="card border-0 shadow-sm rounded-3">
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <div>
+                      <div className="fw-bold small text-dark">{doc.student}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>{doc.type} · Requested {doc.requestedAt}</div>
+                    </div>
+                    <span className="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                  </div>
+                  <div className="d-flex gap-2">
+                    <button onClick={() => approveDocument(doc.id)} className="btn btn-success btn-sm flex-grow-1" style={{ fontSize: 11 }}>✓ Approve</button>
+                    <button onClick={() => rejectDocument(doc.id)} className="btn btn-danger btn-sm flex-grow-1" style={{ fontSize: 11 }}>✕ Reject</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Approved */}
+      {approved.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">✓ Approved Documents</h3>
+          <div className="d-flex flex-column gap-2">
+            {approved.map(doc => (
+              <div key={doc.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div>
+                      <div className="fw-bold small text-dark">{doc.student}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>{doc.type} · Approved {doc.approvedAt}</div>
+                    </div>
+                    <span className="badge bg-success-subtle text-success border border-success-subtle">✓ Approved</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Notifications Panel (Teacher) ── */
+function TeacherNotificationsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+  const [notifs, setNotifs] = useState(teacherNotifications);
+
+  function markAsRead(id: number) {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }
+
+  function deleteNotification(id: number) {
+    setNotifs(prev => prev.filter(n => n.id !== id));
+  }
+
+  const unread = notifs.filter(n => !n.read);
+  const read = notifs.filter(n => n.read);
+
+  return (
+    <div className="d-flex flex-column gap-4">
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+        <div><h2 className="fw-black fs-4 text-dark mb-0">Notifications</h2><p className="text-muted small mb-0">{unread.length} unread</p></div>
+      </div>
+
+      {/* Unread */}
+      {unread.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">🔔 Unread</h3>
+          <div className="d-flex flex-column gap-2">
+            {unread.map(notif => (
+              <div key={notif.id} className="card border-0 shadow-sm rounded-3" style={{ background: "rgba(59, 130, 246, 0.1)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-start gap-3">
+                    <span style={{ fontSize: 18 }}>{notif.icon}</span>
+                    <div className="flex-grow-1">
+                      <div className="fw-bold small text-dark">{notif.title}</div>
+                      <div className="text-muted small mt-1">{notif.message}</div>
+                      <div className="text-muted small mt-2" style={{ fontSize: 11 }}>{notif.time}</div>
+                    </div>
+                    <div className="d-flex gap-1 flex-shrink-0">
+                      <button onClick={() => markAsRead(notif.id)} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 11 }}>✓</button>
+                      <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize: 11 }}>✕</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Read */}
+      {read.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">✓ Read</h3>
+          <div className="d-flex flex-column gap-2">
+            {read.map(notif => (
+              <div key={notif.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-start justify-content-between gap-3">
+                    <div className="d-flex align-items-start gap-3 flex-grow-1">
+                      <span style={{ fontSize: 16 }}>{notif.icon}</span>
+                      <div>
+                        <div className="fw-bold small text-dark">{notif.title}</div>
+                        <div className="text-muted small mt-1">{notif.message}</div>
+                      </div>
+                    </div>
+                    <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger flex-shrink-0" style={{ fontSize: 11 }}>✕</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Attendance Panel ── */
 function AttendancePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   const [selectedSubject, setSelectedSubject] = useState(subjects[0].id);
@@ -603,6 +788,8 @@ export default function TeacherDashboardPage() {
           {panel === "students" && <><BackBtn onClick={() => setPanel("overview")} /><StudentsPanel setPanel={setPanel} /></>}
           {panel === "grades" && <><BackBtn onClick={() => setPanel("overview")} /><GradesPanel setPanel={setPanel} /></>}
           {panel === "requests" && <><BackBtn onClick={() => setPanel("overview")} /><RequestsPanel setPanel={setPanel} /></>}
+          {panel === "documents" && <><BackBtn onClick={() => setPanel("overview")} /><DocumentApprovalsPanel setPanel={setPanel} /></>}
+          {panel === "notifications" && <><BackBtn onClick={() => setPanel("overview")} /><TeacherNotificationsPanel setPanel={setPanel} /></>}
           {panel === "attendance" && <><BackBtn onClick={() => setPanel("overview")} /><AttendancePanel setPanel={setPanel} /></>}
         </div>
 

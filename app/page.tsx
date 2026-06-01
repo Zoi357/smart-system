@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import LoadingScreen from "./components/LoadingScreen";
+import { ThemeToggle } from "./components/ThemeToggle";
+import { useMouseTracking } from "./components/InteractiveFeatures";
 
 /* ── Live clock ── */
 function Clock() {
@@ -35,10 +37,42 @@ const announcements = [
   "💳  Student ID renewal available at the Registrar's Office",
 ];
 function Ticker() {
+  const text = "📢 Enrollment Period is Now Open — Deadline: June 15, 2026     ·     📋 Final Exam Schedule has been posted — Check your student portal     ·     🎓 Graduation Ceremony: June 28, 2026 at the Main Auditorium     ·     📚 Library hours extended during exam week: 7AM – 11PM     ·     💳 Student ID renewal available at the Registrar's Office     ·     ";
+  const ref = useRef<HTMLDivElement>(null);
+  const posRef = useRef(0);
+
+  useEffect(() => {
+    let animId: number;
+    let lastTime = 0;
+    const speed = 60; // pixels per second
+
+    const step = (timestamp: number) => {
+      if (!lastTime) lastTime = timestamp;
+      const delta = (timestamp - lastTime) / 1000; // seconds elapsed
+      lastTime = timestamp;
+
+      posRef.current -= speed * delta;
+
+      if (ref.current) {
+        const halfWidth = ref.current.scrollWidth / 2;
+        if (Math.abs(posRef.current) >= halfWidth) {
+          posRef.current = 0;
+        }
+        ref.current.style.transform = `translateX(${posRef.current}px)`;
+      }
+
+      animId = requestAnimationFrame(step);
+    };
+
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
   return (
-    <div className="bg-primary py-2 ticker-wrap">
-      <div className="animate-ticker d-inline-block text-white small fw-semibold">
-        {announcements.join("     ·     ")}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{announcements.join("     ·     ")}
+    <div style={{ background: "#1d4ed8", padding: "8px 0", overflow: "hidden" }}>
+      <div ref={ref} style={{ display: "inline-block", whiteSpace: "nowrap" }}>
+        <span style={{ color: "white", fontSize: "0.85rem", fontWeight: 600 }}>{text}</span>
+        <span style={{ color: "white", fontSize: "0.85rem", fontWeight: 600 }}>{text}</span>
       </div>
     </div>
   );
@@ -104,18 +138,24 @@ export default function KioskHome() {
       <div className={`kiosk-bg d-flex flex-column`} style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.5s" }} suppressHydrationWarning>
 
         {/* ── Navbar ── */}
-        <nav className="navbar glass border-bottom px-3 px-md-4 py-3">
+        <nav className="navbar glass border-bottom px-3 px-md-4 py-3" style={{ position: "relative", zIndex: 2 }}>
           <div className="d-flex align-items-center gap-3">
-            <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle border" style={{ width: 50, height: 50, objectFit: "cover" }} />
+            <img
+              src="/cfei-logo.jpg"
+              alt="CFEI"
+              className="rounded-circle border"
+              style={{ width: 50, height: 50, objectFit: "cover" }}
+            />
             <div>
-              <div className="fw-bold text-dark lh-1" style={{ fontSize: "1.3rem" }}>Cebu Far East Institute</div>
-              <div className="text-muted" style={{ fontSize: 11 }}>Student Information System</div>
+              <div className="fw-bold lh-1" style={{ fontSize: "1.3rem" }}>Cebu Far East Institute</div>
+              <div style={{ fontSize: 11, opacity: 0.7 }}>Student Information System</div>
             </div>
           </div>
 
           <div className="d-none d-md-block mx-auto"><Clock /></div>
 
           <div className="d-flex align-items-center gap-3">
+            <ThemeToggle />
             <span className="badge bg-success-subtle text-success border border-success-subtle d-flex align-items-center gap-1">
               <span className="rounded-circle bg-success d-inline-block" style={{ width: 7, height: 7 }} />
               System Online
@@ -128,7 +168,7 @@ export default function KioskHome() {
         <Ticker />
 
         {/* ── Main ── */}
-        <main className="flex-grow-1 d-flex flex-column align-items-center justify-content-center px-3 py-5 gap-4">
+        <main className="flex-grow-1 d-flex flex-column align-items-center justify-content-center px-3 py-5 gap-4" style={{ position: "relative", zIndex: 2 }}>
 
           {/* Mobile clock */}
           <div className="d-md-none animate-fade-in"><Clock /></div>
@@ -160,8 +200,9 @@ export default function KioskHome() {
           </div>
 
           {/* Login buttons */}
-          <div className="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-4 animate-fade-in delay-3 position-relative" style={{ maxWidth: 700, width: "100%" }}>
-            {/* Glowing logo background */}
+          <div className="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-4 animate-fade-in delay-3" style={{ maxWidth: 700, width: "100%", position: "relative" }}>
+            
+            {/* Logo watermark behind buttons - strictly non-interactive */}
             <div style={{
               position: "absolute",
               top: "50%",
@@ -174,13 +215,14 @@ export default function KioskHome() {
               backgroundSize: "contain",
               backgroundRepeat: "no-repeat",
               backgroundPosition: "center",
-              opacity: 0.3,
-              zIndex: 0,
+              opacity: 0.15,
               pointerEvents: "none",
-              animation: "glowRGB 4s ease-in-out infinite"
+              zIndex: 0,
+              boxShadow: "0 0 40px #fbbf24, 0 0 80px #f59e0b, 0 0 120px #dc2626",
+              animation: "sunGlowPulse 3s ease-in-out infinite",
             }} />
             
-            <Link href="/login" className="tap-btn text-decoration-none position-relative" style={{ width: 200, height: 200, background: "linear-gradient(135deg, #e11d48 0%, #be123c 50%, #9f1239 100%)", zIndex: 1 }}>
+            <Link href="/login" className="tap-btn text-decoration-none" style={{ width: 200, height: 200, background: "linear-gradient(135deg, #e11d48 0%, #be123c 50%, #9f1239 100%)", zIndex: 1, position: "relative" }}>
               <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="28" cy="16" r="8" fill="white"/>
                 <path d="M 12 32 Q 12 28 16 28 L 40 28 Q 44 28 44 32 L 44 44 Q 44 48 40 48 L 16 48 Q 12 48 12 44 Z" fill="white"/>
@@ -190,7 +232,7 @@ export default function KioskHome() {
                 <div>Student</div>
               </div>
             </Link>
-            <Link href="/teacher/login" className="tap-btn text-decoration-none position-relative" style={{ width: 200, height: 200, background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", zIndex: 1 }}>
+            <Link href="/teacher/login" className="tap-btn text-decoration-none" style={{ width: 200, height: 200, background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", zIndex: 1, position: "relative" }}>
               <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="20" cy="16" r="6" fill="white"/>
                 <path d="M 10 28 Q 10 25 13 25 L 27 25 Q 30 25 30 28 L 30 40 Q 30 43 27 43 L 13 43 Q 10 43 10 40 Z" fill="white"/>

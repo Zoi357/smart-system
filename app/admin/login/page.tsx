@@ -47,7 +47,7 @@ export default function AdminLoginPage() {
           <div className="d-flex align-items-center gap-3">
             <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle" style={{ width: 56, height: 56, objectFit: "cover", border: "2px solid rgba(255,255,255,0.2)" }} />
             <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.2)" }} />
-            <div className="rounded-3 d-flex align-items-center justify-content-center text-white fw-black shadow" style={{ width: 56, height: 56, fontSize: 22, background: "linear-gradient(135deg,#6366f1,#7c3aed)" }}>IN</div>
+            <img src="/newimlogo.png" alt="INFORM" className="rounded-3 shadow" style={{ width: 56, height: 56, objectFit: "cover" }} />
           </div>
           <div className="text-white fw-bold fs-5">INFORM</div>
           <div style={{ color: "#a5b4fc", fontSize: 12 }}>Cebu Far East Institute · Student Information System</div>

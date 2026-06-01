@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
+import { ThemeProvider } from "./components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "INFORM — Self-Service Student Information Kiosk",
@@ -15,7 +16,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

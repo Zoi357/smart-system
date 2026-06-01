@@ -5,10 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const TEACHER_ACCOUNTS = [
-  { id: "T001", password: "Teacher@2026", name: "Maria Santos",    subject: "Mathematics" },
-  { id: "T002", password: "Teacher@2026", name: "Juan Dela Cruz",  subject: "English" },
-  { id: "T003", password: "Teacher@2026", name: "Ana Reyes",       subject: "Science" },
-  { id: "T004", password: "Teacher@2026", name: "Carlos Fernandez", subject: "History" },
+  { id: "T001", password: "maria", name: "Maria Santos",    subject: "Mathematics" },
+  { id: "T002", password: "juan", name: "Juan Dela Cruz",  subject: "English" },
+  { id: "T003", password: "ana", name: "Ana Reyes",       subject: "Science" },
+  { id: "T004", password: "carlos", name: "Carlos Fernandez", subject: "History" },
 ];
 
 export default function TeacherLoginPage() {
@@ -50,7 +50,7 @@ export default function TeacherLoginPage() {
           <div className="d-flex align-items-center gap-3">
             <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle" style={{ width: 56, height: 56, objectFit: "cover", border: "2px solid rgba(255,255,255,0.2)" }} />
             <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.2)" }} />
-            <div className="rounded-3 d-flex align-items-center justify-content-center text-white fw-black shadow" style={{ width: 56, height: 56, fontSize: 22, background: "linear-gradient(135deg, #0f172a, #1e293b)" }}>IN</div>
+            <img src="/newimlogo.png" alt="INFORM" className="rounded-3 shadow" style={{ width: 56, height: 56, objectFit: "cover" }} />
           </div>
           <div className="text-white fw-bold fs-5">INFORM</div>
           <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>Cebu Far East Institute · Student Information System</div>

@@ -45,14 +45,30 @@ const allGradeRequests = [
   { id: 4, student: "Luis Fernandez", teacher: "Ms. Villanueva", subject: "Physics", status: "rejected", requestedAt: "1h ago" },
 ];
 
+const allDocumentRequests = [
+  { id: 1, student: "Jamie Santos", type: "TOR", status: "pending", requestedAt: "May 18, 2026", teacher: "Mr. Dela Cruz" },
+  { id: 2, student: "Maria Reyes", type: "Certificate", status: "pending", requestedAt: "May 17, 2026", teacher: "Mr. Dela Cruz" },
+  { id: 3, student: "Carlo Dela Cruz", type: "TOR", status: "approved", requestedAt: "May 15, 2026", teacher: "Mr. Fernandez", approvedAt: "May 16, 2026" },
+  { id: 4, student: "Ana Villanueva", type: "Good Standing", status: "approved", requestedAt: "May 14, 2026", teacher: "Ms. Villanueva", approvedAt: "May 15, 2026" },
+];
+
+const adminNotifications = [
+  { id: 1, type: "document", title: "Document Request", message: "Jamie Santos requested a TOR", time: "1h ago", read: false, icon: "📄" },
+  { id: 2, type: "grade", title: "Grade Submitted", message: "Mr. Dela Cruz submitted grades for Algebra I", time: "2h ago", read: false, icon: "✓" },
+  { id: 3, type: "enrollment", title: "New Enrollment", message: "Rosa Bautista enrolled in the system", time: "1d ago", read: true, icon: "🎓" },
+  { id: 4, type: "payment", title: "Payment Received", message: "Carlo Dela Cruz paid tuition fee", time: "2d ago", read: true, icon: "💰" },
+];
+
 const navItems = [
   { id:"overview",      label:"Overview",      icon:"🏠" },
   { id:"students",      label:"Students",      icon:"🎓" },
   { id:"teachers",      label:"Teachers",      icon:"👨‍🏫" },
   { id:"grades",        label:"Grades",        icon:"📊" },
   { id:"requests",      label:"Grade Requests", icon:"📨" },
+  { id:"documents",     label:"Documents",     icon:"📄" },
   { id:"enrollment",    label:"Enrollment",    icon:"📋" },
   { id:"tuition",       label:"Tuition",       icon:"💰" },
+  { id:"notifications", label:"Notifications", icon:"🔔" },
   { id:"announcements", label:"Announcements", icon:"📢" },
 ];
 
@@ -93,7 +109,7 @@ function Sidebar({ active, setActive, show, setShow, onExpandChange }: { active:
           <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle flex-shrink-0" style={{ width:32, height:32, objectFit:"cover", border:"1px solid rgba(255,255,255,0.2)" }} />
           {expanded && (
             <>
-              <div className="rounded-3 d-flex align-items-center justify-content-center text-white fw-black flex-shrink-0" style={{ width:36, height:36, fontSize:14, background:"linear-gradient(135deg,#6366f1,#7c3aed)" }}>IN</div>
+              <img src="/newimlogo.png" alt="INFORM" className="rounded-3 flex-shrink-0" style={{ width:36, height:36, objectFit:"cover" }} />
               <div><div className="text-white fw-bold lh-1" style={{ fontSize:15 }}>INFORM</div><div style={{ color:"#818cf8", fontSize:11 }}>Admin Panel</div></div>
             </>
           )}
@@ -685,6 +701,180 @@ function AdminRequestsPanel() {
   );
 }
 
+/* ── Admin Document Management Panel ── */
+function AdminDocumentsPanel() {
+  const [docs, setDocs] = useState(allDocumentRequests);
+
+  function approveDocument(id: number) {
+    setDocs(prev =>
+      prev.map(d =>
+        d.id === id
+          ? { ...d, status: "approved", approvedAt: new Date().toLocaleDateString() }
+          : d
+      )
+    );
+  }
+
+  function rejectDocument(id: number) {
+    setDocs(prev =>
+      prev.map(d =>
+        d.id === id
+          ? { ...d, status: "rejected" }
+          : d
+      )
+    );
+  }
+
+  const pending = docs.filter(d => d.status === "pending");
+  const approved = docs.filter(d => d.status === "approved");
+  const rejected = docs.filter(d => d.status === "rejected");
+
+  return (
+    <div className="d-flex flex-column gap-4">
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+        <div><h2 className="fw-black fs-4 text-dark mb-0">Document Management</h2><p className="text-muted small mb-0">Manage all student document requests</p></div>
+      </div>
+
+      {/* Stats */}
+      <div className="row g-3">
+        {[
+          { label: "Pending", value: pending.length, icon: "⏳", cls: "bg-warning-subtle border-warning-subtle text-warning" },
+          { label: "Approved", value: approved.length, icon: "✓", cls: "bg-success-subtle border-success-subtle text-success" },
+          { label: "Rejected", value: rejected.length, icon: "✕", cls: "bg-danger-subtle border-danger-subtle text-danger" },
+        ].map(s => (
+          <div key={s.label} className="col-4">
+            <div className={`card border rounded-3 ${s.cls}`}>
+              <div className="card-body p-3 text-center">
+                <div className="text-muted small mb-1">{s.label}</div>
+                <div className="fw-black fs-3">{s.value}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table */}
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+        <div className="table-responsive">
+          <table className="table table-hover mb-0">
+            <thead className="table-light">
+              <tr>
+                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing:"0.05em" }}>Student</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing:"0.05em" }}>Type</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Teacher</th>
+                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Status</th>
+                <th className="small text-muted fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing:"0.05em" }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {docs.map(doc => (
+                <tr key={doc.id}>
+                  <td className="ps-4 small fw-medium text-dark">{doc.student}</td>
+                  <td className="d-none d-sm-table-cell text-muted small">{doc.type}</td>
+                  <td className="d-none d-lg-table-cell text-muted small">{doc.teacher}</td>
+                  <td>
+                    <span className={`badge ${
+                      doc.status === "pending" ? "bg-warning-subtle text-warning border border-warning-subtle" :
+                      doc.status === "approved" ? "bg-success-subtle text-success border border-success-subtle" :
+                      "bg-danger-subtle text-danger border border-danger-subtle"
+                    }`}>
+                      {doc.status === "pending" ? "⏳ Pending" : doc.status === "approved" ? "✓ Approved" : "✕ Rejected"}
+                    </span>
+                  </td>
+                  <td className="text-end pe-4">
+                    {doc.status === "pending" && (
+                      <div className="d-flex gap-1 justify-content-end">
+                        <button onClick={() => approveDocument(doc.id)} className="btn btn-success btn-sm" style={{ fontSize: 11 }}>✓</button>
+                        <button onClick={() => rejectDocument(doc.id)} className="btn btn-danger btn-sm" style={{ fontSize: 11 }}>✕</button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Admin Notifications Panel ── */
+function AdminNotificationsPanel() {
+  const [notifs, setNotifs] = useState(adminNotifications);
+
+  function markAsRead(id: number) {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }
+
+  function deleteNotification(id: number) {
+    setNotifs(prev => prev.filter(n => n.id !== id));
+  }
+
+  const unread = notifs.filter(n => !n.read);
+  const read = notifs.filter(n => n.read);
+
+  return (
+    <div className="d-flex flex-column gap-4">
+      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+        <div><h2 className="fw-black fs-4 text-dark mb-0">Notifications</h2><p className="text-muted small mb-0">{unread.length} unread</p></div>
+      </div>
+
+      {/* Unread */}
+      {unread.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">🔔 Unread</h3>
+          <div className="d-flex flex-column gap-2">
+            {unread.map(notif => (
+              <div key={notif.id} className="card border-0 shadow-sm rounded-3" style={{ background: "rgba(59, 130, 246, 0.1)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-start gap-3">
+                    <span style={{ fontSize: 18 }}>{notif.icon}</span>
+                    <div className="flex-grow-1">
+                      <div className="fw-bold small text-dark">{notif.title}</div>
+                      <div className="text-muted small mt-1">{notif.message}</div>
+                      <div className="text-muted small mt-2" style={{ fontSize: 11 }}>{notif.time}</div>
+                    </div>
+                    <div className="d-flex gap-1 flex-shrink-0">
+                      <button onClick={() => markAsRead(notif.id)} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 11 }}>✓</button>
+                      <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize: 11 }}>✕</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Read */}
+      {read.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">✓ Read</h3>
+          <div className="d-flex flex-column gap-2">
+            {read.map(notif => (
+              <div key={notif.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+                <div className="card-body p-3">
+                  <div className="d-flex align-items-start justify-content-between gap-3">
+                    <div className="d-flex align-items-start gap-3 flex-grow-1">
+                      <span style={{ fontSize: 16 }}>{notif.icon}</span>
+                      <div>
+                        <div className="fw-bold small text-dark">{notif.title}</div>
+                        <div className="text-muted small mt-1">{notif.message}</div>
+                      </div>
+                    </div>
+                    <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger flex-shrink-0" style={{ fontSize: 11 }}>✕</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Announcements Panel ── */
 function AnnouncementsPanel() {
   const [items, setItems] = useState(announcements);
@@ -890,8 +1080,10 @@ export default function AdminDashboardPage() {
       case "teachers":      return <TeachersPanel />;
       case "grades":        return <GradesPanel />;
       case "requests":      return <AdminRequestsPanel />;
+      case "documents":     return <AdminDocumentsPanel />;
       case "enrollment":    return <EnrollmentPanel />;
       case "tuition":       return <TuitionPanel />;
+      case "notifications": return <AdminNotificationsPanel />;
       case "announcements": return <AnnouncementsPanel />;
       case "library":       return <LibraryPanel />;
       case "reports":       return <ReportsPanel />;
