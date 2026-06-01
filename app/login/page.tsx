@@ -5,11 +5,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 const STUDENT_ACCOUNTS = [
-  { id: "202400001", password: "jamie123", name: "Jamie Santos",    course: "BSCS Year 2" },
-  { id: "202400002", password: "maria456", name: "Maria Reyes",     course: "BSED Year 1" },
-  { id: "202400003", password: "carlo789", name: "Carlo Dela Cruz", course: "BSBA Year 3" },
-  { id: "202400004", password: "ana2024",  name: "Ana Villanueva",  course: "BSN Year 2"  },
-  { id: "202400005", password: "luis2024", name: "Luis Fernandez",  course: "BSCS Year 4" },
+  { id: "202400001", password: "jamie", name: "Jamie Santos",    course: "STEM Grade 11" },
+  { id: "202400002", password: "maria", name: "Maria Reyes",     course: "HUMMS Grade 11" },
+  { id: "202400003", password: "carlo", name: "Carlo Dela Cruz", course: "ABM Grade 12" },
+  { id: "202400004", password: "ana",   name: "Ana Villanueva",  course: "GAS Grade 11"  },
+  { id: "202400005", password: "luis",  name: "Luis Fernandez",  course: "STEM Grade 12" },
+  { id: "202400006", password: "rosa",  name: "Rosa Bautista",   course: "TVL Grade 11" },
+  { id: "202400007", password: "mark",  name: "Mark Uy",         course: "ABM Grade 12" },
+  { id: "202400008", password: "lena",  name: "Lena Cruz",       course: "HUMMS Grade 11" },
 ];
 
 /* ── JOBERT AI Chat ── */

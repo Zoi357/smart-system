@@ -248,6 +248,20 @@ class TeacherModel {
    * Verify teacher password
    */
   static async verifyPassword(teacher_id, password) {
+    // Demo credentials mapping
+    const demoTeachers = {
+      "T001": "maria",
+      "T002": "juan",
+      "T003": "ana",
+      "T004": "carlos"
+    };
+
+    // Check demo credentials first
+    if (demoTeachers[teacher_id] === password) {
+      return true;
+    }
+
+    // Fallback to database check
     return new Promise((resolve, reject) => {
       db.query(
         "SELECT password FROM teachers WHERE teacher_id = ?",
