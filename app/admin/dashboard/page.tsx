@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 
 /* ── Data ── */
@@ -944,7 +944,7 @@ function AdminDocumentsPanel() {
             </thead>
             <tbody>
               {docs.map(doc => (
-                <>
+                <React.Fragment key={doc.id}>
                   <tr key={doc.id}>
                     <td className="ps-4 small fw-medium text-dark">{doc.student}</td>
                     <td className="d-none d-sm-table-cell text-muted small">{doc.type}</td>
@@ -1015,7 +1015,7 @@ function AdminDocumentsPanel() {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>
