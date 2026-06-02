@@ -1146,6 +1146,22 @@ export default function AdminDashboardPage() {
   const [activeNav, setActiveNav]   = useState("overview");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [notifs, setNotifs] = useState(adminNotifications);
+
+  const unreadCount = notifs.filter(n => !n.read).length;
+
+  function markAsRead(id: number) {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }
+
+  function markAllAsRead() {
+    setNotifs(prev => prev.map(n => ({ ...n, read: true })));
+  }
+
+  function deleteNotif(id: number) {
+    setNotifs(prev => prev.filter(n => n.id !== id));
+  }
 
   function renderPanel() {
     switch (activeNav) {
@@ -1185,9 +1201,9 @@ export default function AdminDashboardPage() {
             <span className="badge bg-success-subtle text-success border border-success-subtle d-none d-sm-flex align-items-center gap-1">
               <span className="rounded-circle bg-success d-inline-block" style={{ width:7, height:7 }} />System Online
             </span>
-            <button className="btn btn-link text-muted p-1 position-relative">
+            <button className="btn btn-link text-muted p-1 position-relative" onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
               <span style={{ fontSize:20 }}>🔔</span>
-              <span className="position-absolute top-0 end-0 rounded-circle bg-danger" style={{ width:8, height:8 }} />
+              {unreadCount > 0 && <span className="position-absolute top-0 end-0 rounded-circle bg-danger d-flex align-items-center justify-content-center text-white" style={{ width:16, height:16, fontSize:9, fontWeight:"bold" }}>{unreadCount}</span>}
             </button>
             <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style={{ width:32, height:32, fontSize:12, background:"linear-gradient(135deg,#6366f1,#7c3aed)", cursor:"pointer" }}>AD</div>
           </div>
@@ -1215,9 +1231,9 @@ export default function AdminDashboardPage() {
             <span className="badge bg-success-subtle text-success border border-success-subtle d-none d-sm-flex align-items-center gap-1">
               <span className="rounded-circle bg-success d-inline-block" style={{ width:7, height:7 }} />System Online
             </span>
-            <button className="btn btn-link text-muted p-1 position-relative">
+            <button className="btn btn-link text-muted p-1 position-relative" onClick={() => setShowNotifDropdown(!showNotifDropdown)}>
               <span style={{ fontSize:20 }}>🔔</span>
-              <span className="position-absolute top-0 end-0 rounded-circle bg-danger" style={{ width:8, height:8 }} />
+              {unreadCount > 0 && <span className="position-absolute top-0 end-0 rounded-circle bg-danger d-flex align-items-center justify-content-center text-white" style={{ width:16, height:16, fontSize:9, fontWeight:"bold" }}>{unreadCount}</span>}
             </button>
             <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style={{ width:32, height:32, fontSize:12, background:"linear-gradient(135deg,#6366f1,#7c3aed)", cursor:"pointer" }}>AD</div>
           </div>
@@ -1227,6 +1243,42 @@ export default function AdminDashboardPage() {
           {renderPanel()}
         </main>
       </div>
-    </div>
-  );
-}
+
+      {/* Notification Dropdown - shared for both desktop and mobile */}
+      {showNotifDropdown && (
+        <>
+          <div style={{ position:"fixed", top:60, right:20, width:360, maxHeight:480, background:"white", borderRadius:"0.75rem", border:"1px solid rgba(0,0,0,0.1)", boxShadow:"0 10px 40px rgba(0,0,0,0.15)", zIndex:9999, overflowY:"auto", animation:"slideInDown 0.2s ease-out" }}>
+            <div className="px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+              <div><div className="fw-bold text-dark small">Notifications</div><div className="text-muted" style={{ fontSize:11 }}>{unreadCount} unread</div></div>
+              <div className="d-flex align-items-center gap-2">
+                {unreadCount > 0 && <button onClick={markAllAsRead} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize:11 }}>Mark all read</button>}
+                <button onClick={() => setShowNotifDropdown(false)} className="btn btn-link btn-sm p-0 text-muted" style={{ fontSize:18 }}>✕</button>
+              </div>
+            </div>
+            {notifs.length === 0 ? (
+              <div className="px-4 py-5 text-center text-muted"><div style={{ fontSize:32, marginBottom:8 }}>🔔</div><small>No notifications</small></div>
+            ) : (
+              notifs.map(n => (
+                <div key={n.id} className="px-4 py-3 border-bottom d-flex gap-3" style={{ background: n.read ? "white" : "rgba(99,102,241,0.04)", opacity: n.read ? 0.7 : 1 }}>
+                  <div style={{ fontSize:20, minWidth:24 }}>{n.icon}</div>
+                  <div className="flex-grow-1">
+                    <div className="fw-bold small text-dark">{n.title}</div>
+                    <div className="text-muted" style={{ fontSize:12, lineHeight:1.4 }}>{n.message}</div>
+                    <div className="text-muted" style={{ fontSize:11, marginTop:4 }}>{n.time}</div>
+                  </div>
+                  <div className="d-flex gap-1 flex-shrink-0">
+                    {!n.read && <button onClick={() => markAsRead(n.id)} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize:12 }} title="Mark as read">✓</button>}
+                    <button onClick={() => deleteNotif(n.id)} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize:14 }} title="Delete">✕</button>
+                  </div>
+                </div>
+              ))
+            )}
+            {notifs.length > 0 && (
+              <div className="px-4 py-2 border-top text-center">
+                <button onClick={() => { setActiveNav("notifications"); setShowNotifDropdown(false); }} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize:12 }}>View all notifications →</button>
+              </div>
+            )}
+          </div>
+          <div className="position-fixed top-0 start-0 w-100 h-100" style={{ zIndex:9998 }} onClick={() => setShowNotifDropdown(false)} />
+        </>
+      )}
