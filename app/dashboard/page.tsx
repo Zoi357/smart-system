@@ -494,15 +494,19 @@ function DashboardHome({ setPanel, onAskJobert, darkMode, notifs, markAsRead, ma
       {/* Notification Dropdown Panel */}
       {showNotificationDropdown && (
         <div
-          className="position-absolute top-0 end-0 mt-5 me-3 rounded-3 shadow-lg"
           style={{
+            position: "fixed",
+            top: 60,
+            right: 20,
             width: "360px",
             maxHeight: "500px",
             background: "white",
             border: "1px solid rgba(0,0,0,0.1)",
-            zIndex: 19,
+            zIndex: 9999,
             overflowY: "auto",
-            animation: "slideInDown 0.3s ease-out"
+            borderRadius: "0.75rem",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
+            animation: "slideInDown 0.2s ease-out"
           }}
         >
           {/* Header */}
@@ -618,7 +622,7 @@ function DashboardHome({ setPanel, onAskJobert, darkMode, notifs, markAsRead, ma
       {showNotificationDropdown && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100"
-          style={{ zIndex: 18 }}
+          style={{ zIndex: 9998 }}
           onClick={() => setShowNotificationDropdown(false)}
         />
       )}
