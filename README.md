@@ -1,107 +1,125 @@
-# INFORM - Smart Student Information Management System
+# INFORM — Student Information Management System
 
-A modern, web-based student academic records and service management system for **Cebu Far East Institute (CFEI)** designed specifically for Senior High School (SHS) students.
+A web-based academic records and service management system for **Cebu Far East Institute (CFEI)**, designed for Senior High School (SHS) students, teachers, and administrators.
+
+---
 
 ## 🎓 Overview
 
-INFORM is a comprehensive platform that streamlines academic management for SHS institutions. It provides students, teachers, and administrators with an integrated system to manage enrollment, grades, schedules, tuition, and academic records.
+INFORM is a comprehensive platform that streamlines academic management for SHS institutions. It provides three user portals — Student, Teacher, and Admin — with an integrated system covering enrollment, grades, schedules, tuition, documents, and notifications.
 
-## ✨ Key Features
+---
 
-### For Students
-- **Dashboard**: Personalized student portal with quick access to grades, schedule, and tuition information
-- **Enrollment System**: Complete SHS enrollment form with automatic Student ID and LRN generation
-- **Grades Management**: View subject grades, GWA (General Weighted Average), and performance metrics
-- **Schedule Viewer**: Class timetable with room locations and teacher information
-- **Tuition Tracking**: Monitor tuition payments and outstanding balances
-- **JOBERT AI Assistant**: Intelligent chatbot powered by Ollama/Mistral for academic guidance
-- **Dark/Light Mode**: Toggle between dark and light themes for comfortable viewing
-- **Credentials Display**: Auto-generated LRN, Student ID, and temporary password upon enrollment
+## 🔐 Demo Credentials
 
-### For Teachers
-- **Teacher Login**: Dedicated teacher authentication portal
-- **Grade Management**: Submit and manage student grades
-- **Class Information**: View assigned classes and student rosters
+### Student Login (`/login`)
+| Student ID | Password | Name |
+|---|---|---|
+| 202400001 | jamie | Jamie Santos |
+| 202400002 | maria | Maria Reyes |
+| 202400003 | carlo | Carlo Dela Cruz |
+| 202400004 | ana | Ana Villanueva |
+| 202400005 | luis | Luis Fernandez |
+| 202400006 | rosa | Rosa Bautista |
+| 202400007 | mark | Mark Uy |
+| 202400008 | lena | Lena Cruz |
 
-### For Administrators
-- **Admin Dashboard**: Comprehensive overview of student enrollment and academic metrics
-- **Student Management**: View and manage all enrolled students
-- **Grades Oversight**: Monitor grade submissions and academic performance
-- **Enrollment Tracking**: Track new and returning student enrollments
-- **Tuition Records**: Monitor payment status and outstanding balances
-- **Announcements**: Post and manage school announcements
+### Teacher Login (`/teacher/login`)
+| Teacher ID | Password | Name |
+|---|---|---|
+| T001 | maria | Maria Santos |
+| T002 | juan | Juan Dela Cruz |
+| T003 | ana | Ana Reyes |
+| T004 | carlos | Carlos Fernandez |
+
+### Admin Login (`/admin/login`)
+| Username | Password | Role |
+|---|---|---|
+| admin@inform.edu | Admin@2026 | Super Admin |
+| registrar@inform.edu | Reg@2026 | Registrar |
+| dean@inform.edu | Dean@2026 | Dean |
+
+---
+
+## ✨ Features
+
+### 🎓 Student Portal
+- Personalized dashboard with quick access tiles
+- View grades per term (Term 1, 2, 3) with GWA
+- Term 3 grade request system
+- Class schedule with room, teacher, and entry/exit times
+- Tuition fee tracking — "Pay at the Registrar's Office" flow
+- Document request system (TOR, Certificate, Good Standing)
+- Document release date displayed after admin approval
+- Notification bell with real-time dropdown (mark as read, delete, mark all)
+- Dark/Light mode toggle
+
+### 👨‍🏫 Teacher Portal
+- Teacher login with dedicated portal
+- Class management and grade submission
+- Grade request approval/rejection panel
+- Document approval panel
+- Schedule overview with time in/out per subject
+- Notification system
+
+### 🛡️ Admin Portal
+- Overview dashboard with active students and class average GWA
+- **Students Panel** — filter by track and grade level
+- **Teachers Panel** — section assignment, Full Time/Part Time status, expandable schedule with time in/out per subject
+- **Grades Panel** — view grades per student
+- **Grade Requests Panel** — approve/reject Term 3 grade requests
+- **Document Management** — approve/reject requests with release date picker, track/grade/year visible per request; student notified with pick-up date
+- **Enrollment Panel** — late enrollee badge, ID photo upload, confirm enrollment
+- **Tuition Records** — search bar, track dropdown, paid/unpaid filter
+- **Announcements Panel** — post and manage announcements
+- Notification bell with real-time dropdown
+
+---
 
 ## 🏫 SHS Structure
 
-The system is tailored for Senior High School with:
-- **Tracks**: TVL, STEM, GAS, HUMMS, ABM
+- **Tracks**: STEM, HUMMS, ABM, GAS, TVL
 - **Grade Levels**: Grade 11 and Grade 12
-- **Student Status**: New Student or Old Student
-- **Auto-generated IDs**: Student ID (STU-YYYYMMDDXXXX) and LRN (12-digit unique number)
+- **Trimester System**: 3 Terms per school year
+- **Student Types**: New Student / Old Student
+- **Auto-generated IDs**: Student ID and LRN upon enrollment
+
+---
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- **Next.js 16** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **Bootstrap 5** - Responsive UI components
-- **CSS3** - Custom animations and gradients
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript |
+| Styling | Bootstrap 5 + Custom CSS |
+| AI Assistant | Ollama + Mistral (local) |
+| Animations | CSS keyframes + requestAnimationFrame |
+| State | React useState (client-side) |
 
-### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - API server
-- **SQLite** - Database (with migration support)
+---
 
-### AI Integration
-- **Ollama** - Local LLM server
-- **Mistral Model** - Language model for JOBERT assistant
+## 🤖 JOBERT AI Assistant
 
-## 🎨 Design Features
+JOBERT is powered by **Ollama running the Mistral model locally**. No internet or API key required.
 
-- **Premium Dark Theme**: Sophisticated navy/slate gradient backgrounds
-- **Animated Gradients**: Smooth, flowing background animations
-- **Glowing Logo**: CFEI logo with RGB glow effect
-- **Glass Morphism**: Modern frosted glass card effects
-- **Responsive Design**: Mobile-first approach with Bootstrap grid
-- **Color Scheme**: Blue (#1e40af), Red (#dc2626), Yellow (#fbbf24)
+```bash
+# Start Ollama server
+ollama serve
 
-## 📋 Enrollment Process
+# Pull Mistral model (~4.4GB, one time)
+ollama pull mistral
+```
 
-1. Student selects "Enroll Now" from home page
-2. Fills comprehensive enrollment form with:
-   - Personal information (name, DOB, contact)
-   - Educational background
-   - Parent/Guardian information
-   - 2x2 ID photo upload
-3. Reviews and accepts Terms & Conditions
-4. Receives auto-generated credentials:
-   - **LRN**: Learner Reference Number
-   - **Student ID**: Unique identifier
-   - **Password**: Temporary password (CFEI@2026)
+JOBERT appears on the student dashboard and helps with grades, schedule, tuition, enrollment, and general academic questions.
 
-## 🔐 Authentication
-
-### Student Login
-- Student ID or LRN
-- Password
-- Secure session management
-
-### Teacher Login
-- Teacher ID (T001-T004)
-- Password
-- Demo credentials available for testing
-
-### Admin Login
-- Admin credentials
-- Full system access
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Node.js 18+
-- npm or yarn
-- Ollama (for AI features)
-- Mistral model downloaded locally
+- npm
 
 ### Installation
 
@@ -113,139 +131,79 @@ cd smart-system
 # Install dependencies
 npm install
 
-# Set up environment variables
-cp .env.example .env.local
-
-# Run database migrations
-npm run migrate
-
 # Start development server
 npm run dev
 ```
 
-### Running Ollama
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-```bash
-# Start Ollama server (runs on localhost:11434)
-ollama serve
-
-# In another terminal, pull Mistral model
-ollama pull mistral
-```
+---
 
 ## 📁 Project Structure
 
 ```
 ├── app/
-│   ├── admin/              # Admin dashboard and login
+│   ├── admin/
+│   │   ├── dashboard/      # Admin dashboard (students, teachers, grades, enrollment, tuition, documents)
+│   │   └── login/          # Admin login
+│   ├── api/
+│   │   ├── jobert/         # JOBERT AI endpoint (Ollama)
+│   │   └── teacher/        # Teacher API routes
+│   ├── components/
+│   │   ├── InteractiveFeatures.tsx
+│   │   ├── LoadingScreen.tsx
+│   │   ├── SubjectsSelector.tsx
+│   │   └── ThemeToggle.tsx
 │   ├── dashboard/          # Student dashboard
+│   ├── data/
+│   │   └── subjects.ts     # SHS subjects data (122 subjects)
 │   ├── enrollment/         # Enrollment form
-│   ├── login/              # Student login
-│   ├── teacher/            # Teacher login
-│   ├── api/                # API routes
-│   ├── components/         # Reusable components
-│   ├── globals.css         # Global styles
+│   ├── login/              # Student login + registrar inquiry modal
+│   ├── teacher/
+│   │   ├── dashboard/      # Teacher dashboard
+│   │   └── login/          # Teacher login
+│   ├── globals.css         # Global styles + animations
 │   └── layout.tsx          # Root layout
-├── server/
-│   ├── config/             # Database and environment config
-│   ├── controllers/        # Business logic
-│   ├── models/             # Data models
-│   ├── middleware/         # Express middleware
-│   ├── database/           # Database schema and migrations
-│   └── index.js            # Server entry point
-├── public/                 # Static assets
-└── package.json            # Dependencies
+├── public/
+│   ├── cfei-logo.jpg       # CFEI logo
+│   ├── newimlogo.png       # INFORM logo
+│   └── jobert-avatar.png   # JOBERT avatar
+└── server/                 # Backend controllers and models (placeholder)
 ```
 
-## 🔄 API Endpoints
+---
 
-### Authentication
-- `POST /api/auth/login` - Student login
-- `POST /api/auth/teacher-login` - Teacher login
-- `POST /api/auth/logout` - Logout
+## 🎨 Design
 
-### Student
-- `GET /api/student/dashboard` - Get dashboard data
-- `GET /api/student/grades` - Get student grades
-- `GET /api/student/schedule` - Get class schedule
-- `GET /api/student/tuition` - Get tuition information
+- Animated gradient background (light/dark modes)
+- Glass morphism navbar and cards
+- Loading screen with molten sun glow animation
+- School name shimmer animation on loading screen
+- Announcement ticker (JS-driven, smooth scroll)
+- Bell icon notification dropdown (fixed position, no overflow clipping)
+- Responsive layout (mobile, tablet, desktop)
+- Color scheme: Blue `#1e40af`, Red `#dc2626`, Yellow `#fbbf24`
 
-### Enrollment
-- `POST /api/enrollment/submit` - Submit enrollment form
-- `GET /api/enrollment/status` - Check enrollment status
+---
 
-### JOBERT AI
-- `POST /api/jobert` - Send message to AI assistant
+## ⚠️ Important Notes
 
-## 🎯 Demo Credentials
+> **This system is a UI prototype / demo system.**
+> All credentials and student data are hardcoded. Nothing is stored in a real database.
+> Data resets on page refresh.
+> For production deployment, a real backend (database + authentication) must be implemented.
 
-### Student
-- **Student ID**: STU-2024-001
-- **Password**: (Set during enrollment)
-
-### Teacher
-- **Teacher ID**: T001
-- **Password**: Teacher@2026
-
-### Admin
-- **Username**: admin
-- **Password**: (Configure in environment)
-
-## 🌙 Dark/Light Mode
-
-Students can toggle between dark and light modes using the button in the top-right corner of the dashboard. Preferences are session-based.
-
-## 📱 Responsive Design
-
-- **Desktop**: Full-featured interface with all options visible
-- **Tablet**: Optimized layout with touch-friendly buttons
-- **Mobile**: Simplified interface with collapsible sections
-
-## 🔒 Security Features
-
-- Password hashing with bcrypt
-- JWT token authentication
-- CORS protection
-- Input validation and sanitization
-- SQL injection prevention
-- Session management
-
-## 📊 Database Schema
-
-- **Users**: Student, teacher, and admin accounts
-- **Students**: Student profile and enrollment information
-- **Grades**: Subject grades and GWA calculations
-- **Schedule**: Class timetables and room assignments
-- **Tuition**: Fee records and payment tracking
-- **Announcements**: School announcements and notifications
-- **Audit**: Activity logging for compliance
-
-## 🚧 Future Enhancements
-
-- [ ] Payment gateway integration
-- [ ] Document request system (TOR, certificates)
-- [ ] Parent portal access
-- [ ] Mobile app (React Native)
-- [ ] Advanced analytics dashboard
-- [ ] Email notifications
-- [ ] SMS alerts
-- [ ] Attendance tracking
+---
 
 ## 📝 License
 
-This project is proprietary software for Cebu Far East Institute.
+Proprietary — Cebu Far East Institute Capstone 2 Project.
 
 ## 👥 Contributors
 
 - **Development**: Zoi357
 - **Original Repository**: KazukiMutsiMutsi
 
-## 📧 Support
-
-For issues, questions, or feature requests, please contact the development team.
-
 ---
 
-**Built with ❤️ for Cebu Far East Institute**
-
-*Last Updated: May 28, 2026*
+*Last Updated: June 2, 2026*
