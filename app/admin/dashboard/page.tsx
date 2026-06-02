@@ -1282,3 +1282,7 @@ export default function AdminDashboardPage() {
           <div className="position-fixed top-0 start-0 w-100 h-100" style={{ zIndex:9998 }} onClick={() => setShowNotifDropdown(false)} />
         </>
       )}
+      )}
+    </div>
+  );
+}
