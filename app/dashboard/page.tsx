@@ -396,6 +396,26 @@ function ScheduleView({ onBack, onAskJobert, darkMode }: { onBack: () => void; o
   );
 }
 
+/* ── Pay Balance Button ── */
+function PayBalanceButton() {
+  const [clicked, setClicked] = useState(false);
+  if (clicked) {
+    return (
+      <div className="rounded-3 p-4 text-center" style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)" }}>
+        <div style={{ fontSize: 36, marginBottom: 8 }}>🏢</div>
+        <div className="fw-bold text-success mb-1">Please pay at the Registrar's Office</div>
+        <div className="text-muted small">Bring your student ID and go to Room 101, Admin Building.</div>
+        <div className="text-muted small mt-1">Mon–Fri · 8AM–5PM</div>
+      </div>
+    );
+  }
+  return (
+    <button onClick={() => setClicked(true)} className="btn btn-inform w-100 py-3 rounded-3 fw-bold fs-6">
+      Pay Balance
+    </button>
+  );
+}
+
 /* ── Tuition View ── */
 function TuitionView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
   const total   = fees.reduce((a, f) => a + f.amount, 0);
@@ -443,7 +463,7 @@ function TuitionView({ onBack, onAskJobert, darkMode }: { onBack: () => void; on
           ))}
         </ul>
       </div>
-      <button className="btn btn-inform w-100 py-3 rounded-3 fw-bold fs-6">Pay Balance</button>
+      <PayBalanceButton />
     </div>
   );
 }

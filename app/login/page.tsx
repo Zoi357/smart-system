@@ -176,11 +176,22 @@ export default function LoginPage() {
       return;
     }
     setInquirySubmitted(true);
-    setTimeout(() => {
-      setShowRegistrarModal(false);
-      setInquirySubmitted(false);
-      setInquiryForm({ name: "", email: "", inquiry: "", inquiryType: "general" });
-    }, 2000);
+    // Save to localStorage so admin dashboard can pick it up
+    try {
+      const existing = JSON.parse(localStorage.getItem("registrarInquiries") || "[]");
+      existing.unshift({
+        id: Date.now(),
+        name: inquiryForm.name,
+        email: inquiryForm.email,
+        type: inquiryForm.inquiryType,
+        inquiry: inquiryForm.inquiry,
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        read: false,
+      });
+      localStorage.setItem("registrarInquiries", JSON.stringify(existing));
+    } catch {}
+    // Don't auto-close — let user read the confirmation message
+    // They can close manually
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -300,10 +311,15 @@ export default function LoginPage() {
             </div>
             <div className="modal-body">
               {inquirySubmitted ? (
-                <div className="text-center py-4">
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>✓</div>
-                  <h6 className="fw-bold text-dark mb-2">Inquiry Submitted Successfully!</h6>
-                  <p className="text-muted small mb-0">The Registrar's Office will contact you soon at {inquiryForm.email}</p>
+                <div className="text-center py-5">
+                  <div style={{ fontSize: 56, marginBottom: 16 }}>✅</div>
+                  <h6 className="fw-bold text-dark mb-2">Inquiry Submitted!</h6>
+                  <p className="text-muted small mb-1">Your inquiry has been sent to the Registrar's Office.</p>
+                  <p className="text-muted small mb-3">Please wait for their confirmation. They will contact you at <strong>{inquiryForm.email}</strong>.</p>
+                  <div className="rounded-3 px-4 py-3" style={{ background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.3)" }}>
+                    <div className="small text-warning fw-semibold">⏳ Waiting for confirmation...</div>
+                    <div className="text-muted small mt-1">Typical response time: 1–2 business days</div>
+                  </div>
                 </div>
               ) : (
                 <form onSubmit={handleInquirySubmit} className="d-flex flex-column gap-3">
@@ -347,6 +363,7 @@ export default function LoginPage() {
                       <option value="grades">Grades & Academic Records</option>
                       <option value="schedule">Schedule & Classes</option>
                       <option value="id">Lost/Replacement ID</option>
+                      <option value="forgot_password">Forgot Password</option>
                       <option value="other">Other</option>
                     </select>
                   </div>
@@ -386,7 +403,6 @@ export default function LoginPage() {
           </div>
         </div>
       )}
-      <AIChat />
     </div>
   );
 }

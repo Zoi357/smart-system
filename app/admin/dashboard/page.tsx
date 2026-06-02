@@ -1070,7 +1070,25 @@ export default function AdminDashboardPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
-  const [notifs, setNotifs] = useState(adminNotifications);
+  const [notifs, setNotifs] = useState(() => {
+    // Load base notifications + any registrar inquiries from localStorage
+    const base = [...adminNotifications];
+    try {
+      const inquiries = JSON.parse(localStorage.getItem("registrarInquiries") || "[]");
+      inquiries.forEach((inq: { id: number; name: string; type: string; time: string; read: boolean }) => {
+        base.unshift({
+          id: inq.id,
+          type: "inquiry",
+          title: "Registrar Inquiry",
+          message: `${inq.name} submitted a ${inq.type.replace("_", " ")} inquiry`,
+          time: inq.time,
+          read: inq.read,
+          icon: "📩",
+        });
+      });
+    } catch {}
+    return base;
+  });
 
   const unreadCount = notifs.filter(n => !n.read).length;
 
