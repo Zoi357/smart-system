@@ -78,10 +78,10 @@ const allGradeRequests = [
 ];
 
 const allDocumentRequests = [
-  { id: 1, student: "Jamie Santos", type: "TOR", status: "pending", requestedAt: "May 18, 2026", teacher: "Mr. Dela Cruz" },
-  { id: 2, student: "Maria Reyes", type: "Certificate", status: "pending", requestedAt: "May 17, 2026", teacher: "Mr. Dela Cruz" },
-  { id: 3, student: "Carlo Dela Cruz", type: "TOR", status: "approved", requestedAt: "May 15, 2026", teacher: "Mr. Fernandez", approvedAt: "May 16, 2026" },
-  { id: 4, student: "Ana Villanueva", type: "Good Standing", status: "approved", requestedAt: "May 14, 2026", teacher: "Ms. Villanueva", approvedAt: "May 15, 2026" },
+  { id: 1, student: "Jamie Santos",    type: "TOR",          status: "pending",  requestedAt: "May 18, 2026", teacher: "Mr. Dela Cruz",   grade: 11, track: "STEM",  releaseDate: null },
+  { id: 2, student: "Maria Reyes",     type: "Certificate",  status: "pending",  requestedAt: "May 17, 2026", teacher: "Mr. Dela Cruz",   grade: 11, track: "HUMMS", releaseDate: null },
+  { id: 3, student: "Carlo Dela Cruz", type: "TOR",          status: "approved", requestedAt: "May 15, 2026", teacher: "Mr. Fernandez",   grade: 12, track: "ABM",   releaseDate: "June 10, 2026", approvedAt: "May 16, 2026" },
+  { id: 4, student: "Ana Villanueva",  type: "Good Standing",status: "approved", requestedAt: "May 14, 2026", teacher: "Ms. Villanueva",  grade: 11, track: "GAS",   releaseDate: "June 8, 2026",  approvedAt: "May 15, 2026" },
 ];
 
 const adminNotifications = [
@@ -776,43 +776,44 @@ function AdminRequestsPanel() {
 /* ── Admin Document Management Panel ── */
 function AdminDocumentsPanel() {
   const [docs, setDocs] = useState(allDocumentRequests);
+  const [approving, setApproving] = useState<number | null>(null);
+  const [releaseDate, setReleaseDate] = useState("");
 
-  function approveDocument(id: number) {
+  function confirmApprove(id: number) {
+    if (!releaseDate) return;
+    const formatted = new Date(releaseDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
     setDocs(prev =>
       prev.map(d =>
         d.id === id
-          ? { ...d, status: "approved", approvedAt: new Date().toLocaleDateString() }
+          ? { ...d, status: "approved", approvedAt: new Date().toLocaleDateString(), releaseDate: formatted }
           : d
       )
     );
+    setApproving(null);
+    setReleaseDate("");
   }
 
   function rejectDocument(id: number) {
-    setDocs(prev =>
-      prev.map(d =>
-        d.id === id
-          ? { ...d, status: "rejected" }
-          : d
-      )
-    );
+    setDocs(prev => prev.map(d => d.id === id ? { ...d, status: "rejected" } : d));
   }
 
-  const pending = docs.filter(d => d.status === "pending");
+  const pending  = docs.filter(d => d.status === "pending");
   const approved = docs.filter(d => d.status === "approved");
   const rejected = docs.filter(d => d.status === "rejected");
 
   return (
     <div className="d-flex flex-column gap-4">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">Document Management</h2><p className="text-muted small mb-0">Manage all student document requests</p></div>
+      <div>
+        <h2 className="fw-black fs-4 text-dark mb-0">Document Management</h2>
+        <p className="text-muted small mb-0">Manage all student document requests</p>
       </div>
 
       {/* Stats */}
       <div className="row g-3">
         {[
-          { label: "Pending", value: pending.length, icon: "⏳", cls: "bg-warning-subtle border-warning-subtle text-warning" },
-          { label: "Approved", value: approved.length, icon: "✓", cls: "bg-success-subtle border-success-subtle text-success" },
-          { label: "Rejected", value: rejected.length, icon: "✕", cls: "bg-danger-subtle border-danger-subtle text-danger" },
+          { label: "Pending",  value: pending.length,  icon: "⏳", cls: "bg-warning-subtle border-warning-subtle text-warning" },
+          { label: "Approved", value: approved.length, icon: "✓",  cls: "bg-success-subtle border-success-subtle text-success" },
+          { label: "Rejected", value: rejected.length, icon: "✕",  cls: "bg-danger-subtle border-danger-subtle text-danger"   },
         ].map(s => (
           <div key={s.label} className="col-4">
             <div className={`card border rounded-3 ${s.cls}`}>
@@ -834,34 +835,86 @@ function AdminDocumentsPanel() {
                 <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing:"0.05em" }}>Student</th>
                 <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing:"0.05em" }}>Type</th>
                 <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Teacher</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Track & Year</th>
                 <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Status</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-md-table-cell" style={{ letterSpacing:"0.05em" }}>Release Date</th>
                 <th className="small text-muted fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing:"0.05em" }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {docs.map(doc => (
-                <tr key={doc.id}>
-                  <td className="ps-4 small fw-medium text-dark">{doc.student}</td>
-                  <td className="d-none d-sm-table-cell text-muted small">{doc.type}</td>
-                  <td className="d-none d-lg-table-cell text-muted small">{doc.teacher}</td>
-                  <td>
-                    <span className={`badge ${
-                      doc.status === "pending" ? "bg-warning-subtle text-warning border border-warning-subtle" :
-                      doc.status === "approved" ? "bg-success-subtle text-success border border-success-subtle" :
-                      "bg-danger-subtle text-danger border border-danger-subtle"
-                    }`}>
-                      {doc.status === "pending" ? "⏳ Pending" : doc.status === "approved" ? "✓ Approved" : "✕ Rejected"}
-                    </span>
-                  </td>
-                  <td className="text-end pe-4">
-                    {doc.status === "pending" && (
-                      <div className="d-flex gap-1 justify-content-end">
-                        <button onClick={() => approveDocument(doc.id)} className="btn btn-success btn-sm" style={{ fontSize: 11 }}>✓</button>
-                        <button onClick={() => rejectDocument(doc.id)} className="btn btn-danger btn-sm" style={{ fontSize: 11 }}>✕</button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
+                <>
+                  <tr key={doc.id}>
+                    <td className="ps-4 small fw-medium text-dark">{doc.student}</td>
+                    <td className="d-none d-sm-table-cell text-muted small">{doc.type}</td>
+                    <td className="d-none d-lg-table-cell text-muted small">{doc.teacher}</td>
+                    <td className="d-none d-lg-table-cell">
+                      <span className="badge bg-primary-subtle text-primary border border-primary-subtle" style={{ fontSize: 11 }}>
+                        {doc.track} — Grade {doc.grade}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`badge ${
+                        doc.status === "pending"  ? "bg-warning-subtle text-warning border border-warning-subtle" :
+                        doc.status === "approved" ? "bg-success-subtle text-success border border-success-subtle" :
+                        "bg-danger-subtle text-danger border border-danger-subtle"
+                      }`}>
+                        {doc.status === "pending" ? "⏳ Pending" : doc.status === "approved" ? "✓ Approved" : "✕ Rejected"}
+                      </span>
+                    </td>
+                    <td className="d-none d-md-table-cell text-muted small">
+                      {doc.releaseDate
+                        ? <span className="badge bg-info-subtle text-info border border-info-subtle">📅 {doc.releaseDate}</span>
+                        : <span className="text-muted">—</span>
+                      }
+                    </td>
+                    <td className="text-end pe-4">
+                      {doc.status === "pending" && (
+                        <div className="d-flex gap-1 justify-content-end">
+                          <button onClick={() => { setApproving(doc.id); setReleaseDate(""); }} className="btn btn-success btn-sm" style={{ fontSize: 11 }}>✓ Approve</button>
+                          <button onClick={() => rejectDocument(doc.id)} className="btn btn-danger btn-sm" style={{ fontSize: 11 }}>✕</button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+
+                  {/* Inline date picker when approving */}
+                  {approving === doc.id && (
+                    <tr key={`approve-${doc.id}`}>
+                      <td colSpan={7} className="ps-4 pe-4 pb-3">
+                        <div className="rounded-3 p-3 d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-3" style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                          <div className="flex-grow-1">
+                            <div className="fw-semibold small text-dark mb-1">📅 Set Release Date for <span className="text-success">{doc.student}</span></div>
+                            <div className="text-muted" style={{ fontSize: 11 }}>The student will be notified in their dashboard with this date.</div>
+                          </div>
+                          <div className="d-flex align-items-center gap-2 flex-shrink-0">
+                            <input
+                              type="date"
+                              value={releaseDate}
+                              onChange={e => setReleaseDate(e.target.value)}
+                              min={new Date().toISOString().split("T")[0]}
+                              className="form-control form-control-sm rounded-3"
+                              style={{ width: 160 }}
+                            />
+                            <button
+                              onClick={() => confirmApprove(doc.id)}
+                              disabled={!releaseDate}
+                              className="btn btn-success btn-sm fw-bold"
+                            >
+                              Confirm
+                            </button>
+                            <button
+                              onClick={() => setApproving(null)}
+                              className="btn btn-outline-secondary btn-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
               ))}
             </tbody>
           </table>

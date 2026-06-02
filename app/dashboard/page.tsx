@@ -160,8 +160,8 @@ const notifications = [
 ];
 
 const documentRequests = [
-  { id:1, type:"TOR", status:"approved", requestedAt:"May 15, 2026", approvedAt:"May 16, 2026", approvedBy:"Admin", downloadUrl:"#" },
-  { id:2, type:"Certificate", status:"pending", requestedAt:"May 18, 2026", approvedAt:null, approvedBy:null, downloadUrl:null },
+  { id:1, type:"TOR", status:"approved", requestedAt:"May 15, 2026", approvedAt:"May 16, 2026", approvedBy:"Admin", releaseDate:"June 10, 2026", downloadUrl:"#" },
+  { id:2, type:"Certificate", status:"pending", requestedAt:"May 18, 2026", approvedAt:null, approvedBy:null, releaseDate:null, downloadUrl:null },
 ];
 
 const availableDocuments = [
@@ -716,6 +716,7 @@ function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; 
       requestedAt: new Date().toLocaleDateString(),
       approvedAt: null,
       approvedBy: null,
+      releaseDate: null,
       downloadUrl: null,
     };
     setRequests([...requests, newRequest]);
@@ -792,14 +793,27 @@ function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; 
           <p className="text-white-50 small fw-semibold mb-3">✓ Approved Documents</p>
           <div className="d-flex flex-column gap-2">
             {approved.map(req => (
-              <div key={req.id} className="card border-0 rounded-3" style={{ background: "rgba(34, 197, 94, 0.1)" }}>
+              <div key={req.id} className="card border-0 rounded-3" style={{ background: "rgba(34, 197, 94, 0.1)", border: "1px solid rgba(34,197,94,0.25)" }}>
                 <div className="card-body p-3">
-                  <div className="d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-start justify-content-between gap-3">
                     <div>
                       <div className="fw-bold small text-white">{req.type}</div>
                       <div className="text-white-50" style={{ fontSize: 11 }}>Approved {req.approvedAt} by {req.approvedBy}</div>
                     </div>
-                    <button className="btn btn-success btn-sm" style={{ fontSize: 11 }}>⬇️ Download</button>
+                    <div className="text-end flex-shrink-0">
+                      {req.releaseDate ? (
+                        <div>
+                          <span className="badge bg-info-subtle text-info border border-info-subtle d-block mb-1" style={{ fontSize: 11 }}>
+                            📅 Pick up: {req.releaseDate}
+                          </span>
+                          <div className="text-white-50" style={{ fontSize: 10 }}>Go to Registrar's Office</div>
+                        </div>
+                      ) : (
+                        <span className="badge bg-warning-subtle text-warning border border-warning-subtle" style={{ fontSize: 11 }}>
+                          ⏳ Schedule pending
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
