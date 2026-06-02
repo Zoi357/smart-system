@@ -583,17 +583,33 @@ function EnrollmentPanel() {
 
 /* ── Tuition Panel ── */
 function TuitionPanel() {
-  const records = students.map(s => ({ ...s, total:22050, paid:s.tuition==="Paid"?22050:18500, balance:s.tuition==="Paid"?0:3550 }));
-  const totalCollected = records.reduce((a,r)=>a+r.paid,0);
-  const totalBalance   = records.reduce((a,r)=>a+r.balance,0);
+  const allRecords = students.map(s => ({ ...s, total:22050, paid:s.tuition==="Paid"?22050:18500, balance:s.tuition==="Paid"?0:3550 }));
+  const [search, setSearch]         = useState("");
+  const [filterTrack, setFilterTrack] = useState("All");
+  const [filterStatus, setFilterStatus] = useState("All");
+
+  const tracks = ["All", "STEM", "HUMMS", "ABM", "GAS", "TVL"];
+
+  const filtered = allRecords.filter(r => {
+    const matchSearch = r.name.toLowerCase().includes(search.toLowerCase()) || r.id.toLowerCase().includes(search.toLowerCase());
+    const matchTrack  = filterTrack === "All" || r.track === filterTrack;
+    const matchStatus = filterStatus === "All" || r.tuition === filterStatus;
+    return matchSearch && matchTrack && matchStatus;
+  });
+
+  const totalCollected = allRecords.reduce((a,r) => a + r.paid, 0);
+  const totalBalance   = allRecords.reduce((a,r) => a + r.balance, 0);
+
   return (
     <div className="d-flex flex-column gap-4">
       <div><h2 className="fw-black fs-4 text-dark mb-0">Tuition Records</h2><p className="text-muted small mb-0">Term 1 · Academic Year 2025–2026</p></div>
+
+      {/* Stats */}
       <div className="row g-3">
         {[
-          { label:"Total Assessment",  value:`₱${(records.length*22050).toLocaleString()}`, cls:"bg-light border-secondary"                                },
-          { label:"Total Collected",   value:`₱${totalCollected.toLocaleString()}`,          cls:"bg-success-subtle border-success-subtle text-success"    },
-          { label:"Total Balance Due", value:`₱${totalBalance.toLocaleString()}`,            cls:"bg-danger-subtle  border-danger-subtle  text-danger"     },
+          { label:"Total Assessment",  value:`₱${(allRecords.length*22050).toLocaleString()}`, cls:"bg-light border-secondary" },
+          { label:"Total Collected",   value:`₱${totalCollected.toLocaleString()}`,             cls:"bg-success-subtle border-success-subtle text-success" },
+          { label:"Total Balance Due", value:`₱${totalBalance.toLocaleString()}`,               cls:"bg-danger-subtle border-danger-subtle text-danger" },
         ].map(s => (
           <div key={s.label} className="col-4">
             <div className={`card border rounded-3 ${s.cls}`}>
@@ -605,6 +621,28 @@ function TuitionPanel() {
           </div>
         ))}
       </div>
+
+      {/* Search & Filters */}
+      <div className="d-flex flex-column flex-sm-row gap-3">
+        <div className="input-group shadow-sm flex-grow-1">
+          <span className="input-group-text bg-white">🔍</span>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or ID..." className="form-control border-start-0" />
+        </div>
+        <div className="d-flex gap-2">
+          <select value={filterTrack} onChange={e => setFilterTrack(e.target.value)} className="form-select form-select-sm rounded-3" style={{ minWidth:130 }}>
+            {tracks.map(t => <option key={t} value={t}>{t === "All" ? "All Tracks" : t}</option>)}
+          </select>
+          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="form-select form-select-sm rounded-3" style={{ minWidth:120 }}>
+            <option value="All">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Unpaid">Unpaid</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="text-muted small">Showing {filtered.length} of {allRecords.length} students</div>
+
+      {/* Table */}
       <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
@@ -619,7 +657,9 @@ function TuitionPanel() {
               </tr>
             </thead>
             <tbody>
-              {records.map((r,i) => (
+              {filtered.length === 0 ? (
+                <tr><td colSpan={6} className="text-center text-muted py-4 small">No records found.</td></tr>
+              ) : filtered.map((r, i) => (
                 <tr key={i}>
                   <td className="ps-4">
                     <div className="d-flex align-items-center gap-2">
@@ -630,8 +670,8 @@ function TuitionPanel() {
                   <td className="d-none d-sm-table-cell text-muted small">{r.track} Grade {r.grade}</td>
                   <td className="d-none d-sm-table-cell text-muted small text-end">₱{r.total.toLocaleString()}</td>
                   <td className="d-none d-sm-table-cell text-success small fw-semibold text-end">₱{r.paid.toLocaleString()}</td>
-                  <td className={`small fw-semibold text-end ${r.balance>0?"text-danger":"text-muted"}`}>{r.balance>0?`₱${r.balance.toLocaleString()}`:"—"}</td>
-                  <td className="text-end pe-4"><span className={`badge ${r.tuition==="Paid"?"bg-success-subtle text-success border border-success-subtle":"bg-danger-subtle text-danger border border-danger-subtle"}`}>{r.tuition}</span></td>
+                  <td className={`small fw-semibold text-end ${r.balance > 0 ? "text-danger" : "text-muted"}`}>{r.balance > 0 ? `₱${r.balance.toLocaleString()}` : "—"}</td>
+                  <td className="text-end pe-4"><span className={`badge ${r.tuition==="Paid" ? "bg-success-subtle text-success border border-success-subtle" : "bg-danger-subtle text-danger border border-danger-subtle"}`}>{r.tuition}</span></td>
                 </tr>
               ))}
             </tbody>
