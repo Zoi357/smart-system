@@ -453,27 +453,46 @@ function GradesPanel() {
 
 /* ── Enrollment Panel ── */
 function EnrollmentPanel() {
-  const enrollments = [
-    { name:"Jamie Santos",    id:"STU-2024-001", track:"STEM", grade:11, date:"May 18, 2026", status:"Confirmed" },
-    { name:"Maria Reyes",     id:"STU-2024-002", track:"HUMMS", grade:11, date:"May 19, 2026", status:"Pending"   },
-    { name:"Carlo Dela Cruz", id:"STU-2024-003", track:"ABM", grade:12, date:"May 17, 2026", status:"Confirmed" },
-    { name:"Ana Villanueva",  id:"STU-2024-004", track:"GAS",  grade:11, date:"May 20, 2026", status:"Pending"   },
-    { name:"Luis Fernandez",  id:"STU-2024-005", track:"STEM", grade:12, date:"May 16, 2026", status:"Confirmed" },
-    { name:"Rosa Bautista",   id:"STU-2024-006", track:"TVL", grade:11, date:"May 20, 2026", status:"Confirmed" },
-  ];
+  const DEADLINE = new Date("2026-06-15");
+
+  const [enrollments, setEnrollments] = useState([
+    { name:"Jamie Santos",    id:"STU-2024-001", track:"STEM",  grade:11, date:"May 18, 2026", enrollDate: new Date("2026-05-18"), status:"Confirmed", photo: null as string | null },
+    { name:"Maria Reyes",     id:"STU-2024-002", track:"HUMMS", grade:11, date:"May 19, 2026", enrollDate: new Date("2026-05-19"), status:"Pending",   photo: null as string | null },
+    { name:"Carlo Dela Cruz", id:"STU-2024-003", track:"ABM",   grade:12, date:"May 17, 2026", enrollDate: new Date("2026-05-17"), status:"Confirmed", photo: null as string | null },
+    { name:"Ana Villanueva",  id:"STU-2024-004", track:"GAS",   grade:11, date:"May 20, 2026", enrollDate: new Date("2026-05-20"), status:"Pending",   photo: null as string | null },
+    { name:"Luis Fernandez",  id:"STU-2024-005", track:"STEM",  grade:12, date:"Jun 16, 2026", enrollDate: new Date("2026-06-16"), status:"Confirmed", photo: null as string | null },
+    { name:"Rosa Bautista",   id:"STU-2024-006", track:"TVL",   grade:11, date:"Jun 18, 2026", enrollDate: new Date("2026-06-18"), status:"Confirmed", photo: null as string | null },
+  ]);
+
+  function confirmEnrollment(id: string) {
+    setEnrollments(prev => prev.map(e => e.id === id ? { ...e, status: "Confirmed" } : e));
+  }
+
+  function handlePhotoUpload(id: string, file: File) {
+    const url = URL.createObjectURL(file);
+    setEnrollments(prev => prev.map(e => e.id === id ? { ...e, photo: url } : e));
+  }
+
+  const confirmed = enrollments.filter(e => e.status === "Confirmed");
+  const pending   = enrollments.filter(e => e.status === "Pending");
+  const late      = enrollments.filter(e => e.enrollDate > DEADLINE);
+
   return (
     <div className="d-flex flex-column gap-4">
       <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
         <div><h2 className="fw-black fs-4 text-dark mb-0">Enrollment</h2><p className="text-muted small mb-0">School Year 2025–2026 · Deadline: June 15, 2026</p></div>
         <span className="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">🔔 Enrollment period is open</span>
       </div>
+
+      {/* Stats */}
       <div className="row g-3">
         {[
-          { label:"Total Enrolled", value:enrollments.length,                                     cls:"bg-primary-subtle border-primary-subtle text-primary" },
-          { label:"Confirmed",      value:enrollments.filter(e=>e.status==="Confirmed").length,   cls:"bg-success-subtle border-success-subtle text-success" },
-          { label:"Pending Review", value:enrollments.filter(e=>e.status==="Pending").length,     cls:"bg-warning-subtle border-warning-subtle text-warning" },
+          { label:"Total Enrolled", value:enrollments.length,  cls:"bg-primary-subtle border-primary-subtle text-primary" },
+          { label:"Confirmed",      value:confirmed.length,    cls:"bg-success-subtle border-success-subtle text-success" },
+          { label:"Pending Review", value:pending.length,      cls:"bg-warning-subtle border-warning-subtle text-warning" },
+          { label:"Late Enrollees", value:late.length,         cls:"bg-danger-subtle border-danger-subtle text-danger"   },
         ].map(s => (
-          <div key={s.label} className="col-4">
+          <div key={s.label} className="col-6 col-sm-3">
             <div className={`card border rounded-3 ${s.cls}`}>
               <div className="card-body p-3 text-center">
                 <div className="text-muted small mb-1">{s.label}</div>
@@ -483,6 +502,8 @@ function EnrollmentPanel() {
           </div>
         ))}
       </div>
+
+      {/* Table */}
       <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
@@ -497,21 +518,61 @@ function EnrollmentPanel() {
               </tr>
             </thead>
             <tbody>
-              {enrollments.map((e, i) => (
-                <tr key={i}>
-                  <td className="ps-4">
-                    <div className="d-flex align-items-center gap-2">
-                      <div className="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary fw-bold flex-shrink-0" style={{ width:28, height:28, fontSize:11 }}>{initials(e.name)}</div>
-                      <span className="small fw-medium text-dark">{e.name}</span>
-                    </div>
-                  </td>
-                  <td className="d-none d-sm-table-cell font-mono text-muted small">{e.id}</td>
-                  <td className="d-none d-lg-table-cell text-muted small">{e.track} Grade {e.grade}</td>
-                  <td className="d-none d-sm-table-cell text-muted small">{e.date}</td>
-                  <td><span className={`badge ${e.status==="Confirmed" ? "bg-success-subtle text-success border border-success-subtle" : "bg-warning-subtle text-warning border border-warning-subtle"}`}>{e.status}</span></td>
-                  <td className="text-end pe-4">{e.status === "Pending" && <button className="btn btn-primary btn-sm" style={{ fontSize:11 }}>Confirm</button>}</td>
-                </tr>
-              ))}
+              {enrollments.map((e) => {
+                const isLate = e.enrollDate > DEADLINE;
+                return (
+                  <tr key={e.id} style={{ background: isLate ? "rgba(220,38,38,0.03)" : undefined }}>
+                    <td className="ps-4">
+                      <div className="d-flex align-items-center gap-2">
+                        {/* ID Photo or initials avatar */}
+                        {e.photo ? (
+                          <img
+                            src={e.photo}
+                            alt={e.name}
+                            className="rounded-circle flex-shrink-0"
+                            style={{ width:32, height:32, objectFit:"cover", border:"2px solid #e2e8f0" }}
+                          />
+                        ) : (
+                          <div className="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary fw-bold flex-shrink-0" style={{ width:32, height:32, fontSize:11 }}>
+                            {initials(e.name)}
+                          </div>
+                        )}
+                        <div>
+                          <div className="small fw-medium text-dark">{e.name}</div>
+                          {isLate && (
+                            <span className="badge bg-danger-subtle text-danger border border-danger-subtle" style={{ fontSize:9 }}>⚠️ Late Enrollee</span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="d-none d-sm-table-cell font-mono text-muted small">{e.id}</td>
+                    <td className="d-none d-lg-table-cell text-muted small">{e.track} Grade {e.grade}</td>
+                    <td className="d-none d-sm-table-cell text-muted small">{e.date}</td>
+                    <td>
+                      <span className={`badge ${e.status==="Confirmed" ? "bg-success-subtle text-success border border-success-subtle" : "bg-warning-subtle text-warning border border-warning-subtle"}`}>
+                        {e.status}
+                      </span>
+                    </td>
+                    <td className="text-end pe-4">
+                      <div className="d-flex gap-2 justify-content-end align-items-center">
+                        {/* Upload ID photo */}
+                        <label className="btn btn-outline-secondary btn-sm mb-0" style={{ fontSize:10, cursor:"pointer" }} title="Upload ID Photo">
+                          📷
+                          <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display:"none" }}
+                            onChange={ev => { if (ev.target.files?.[0]) handlePhotoUpload(e.id, ev.target.files[0]); }}
+                          />
+                        </label>
+                        {e.status === "Pending" && (
+                          <button onClick={() => confirmEnrollment(e.id)} className="btn btn-primary btn-sm" style={{ fontSize:11 }}>Confirm</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
