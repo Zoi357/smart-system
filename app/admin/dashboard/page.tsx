@@ -100,7 +100,6 @@ const navItems = [
   { id:"documents",     label:"Documents",     icon:"📄" },
   { id:"enrollment",    label:"Enrollment",    icon:"📋" },
   { id:"tuition",       label:"Tuition",       icon:"💰" },
-  { id:"notifications", label:"Notifications", icon:"🔔" },
   { id:"announcements", label:"Announcements", icon:"📢" },
 ];
 
@@ -872,82 +871,6 @@ function AdminDocumentsPanel() {
   );
 }
 
-/* ── Admin Notifications Panel ── */
-function AdminNotificationsPanel() {
-  const [notifs, setNotifs] = useState(adminNotifications);
-
-  function markAsRead(id: number) {
-    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  }
-
-  function deleteNotification(id: number) {
-    setNotifs(prev => prev.filter(n => n.id !== id));
-  }
-
-  const unread = notifs.filter(n => !n.read);
-  const read = notifs.filter(n => n.read);
-
-  return (
-    <div className="d-flex flex-column gap-4">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">Notifications</h2><p className="text-muted small mb-0">{unread.length} unread</p></div>
-      </div>
-
-      {/* Unread */}
-      {unread.length > 0 && (
-        <div>
-          <h3 className="fw-bold small text-dark mb-3">🔔 Unread</h3>
-          <div className="d-flex flex-column gap-2">
-            {unread.map(notif => (
-              <div key={notif.id} className="card border-0 shadow-sm rounded-3" style={{ background: "rgba(59, 130, 246, 0.1)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
-                <div className="card-body p-3">
-                  <div className="d-flex align-items-start gap-3">
-                    <span style={{ fontSize: 18 }}>{notif.icon}</span>
-                    <div className="flex-grow-1">
-                      <div className="fw-bold small text-dark">{notif.title}</div>
-                      <div className="text-muted small mt-1">{notif.message}</div>
-                      <div className="text-muted small mt-2" style={{ fontSize: 11 }}>{notif.time}</div>
-                    </div>
-                    <div className="d-flex gap-1 flex-shrink-0">
-                      <button onClick={() => markAsRead(notif.id)} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 11 }}>✓</button>
-                      <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize: 11 }}>✕</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Read */}
-      {read.length > 0 && (
-        <div>
-          <h3 className="fw-bold small text-dark mb-3">✓ Read</h3>
-          <div className="d-flex flex-column gap-2">
-            {read.map(notif => (
-              <div key={notif.id} className="card border-0 shadow-sm rounded-3 opacity-75">
-                <div className="card-body p-3">
-                  <div className="d-flex align-items-start justify-content-between gap-3">
-                    <div className="d-flex align-items-start gap-3 flex-grow-1">
-                      <span style={{ fontSize: 16 }}>{notif.icon}</span>
-                      <div>
-                        <div className="fw-bold small text-dark">{notif.title}</div>
-                        <div className="text-muted small mt-1">{notif.message}</div>
-                      </div>
-                    </div>
-                    <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger flex-shrink-0" style={{ fontSize: 11 }}>✕</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /* ── Announcements Panel ── */
 function AnnouncementsPanel() {
   const [items, setItems] = useState(announcements);
@@ -1172,7 +1095,6 @@ export default function AdminDashboardPage() {
       case "documents":     return <AdminDocumentsPanel />;
       case "enrollment":    return <EnrollmentPanel />;
       case "tuition":       return <TuitionPanel />;
-      case "notifications": return <AdminNotificationsPanel />;
       case "announcements": return <AnnouncementsPanel />;
       case "library":       return <LibraryPanel />;
       case "reports":       return <ReportsPanel />;
@@ -1275,7 +1197,7 @@ export default function AdminDashboardPage() {
             )}
             {notifs.length > 0 && (
               <div className="px-4 py-2 border-top text-center">
-                <button onClick={() => { setActiveNav("notifications"); setShowNotifDropdown(false); }} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize:12 }}>View all notifications →</button>
+                <button onClick={() => setShowNotifDropdown(false)} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize:12 }}>Close</button>
               </div>
             )}
           </div>
