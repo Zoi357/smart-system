@@ -456,20 +456,19 @@ const tiles = [
   { id: "documents" as const, label: "Documents",    icon: "📄", color: "#1e3a6e" },
 ];
 
-function DashboardHome({ setPanel, onAskJobert, darkMode }: { setPanel: (p: Panel) => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
+function DashboardHome({ setPanel, onAskJobert, darkMode, notifs, markAsRead, markAllAsRead, deleteNotification }: { 
+  setPanel: (p: Panel) => void; 
+  onAskJobert: (p: string) => void; 
+  darkMode: boolean;
+  notifs: typeof notifications;
+  markAsRead: (id: number) => void;
+  markAllAsRead: () => void;
+  deleteNotification: (id: number) => void;
+}) {
   const [showNotificationDropdown, setShowNotificationDropdown] = useState(false);
-  const [notifs, setNotifs] = useState(notifications);
   const unreadCount = notifs.filter(n => !n.read).length;
   const unread = notifs.filter(n => !n.read);
   const read = notifs.filter(n => n.read);
-
-  function markAsRead(id: number) {
-    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  }
-
-  function deleteNotification(id: number) {
-    setNotifs(prev => prev.filter(n => n.id !== id));
-  }
   
   return (
     <div className="dashboard-card border-0 shadow-lg rounded-3 overflow-hidden position-relative" style={{ maxWidth: 640, width: "100%", background: darkMode ? "#fff" : "#f8fafc", padding: 0 }}>
@@ -512,13 +511,20 @@ function DashboardHome({ setPanel, onAskJobert, darkMode }: { setPanel: (p: Pane
               <h6 className="fw-bold text-dark mb-0">Notifications</h6>
               <small className="text-muted">{unreadCount} unread</small>
             </div>
-            <button
-              onClick={() => setShowNotificationDropdown(false)}
-              className="btn btn-link btn-sm p-0 text-muted"
-              style={{ fontSize: "18px" }}
-            >
-              ✕
-            </button>
+            <div className="d-flex align-items-center gap-2">
+              {unreadCount > 0 && (
+                <button onClick={markAllAsRead} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: "11px" }}>
+                  Mark all read
+                </button>
+              )}
+              <button
+                onClick={() => setShowNotificationDropdown(false)}
+                className="btn btn-link btn-sm p-0 text-muted"
+                style={{ fontSize: "18px" }}
+              >
+                ✕
+              </button>
+            </div>
           </div>
 
           {/* Notifications List */}
@@ -782,17 +788,15 @@ function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; 
 }
 
 /* ── Notifications View ── */
-function NotificationsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
-  const [notifs, setNotifs] = useState(notifications);
-
-  function markAsRead(id: number) {
-    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  }
-
-  function deleteNotification(id: number) {
-    setNotifs(prev => prev.filter(n => n.id !== id));
-  }
-
+function NotificationsView({ onBack, onAskJobert, darkMode, notifs, markAsRead, markAllAsRead, deleteNotification }: { 
+  onBack: () => void; 
+  onAskJobert: (p: string) => void; 
+  darkMode: boolean;
+  notifs: typeof notifications;
+  markAsRead: (id: number) => void;
+  markAllAsRead: () => void;
+  deleteNotification: (id: number) => void;
+}) {
   const unread = notifs.filter(n => !n.read);
   const read = notifs.filter(n => n.read);
 
@@ -804,6 +808,11 @@ function NotificationsView({ onBack, onAskJobert, darkMode }: { onBack: () => vo
           <h2 className="fw-black fs-4 text-white mb-0">Notifications</h2>
           <p className="text-white-50 small mb-0">{unread.length} unread notifications</p>
         </div>
+        {unread.length > 0 && (
+          <button onClick={markAllAsRead} className="btn btn-outline-primary btn-sm flex-shrink-0" style={{ fontSize: 12 }}>
+            ✓ Mark all as read
+          </button>
+        )}
       </div>
 
       {/* Unread Notifications */}
@@ -874,6 +883,19 @@ export default function DashboardPage() {
   const [panel, setPanel]               = useState<Panel>("home");
   const [jobertPrompt, setJobertPrompt] = useState<string | undefined>(undefined);
   const [darkMode, setDarkMode]         = useState(true);
+  const [notifs, setNotifs]             = useState(notifications);
+
+  function markAsRead(id: number) {
+    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }
+
+  function markAllAsRead() {
+    setNotifs(prev => prev.map(n => ({ ...n, read: true })));
+  }
+
+  function deleteNotification(id: number) {
+    setNotifs(prev => prev.filter(n => n.id !== id));
+  }
 
   function askJobert(prompt: string) {
     setJobertPrompt(undefined);
@@ -965,12 +987,12 @@ export default function DashboardPage() {
         </button>
       </div>
 
-      {panel === "home"     && <DashboardHome setPanel={setPanel} onAskJobert={askJobert} darkMode={darkMode} />}
+      {panel === "home"     && <DashboardHome setPanel={setPanel} onAskJobert={askJobert} darkMode={darkMode} notifs={notifs} markAsRead={markAsRead} markAllAsRead={markAllAsRead} deleteNotification={deleteNotification} />}
       {panel === "grades"   && <div style={{ width: "100%", maxWidth: 640 }}><GradesView   onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
       {panel === "schedule" && <div style={{ width: "100%", maxWidth: 640 }}><ScheduleView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
       {panel === "tuition"  && <div style={{ width: "100%", maxWidth: 640 }}><TuitionView  onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
       {panel === "documents" && <div style={{ width: "100%", maxWidth: 640 }}><DocumentsView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
-      {panel === "notifications" && <div style={{ width: "100%", maxWidth: 640 }}><NotificationsView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
+      {panel === "notifications" && <div style={{ width: "100%", maxWidth: 640 }}><NotificationsView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} notifs={notifs} markAsRead={markAsRead} markAllAsRead={markAllAsRead} deleteNotification={deleteNotification} /></div>}
       <JobertChat initialPrompt={jobertPrompt} />
     </div>
   );

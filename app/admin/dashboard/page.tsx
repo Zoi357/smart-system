@@ -16,10 +16,42 @@ const students = [
 ];
 
 const teachers = [
-  { id:"T001", name:"Maria Santos",      subjects:["Mathematics", "Physics"], room:1 },
-  { id:"T002", name:"Juan Dela Cruz",    subjects:["English Literature", "History"], room:2 },
-  { id:"T003", name:"Ana Reyes",         subjects:["Chemistry", "Biology"], room:3 },
-  { id:"T004", name:"Carlos Fernandez",  subjects:["Computer Science", "Information Technology"], room:4 },
+  {
+    id: "T001", name: "Maria Santos", employmentStatus: "Full Time",
+    section: "STEM-1",
+    subjects: [
+      { name: "Mathematics", timeIn: "7:30 AM", timeOut: "9:30 AM" },
+      { name: "Physics",     timeIn: "10:00 AM", timeOut: "12:00 PM" },
+    ],
+    room: 1,
+  },
+  {
+    id: "T002", name: "Juan Dela Cruz", employmentStatus: "Part Time",
+    section: "HUMMS-1",
+    subjects: [
+      { name: "English Literature", timeIn: "8:00 AM", timeOut: "10:00 AM" },
+      { name: "History",            timeIn: "1:00 PM", timeOut: "3:00 PM" },
+    ],
+    room: 2,
+  },
+  {
+    id: "T003", name: "Ana Reyes", employmentStatus: "Full Time",
+    section: "ABM-1",
+    subjects: [
+      { name: "Chemistry", timeIn: "7:30 AM", timeOut: "9:30 AM" },
+      { name: "Biology",   timeIn: "11:00 AM", timeOut: "1:00 PM" },
+    ],
+    room: 3,
+  },
+  {
+    id: "T004", name: "Carlos Fernandez", employmentStatus: "Part Time",
+    section: "TVL-1",
+    subjects: [
+      { name: "Computer Science",          timeIn: "9:00 AM", timeOut: "11:00 AM" },
+      { name: "Information Technology",    timeIn: "2:00 PM", timeOut: "4:00 PM" },
+    ],
+    room: 4,
+  },
 ];
 
 const announcements = [
@@ -159,9 +191,7 @@ function Sidebar({ active, setActive, show, setShow, onExpandChange }: { active:
 
 /* ── Overview ── */
 function Overview({ setActive }: { setActive: (s: string) => void }) {
-  const totalStudents  = students.length;
   const activeStudents = students.filter(s => s.status === "Active").length;
-  const unpaidCount    = students.filter(s => s.tuition === "Unpaid").length;
   const avgGwa         = (students.reduce((a, s) => a + s.gwa, 0) / students.length).toFixed(2);
 
   const quickLinks = [
@@ -175,27 +205,19 @@ function Overview({ setActive }: { setActive: (s: string) => void }) {
   return (
     <div className="d-flex flex-column gap-4">
       {/* Welcome banner */}
-      <div className="rounded-3 p-4 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3"
+      <div className="rounded-3 p-4"
         style={{ background:"linear-gradient(135deg,#6366f1,#7c3aed)", boxShadow:"0 8px 32px rgba(99,102,241,0.25)" }}>
-        <div>
-          <h2 className="text-white fw-black fs-4 mb-1">Welcome back, Admin 👋</h2>
-          <p className="text-white-50 small mb-0"><span className="text-white fw-semibold">{unpaidCount} students</span> have unpaid tuition this term.</p>
-        </div>
-        <div className="d-flex align-items-center gap-3 rounded-3 px-4 py-3 flex-shrink-0" style={{ background:"rgba(255,255,255,0.2)", border:"1px solid rgba(255,255,255,0.3)" }}>
-          <span style={{ fontSize:28 }}>🎓</span>
-          <div><div className="text-white fw-black fs-3 lh-1">{totalStudents}</div><div className="text-white-50 small">Total Students</div></div>
-        </div>
+        <h2 className="text-white fw-black fs-4 mb-1">Welcome back, Admin 👋</h2>
+        <p className="text-white-50 small mb-0">Manage students, teachers, grades, and system records.</p>
       </div>
 
       {/* Stats */}
       <div className="row g-3">
         {[
-          { label:"Total Students",  value:totalStudents,  icon:"🎓", cls:"border-primary-subtle bg-primary-subtle",   val:"text-primary"  },
-          { label:"Active Students", value:activeStudents, icon:"✅", cls:"border-success-subtle bg-success-subtle",   val:"text-success"  },
-          { label:"Unpaid Tuition",  value:unpaidCount,    icon:"⚠️", cls:"border-danger-subtle  bg-danger-subtle",    val:"text-danger"   },
-          { label:"Class Avg. GWA",  value:avgGwa,         icon:"📈", cls:"border-purple-subtle  bg-purple-subtle",    val:"text-purple"   },
+          { label:"Active Students", value:activeStudents, icon:"✅", cls:"border-success-subtle bg-success-subtle", val:"text-success" },
+          { label:"Class Avg. GWA",  value:avgGwa,         icon:"📈", cls:"border-purple-subtle bg-purple-subtle",  val:"text-purple"  },
         ].map(s => (
-          <div key={s.label} className="col-6 col-lg-3">
+          <div key={s.label} className="col-6">
             <div className={`card border rounded-3 h-100 ${s.cls}`}>
               <div className="card-body p-3">
                 <div className="d-flex justify-content-between align-items-center mb-2">
@@ -278,30 +300,46 @@ function Overview({ setActive }: { setActive: (s: string) => void }) {
 /* ── Students Panel ── */
 function StudentsPanel() {
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("All");
+  const [selectedTrack, setSelectedTrack] = useState("All");
+  const [selectedGrade, setSelectedGrade] = useState("All");
+
+  const tracks = ["All", "STEM", "HUMMS", "ABM", "GAS", "TVL"];
+  const grades = ["All", "11", "12"];
+
   const filtered = students.filter(s => {
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "All" || s.status === filter || s.tuition === filter;
-    return matchSearch && matchFilter;
+    const matchTrack  = selectedTrack === "All" || s.track === selectedTrack;
+    const matchGrade  = selectedGrade === "All" || s.grade === Number(selectedGrade);
+    return matchSearch && matchTrack && matchGrade;
   });
 
   return (
     <div className="d-flex flex-column gap-4">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">Students</h2><p className="text-muted small mb-0">{students.length} enrolled students</p></div>
-        <button className="btn btn-primary btn-sm fw-bold shadow-sm">+ Add Student</button>
+      <div>
+        <h2 className="fw-black fs-4 text-dark mb-0">Students</h2>
+        <p className="text-muted small mb-0">{filtered.length} student{filtered.length !== 1 ? "s" : ""} found</p>
       </div>
+
+      {/* Filters */}
       <div className="d-flex flex-column flex-sm-row gap-3">
         <div className="input-group shadow-sm flex-grow-1">
           <span className="input-group-text bg-white">🔍</span>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or ID..." className="form-control border-start-0" />
         </div>
-        <div className="d-flex gap-2 flex-wrap">
-          {["All","Active","Inactive","Paid","Unpaid"].map(f => (
-            <button key={f} onClick={() => setFilter(f)} className={`btn btn-sm ${filter === f ? "btn-primary shadow-sm" : "btn-outline-secondary"}`}>{f}</button>
-          ))}
+        <div className="d-flex gap-2">
+          <div>
+            <select value={selectedTrack} onChange={e => setSelectedTrack(e.target.value)} className="form-select form-select-sm rounded-3" style={{ minWidth: 120 }}>
+              {tracks.map(t => <option key={t} value={t}>{t === "All" ? "All Tracks" : t}</option>)}
+            </select>
+          </div>
+          <div>
+            <select value={selectedGrade} onChange={e => setSelectedGrade(e.target.value)} className="form-select form-select-sm rounded-3" style={{ minWidth: 120 }}>
+              {grades.map(g => <option key={g} value={g}>{g === "All" ? "All Grades" : `Grade ${g}`}</option>)}
+            </select>
+          </div>
         </div>
       </div>
+
       <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
@@ -310,18 +348,17 @@ function StudentsPanel() {
                 <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing:"0.05em" }}>#</th>
                 <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Name</th>
                 <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing:"0.05em" }}>ID</th>
-                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Track</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Track & Grade</th>
                 <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>GWA</th>
                 <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing:"0.05em" }}>Room</th>
                 <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Status</th>
-                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Tuition</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0
-                ? <tr><td colSpan={8} className="text-center text-muted py-4 small">No students found.</td></tr>
+                ? <tr><td colSpan={7} className="text-center text-muted py-4 small">No students found for the selected track/grade.</td></tr>
                 : filtered.map((s, i) => (
-                  <tr key={s.id} style={{ cursor:"pointer" }}>
+                  <tr key={s.id}>
                     <td className="ps-4 text-muted small">{i + 1}</td>
                     <td>
                       <div className="d-flex align-items-center gap-2">
@@ -330,11 +367,10 @@ function StudentsPanel() {
                       </div>
                     </td>
                     <td className="d-none d-sm-table-cell font-mono text-muted small">{s.id}</td>
-                    <td className="d-none d-lg-table-cell text-muted small">{s.track} Grade {s.grade}</td>
+                    <td className="d-none d-lg-table-cell text-muted small">{s.track} — Grade {s.grade}</td>
                     <td className="d-none d-lg-table-cell fw-bold text-primary small">{s.gwa}</td>
                     <td className="d-none d-lg-table-cell text-muted small"><span className="badge bg-info-subtle text-info border border-info-subtle">Room {s.room}</span></td>
                     <td><span className={`badge ${s.status === "Active" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}`}>{s.status}</span></td>
-                    <td><span className={`badge ${s.tuition === "Paid" ? "bg-primary-subtle text-primary border border-primary-subtle" : "bg-danger-subtle text-danger border border-danger-subtle"}`}>{s.tuition}</span></td>
                   </tr>
                 ))
               }
@@ -549,63 +585,100 @@ function TuitionPanel() {
 /* ── Teachers Panel ── */
 function TeachersPanel() {
   const [search, setSearch] = useState("");
-  const filtered = teachers.filter(t => 
-    t.name.toLowerCase().includes(search.toLowerCase()) || 
-    t.id.toLowerCase().includes(search.toLowerCase()) ||
-    t.subjects.some(s => s.toLowerCase().includes(search.toLowerCase()))
-  );
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  const filtered = teachers.filter(t => {
+    const matchSearch = t.name.toLowerCase().includes(search.toLowerCase()) ||
+      t.id.toLowerCase().includes(search.toLowerCase()) ||
+      t.section.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = filterStatus === "All" || t.employmentStatus === filterStatus;
+    return matchSearch && matchStatus;
+  });
 
   return (
     <div className="d-flex flex-column gap-4">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">Teachers</h2><p className="text-muted small mb-0">{teachers.length} faculty members</p></div>
-        <button className="btn btn-primary btn-sm fw-bold shadow-sm">+ Add Teacher</button>
+      <div>
+        <h2 className="fw-black fs-4 text-dark mb-0">Teachers</h2>
+        <p className="text-muted small mb-0">{filtered.length} faculty member{filtered.length !== 1 ? "s" : ""}</p>
       </div>
-      <div className="input-group shadow-sm" style={{ maxWidth: 400 }}>
-        <span className="input-group-text bg-white">🔍</span>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, ID, or subject..." className="form-control border-start-0" />
-      </div>
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
-        <div className="table-responsive">
-          <table className="table table-hover mb-0">
-            <thead className="table-light">
-              <tr>
-                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing:"0.05em" }}>#</th>
-                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Name</th>
-                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing:"0.05em" }}>ID</th>
-                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing:"0.05em" }}>Subjects</th>
-                <th className="small text-muted fw-semibold text-uppercase text-center" style={{ letterSpacing:"0.05em" }}>Room</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.length === 0
-                ? <tr><td colSpan={5} className="text-center text-muted py-4 small">No teachers found.</td></tr>
-                : filtered.map((t, i) => (
-                  <tr key={t.id} style={{ cursor:"pointer" }}>
-                    <td className="ps-4 text-muted small">{i + 1}</td>
-                    <td>
-                      <div className="d-flex align-items-center gap-2">
-                        <div className="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center text-success fw-bold flex-shrink-0" style={{ width:28, height:28, fontSize:11 }}>{initials(t.name)}</div>
-                        <span className="small fw-medium text-dark">{t.name}</span>
-                      </div>
-                    </td>
-                    <td className="d-none d-sm-table-cell font-mono text-muted small">{t.id}</td>
-                    <td>
-                      <div className="d-flex flex-wrap gap-1">
-                        {t.subjects.map((s, idx) => (
-                          <span key={idx} className="badge bg-primary-subtle text-primary border border-primary-subtle" style={{ fontSize: 11 }}>{s}</span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="text-center">
-                      <span className="badge bg-warning-subtle text-warning border border-warning-subtle fw-bold">Room {t.room}</span>
-                    </td>
-                  </tr>
-                ))
-              }
-            </tbody>
-          </table>
+
+      {/* Filters */}
+      <div className="d-flex flex-column flex-sm-row gap-3">
+        <div className="input-group shadow-sm flex-grow-1">
+          <span className="input-group-text bg-white">🔍</span>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, ID, or section..." className="form-control border-start-0" />
         </div>
+        <div className="d-flex gap-2">
+          {["All", "Full Time", "Part Time"].map(f => (
+            <button key={f} onClick={() => setFilterStatus(f)} className={`btn btn-sm ${filterStatus === f ? "btn-primary shadow-sm" : "btn-outline-secondary"}`}>{f}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Teacher Cards */}
+      <div className="d-flex flex-column gap-3">
+        {filtered.length === 0
+          ? <div className="text-center text-muted py-4 small">No teachers found.</div>
+          : filtered.map((t) => (
+            <div key={t.id} className="card border-0 shadow-sm rounded-3 overflow-hidden">
+              {/* Teacher Header Row */}
+              <div
+                className="d-flex align-items-center gap-3 p-3 px-4"
+                style={{ cursor: "pointer", background: expanded === t.id ? "#f8f9ff" : "white" }}
+                onClick={() => setExpanded(expanded === t.id ? null : t.id)}
+              >
+                {/* Avatar */}
+                <div className="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center text-success fw-bold flex-shrink-0" style={{ width: 40, height: 40, fontSize: 13 }}>
+                  {initials(t.name)}
+                </div>
+
+                {/* Info */}
+                <div className="flex-grow-1">
+                  <div className="fw-bold text-dark small">{t.name}</div>
+                  <div className="d-flex align-items-center gap-2 flex-wrap mt-1">
+                    <span className="text-muted" style={{ fontSize: 11 }}>{t.id}</span>
+                    <span className="text-muted" style={{ fontSize: 11 }}>·</span>
+                    <span className="badge bg-info-subtle text-info border border-info-subtle" style={{ fontSize: 11 }}>📚 {t.section}</span>
+                    <span className="badge bg-warning-subtle text-warning border border-warning-subtle" style={{ fontSize: 11 }}>Room {t.room}</span>
+                  </div>
+                </div>
+
+                {/* Employment Status */}
+                <span className={`badge px-3 py-2 flex-shrink-0 ${t.employmentStatus === "Full Time" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}`}>
+                  {t.employmentStatus === "Full Time" ? "● Full Time" : "◑ Part Time"}
+                </span>
+
+                {/* Expand arrow */}
+                <span className="text-muted ms-2" style={{ fontSize: 12, transition: "transform 0.2s", display: "inline-block", transform: expanded === t.id ? "rotate(180deg)" : "rotate(0deg)" }}>▼</span>
+              </div>
+
+              {/* Expanded Schedule */}
+              {expanded === t.id && (
+                <div className="border-top px-4 py-3" style={{ background: "#f8f9ff" }}>
+                  <p className="text-muted text-uppercase fw-semibold mb-2" style={{ fontSize: 11, letterSpacing: "0.08em" }}>Subject Schedule</p>
+                  <div className="d-flex flex-column gap-2">
+                    {t.subjects.map((s, idx) => (
+                      <div key={idx} className="d-flex align-items-center gap-3 p-3 rounded-3 bg-white border">
+                        <div className="rounded-3 bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 36, height: 36, fontSize: 16 }}>📖</div>
+                        <div className="flex-grow-1">
+                          <div className="fw-semibold text-dark small">{s.name}</div>
+                          <div className="text-muted" style={{ fontSize: 11 }}>Section: {t.section}</div>
+                        </div>
+                        <div className="text-end flex-shrink-0">
+                          <div className="d-flex align-items-center gap-2">
+                            <span className="badge bg-success-subtle text-success border border-success-subtle" style={{ fontSize: 11 }}>🕐 In: {s.timeIn}</span>
+                            <span className="badge bg-danger-subtle text-danger border border-danger-subtle" style={{ fontSize: 11 }}>🕐 Out: {s.timeOut}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))
+        }
       </div>
     </div>
   );
