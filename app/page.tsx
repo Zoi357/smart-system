@@ -69,6 +69,7 @@ const FEATURES = [
 
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
+  const [dark, setDark] = useState(false);
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [panelPos, setPanelPos] = useState({ x: 0, y: 0 });
   const [aimPos, setAimPos] = useState({ x: 50, y: 50 });
@@ -80,6 +81,21 @@ export default function LandingPage() {
   const ctaRef = useRef<HTMLDivElement>(null);
   const featureSectionRef = useRef<HTMLElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("landing-theme");
+    if (saved === "dark") setDark(true);
+  }, []);
+
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.setAttribute("data-landing", "dark");
+      localStorage.setItem("landing-theme", "dark");
+    } else {
+      document.documentElement.removeAttribute("data-landing");
+      localStorage.setItem("landing-theme", "light");
+    }
+  }, [dark]);
 
   useEffect(() => {
     document.documentElement.classList.add('js-enabled');
@@ -141,7 +157,7 @@ export default function LandingPage() {
   return (
     <>
       {loading && <LoadingScreen onDone={() => setLoading(false)} />}
-      <div className="min-vh-100 bg-light text-dark" ref={pageRef} style={{ opacity: loading ? 0 : 1, transition: "opacity 0.4s" }}>
+      <div className={`min-vh-100 text-dark landing-root${dark ? " landing-dark" : ""}`} ref={pageRef} style={{ opacity: loading ? 0 : 1, transition: "opacity 0.4s", width: "100%" }}>
       {/* Navigation */}
       <header className="sticky-top bg-white bg-opacity-90 backdrop-blur border-bottom border-light shadow-sm z-3">
         <div className="container py-3">
@@ -153,9 +169,49 @@ export default function LandingPage() {
                 <p className="mb-0 text-muted small">Student Information System</p>
               </div>
             </Link>
-            <div className="d-flex align-items-center gap-4">
+            <div className="d-flex align-items-center gap-3">
               <Link href="/login" className="text-decoration-none fw-medium" style={{ color: "#dc2626" }}>Student Login</Link>
               <Link href="/teacher/login" className="text-decoration-none fw-medium" style={{ color: "#f97316" }}>Teacher Login</Link>
+              {/* Dark / Light toggle */}
+              <button
+                onClick={() => setDark(d => !d)}
+                aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+                style={{
+                  width: 44, height: 26,
+                  borderRadius: 13,
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  position: "relative",
+                  background: dark
+                    ? "linear-gradient(135deg, #1e293b, #334155)"
+                    : "linear-gradient(135deg, #fef3c7, #fde68a)",
+                  boxShadow: dark
+                    ? "inset 0 0 0 1.5px #475569"
+                    : "inset 0 0 0 1.5px #fbbf24",
+                  transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
+                  flexShrink: 0,
+                }}
+              >
+                {/* Thumb */}
+                <span style={{
+                  position: "absolute",
+                  top: 3, left: dark ? 21 : 3,
+                  width: 20, height: 20,
+                  borderRadius: "50%",
+                  background: dark
+                    ? "linear-gradient(135deg, #f1f5f9, #cbd5e1)"
+                    : "linear-gradient(135deg, #f97316, #dc2626)",
+                  boxShadow: dark
+                    ? "0 1px 4px rgba(0,0,0,0.4)"
+                    : "0 1px 4px rgba(220,38,38,0.4)",
+                  transition: "left 0.35s cubic-bezier(0.34,1.56,0.64,1)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 11,
+                }}>
+                  {dark ? "🌙" : "☀️"}
+                </span>
+              </button>
               <Link href="/admin/login" className="btn btn-shimmer fw-semibold" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white" }}>Admin</Link>
             </div>
           </div>
@@ -163,7 +219,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #fff7ed, #fef3c7)" }}>
+      <section className="py-5 py-md-6 py-lg-7 landing-hero" style={{ background: "linear-gradient(135deg, #fff7ed, #fef3c7)" }}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-10 col-xl-8 text-center">
@@ -202,7 +258,7 @@ export default function LandingPage() {
 
       {/* Features Section — aim parallax + click expand */}
       <section
-        className="py-5 py-md-6 py-lg-7 bg-white position-relative overflow-hidden"
+        className="py-5 py-md-6 py-lg-7 bg-white position-relative landing-features"
         ref={featureSectionRef}
         onMouseMove={handleFeatureSectionMouseMove}
         onMouseLeave={() => setAimPos({ x: 50, y: 50 })}
@@ -219,9 +275,9 @@ export default function LandingPage() {
             transition: "background 0.08s linear",
           }}
         />
-        {/* Crosshair lines */}
+        {/* Crosshair lines — clipped to section bounds */}
         <div style={{
-          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden",
+          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden", borderRadius: 0,
         }}>
           <div style={{
             position: "absolute",
@@ -269,7 +325,7 @@ export default function LandingPage() {
                   ref={(el) => { featuresRef.current[idx] = el; }}
                 >
                   <div
-                    className={`scroll-reveal-scale ${idx === 0 ? 'float-slow' : idx === 1 ? 'float-slow-delay-1' : idx === 2 ? 'float-slow-delay-2' : 'float-slow-delay-3'}`}
+                    className={`scroll-reveal-scale ${idx === 0 ? 'float-slow' : idx === 1 ? 'float-slow-delay-1' : idx === 2 ? 'float-slow-delay-2' : 'float-slow-delay-3'} landing-feature-tile`}
                     onClick={(e) => handleFeatureClick(idx, e)}
                     style={{
                       cursor: "pointer",
@@ -350,6 +406,7 @@ export default function LandingPage() {
                       overflow: "hidden",
                       backdropFilter: "blur(8px)",
                     }}
+                    className="landing-feature-panel"
                   >
                     {/* Parallax inner glow that shifts with aim */}
                     <div style={{
@@ -396,6 +453,7 @@ export default function LandingPage() {
                               animation: `featureDetailIn 0.35s cubic-bezier(0.4,0,0.2,1) ${di * 0.07}s both`,
                               transition: "transform 0.2s, box-shadow 0.2s",
                             }}
+                              className="detail-card"
                               onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 28px ${f.color}22`; }}
                               onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ""; (e.currentTarget as HTMLDivElement).style.boxShadow = ""; }}
                             >
@@ -416,7 +474,7 @@ export default function LandingPage() {
       </section>
 
       {/* Services Section (with 3D hover effects) */}
-      <section className="py-5 py-md-6 py-lg-7" style={{ background: "#fff7ed" }}>
+      <section className="py-5 py-md-6 py-lg-7 landing-services" style={{ background: "#fff7ed" }}>
         <div className="container">
           <div className="text-center mb-5 scroll-reveal">
             <h6 className="fw-semibold mb-2" style={{ color: "#f97316" }}>Quick Access</h6>
@@ -472,7 +530,7 @@ export default function LandingPage() {
       </section>
 
       {/* Enrollment CTA */}
-      <section className="py-5 py-md-6 py-lg-7 bg-white">
+      <section className="py-5 py-md-6 py-lg-7 landing-cta" style={{ background: "#ffffff" }}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-10">
