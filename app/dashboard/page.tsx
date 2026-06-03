@@ -422,48 +422,98 @@ function TuitionView({ onBack, onAskJobert, darkMode }: { onBack: () => void; on
   const paid    = fees.filter(f => f.paid).reduce((a, f) => a + f.amount, 0);
   const balance = total - paid;
   const unpaidList = fees.filter(f => !f.paid).map(f => f.label).join(", ");
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  
+  const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (mouseY - centerY) / 15;
+    const rotateY = (centerX - mouseX) / 15;
+    card.style.setProperty('--rotateX', `${rotateX}deg`);
+    card.style.setProperty('--rotateY', `${rotateY}deg`);
+  };
+
+  const handleTiltMouseLeave = (index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    card.style.setProperty('--rotateX', '0deg');
+    card.style.setProperty('--rotateY', '0deg');
+  };
 
   return (
     <div className="d-flex flex-column gap-4 w-100">
       <BackBtn onClick={onBack} />
-      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
+      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3 scroll-reveal">
         <div>
-          <h2 className="fw-black fs-4 text-white mb-0">Tuition Fee</h2>
+          <h2 className="fw-black fs-4 text-white mb-0">
+            <span style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Tuition Fee</span>
+          </h2>
           <p className="text-white-50 small mb-0">Term 1 · 2025–2026</p>
         </div>
         <button onClick={() => onAskJobert(`I have an unpaid balance of ₱${balance.toLocaleString()} for: ${unpaidList}. How do I pay my tuition?`)}
-          className="btn btn-outline-primary btn-sm flex-shrink-0" style={{ fontSize: 12 }}>🤖 How do I pay?</button>
+          className="btn btn-outline-primary btn-sm flex-shrink-0" style={{ 
+            fontSize: 12,
+            borderColor: '#dc2626',
+            color: '#dc2626'
+          }} onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, #dc2626, #f97316)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>🤖 How do I pay?</button>
       </div>
-      <div className="row g-3">
+      <div className="row g-3 scroll-reveal">
         {[
-          { label:"Total",   value:`₱${total.toLocaleString()}`,   cls:"bg-light border-secondary"   },
-          { label:"Paid",    value:`₱${paid.toLocaleString()}`,    cls:"bg-success-subtle border-success text-success" },
-          { label:"Balance", value:`₱${balance.toLocaleString()}`, cls:"bg-danger-subtle border-danger text-danger"   },
-        ].map(s => (
+          { label:"Total",   value:`₱${total.toLocaleString()}`,   color: 'linear-gradient(135deg, #0f172a, #1e293b)', textColor: 'white' },
+          { label:"Paid",    value:`₱${paid.toLocaleString()}`,    color: 'linear-gradient(135deg, #10b981, #059669)', textColor: 'white' },
+          { label:"Balance", value:`₱${balance.toLocaleString()}`, color: 'linear-gradient(135deg, #dc2626, #f97316)', textColor: 'white' },
+        ].map((s, i) => (
           <div key={s.label} className="col-4">
-            <div className={`rounded-3 border p-3 text-center ${s.cls}`}>
-              <div className="text-muted small mb-1">{s.label}</div>
-              <div className="fw-black fs-5">{s.value}</div>
+            <div 
+              ref={(el) => cardRefs.current[i] = el}
+              className="rounded-3 p-4 text-center card-3d-tilt"
+              style={{ 
+                background: s.color,
+                color: s.textColor,
+                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                transformStyle: 'preserve-3d',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+              }}
+              onMouseMove={(e) => handleTiltMouseMove(e, i)}
+              onMouseLeave={() => handleTiltMouseLeave(i)}
+            >
+              <div style={{ opacity: 0.9, fontSize: '0.875rem', marginBottom: '0.5rem' }}>{s.label}</div>
+              <div className="fw-black fs-3">{s.value}</div>
             </div>
           </div>
         ))}
       </div>
-      <div className="card-elevated border-0 shadow-sm rounded-3">
-        <ul className="list-group list-group-flush rounded-3">
-          {fees.map((f, i) => (
-            <li key={i} className="list-group-item d-flex align-items-center justify-content-between px-4 py-3">
-              <span className="small fw-medium text-dark">{f.label}</span>
-              <div className="d-flex align-items-center gap-3">
-                <span className="small fw-semibold text-dark">₱{f.amount.toLocaleString()}</span>
-                <span className={`badge-status ${f.paid ? "badge-active" : "badge-pending"}`}>
-                  {f.paid ? "Paid" : "Unpaid"}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
+      <div className="card-glow-border scroll-reveal">
+        <div className="card-elevated border-0 shadow-sm rounded-3" style={{ background: 'white' }}>
+          <ul className="list-group list-group-flush rounded-3">
+            {fees.map((f, i) => (
+              <li key={i} className="list-group-item d-flex align-items-center justify-content-between px-4 py-3" style={{ borderColor: 'rgba(220, 38, 38, 0.1)' }}>
+                <span className="small fw-medium" style={{ color: '#0f172a' }}>{f.label}</span>
+                <div className="d-flex align-items-center gap-3">
+                  <span className="small fw-semibold" style={{ color: '#0f172a' }}>₱{f.amount.toLocaleString()}</span>
+                  <span className={`badge-status ${f.paid ? "badge-active" : "badge-pending"}`}>
+                    {f.paid ? "Paid" : "Unpaid"}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-      <PayBalanceButton />
+      <div className="scroll-reveal">
+        <PayBalanceButton />
+      </div>
     </div>
   );
 }
@@ -687,6 +737,7 @@ function DashboardHome({ setPanel, onAskJobert, darkMode, notifs, markAsRead, ma
 function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
   const [requests, setRequests] = useState(documentRequests);
   const [selectedDoc, setSelectedDoc] = useState<string | null>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   function requestDocument(type: string) {
     const newRequest = {
@@ -706,38 +757,93 @@ function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; 
   const pending = requests.filter(r => r.status === "pending");
   const approved = requests.filter(r => r.status === "approved");
 
+  const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (mouseY - centerY) / 15;
+    const rotateY = (centerX - mouseX) / 15;
+    card.style.setProperty('--rotateX', `${rotateX}deg`);
+    card.style.setProperty('--rotateY', `${rotateY}deg`);
+  };
+
+  const handleTiltMouseLeave = (index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    card.style.setProperty('--rotateX', '0deg');
+    card.style.setProperty('--rotateY', '0deg');
+  };
+
   return (
     <div className="d-flex flex-column gap-4 w-100">
       <BackBtn onClick={onBack} />
-      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
+      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3 scroll-reveal">
         <div>
-          <h2 className="fw-black fs-4 text-white mb-0">Documents</h2>
+          <h2 className="fw-black fs-4 text-white mb-0">
+            <span style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Documents</span>
+          </h2>
           <p className="text-white-50 small mb-0">Request and download official documents</p>
         </div>
       </div>
 
       {/* Available Documents */}
-      <div>
+      <div className="scroll-reveal">
         <p className="text-white-50 small fw-semibold mb-3">📋 Available Documents</p>
         <div className="row g-3">
-          {availableDocuments.map(doc => (
+          {availableDocuments.map((doc, i) => (
             <div key={doc.id} className="col-12 col-sm-6">
-              <div className="card-elevated border-0 rounded-3 h-100">
-                <div className="card-body p-4">
-                  <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
-                    <div>
-                      <div className="fw-bold text-dark" style={{ fontSize: 18 }}>{doc.icon} {doc.name}</div>
-                      <div className="text-muted small mt-1">{doc.description}</div>
+              <div 
+                ref={(el) => cardRefs.current[i] = el}
+                className="card-glow-border card-3d-tilt h-100"
+                onMouseMove={(e) => handleTiltMouseMove(e, i)}
+                onMouseLeave={() => handleTiltMouseLeave(i)}
+              >
+                <div className="card-elevated border-0 rounded-3 h-100" style={{ 
+                  background: 'white',
+                  transform: 'translateY(0) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg))',
+                  transformStyle: 'preserve-3d',
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
+                  <div className="card-body p-4">
+                    <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
+                      <div>
+                        <div className="fw-bold" style={{ fontSize: 18, color: '#0f172a' }}>{doc.icon} {doc.name}</div>
+                        <div className="text-muted small mt-1">{doc.description}</div>
+                      </div>
                     </div>
+                    <button
+                      onClick={() => requestDocument(doc.type)}
+                      disabled={requests.some(r => r.type === doc.type && r.status === "pending")}
+                      className={`btn w-100 ${requests.some(r => r.type === doc.type && r.status === "pending") ? "btn-secondary" : ""}`}
+                      style={{ 
+                        fontSize: 12,
+                        background: requests.some(r => r.type === doc.type && r.status === "pending") ? undefined : 'linear-gradient(135deg, #dc2626, #f97316)',
+                        border: 'none',
+                        color: 'white'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!e.currentTarget.disabled) {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 10px 30px rgba(220, 38, 38, 0.4)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
+                    >
+                      {requests.some(r => r.type === doc.type && r.status === "pending") ? "⏳ Request Pending" : "📨 Request Document"}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => requestDocument(doc.type)}
-                    disabled={requests.some(r => r.type === doc.type && r.status === "pending")}
-                    className={`btn w-100 ${requests.some(r => r.type === doc.type && r.status === "pending") ? "btn-secondary" : "btn-primary"}`}
-                    style={{ fontSize: 12 }}
-                  >
-                    {requests.some(r => r.type === doc.type && r.status === "pending") ? "⏳ Request Pending" : "📨 Request Document"}
-                  </button>
                 </div>
               </div>
             </div>
@@ -747,18 +853,21 @@ function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; 
 
       {/* Pending Requests */}
       {pending.length > 0 && (
-        <div>
+        <div className="scroll-reveal">
           <p className="text-white-50 small fw-semibold mb-3">⏳ Pending Requests</p>
           <div className="d-flex flex-column gap-2">
             {pending.map(req => (
-              <div key={req.id} className="card border-0 rounded-3" style={{ background: "rgba(254,242,242,0.08)" }}>
+              <div key={req.id} className="card border-0 rounded-3" style={{ 
+                background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(249, 115, 22, 0.1))',
+                border: '1px solid rgba(251, 191, 36, 0.2)'
+              }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-center justify-content-between">
                     <div>
-                      <div className="fw-bold small text-white">{req.type}</div>
-                      <div className="text-white-50" style={{ fontSize: 11 }}>Requested {req.requestedAt}</div>
+                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{req.type}</div>
+                      <div style={{ fontSize: 11, color: 'rgba(15, 23, 42, 0.6)' }}>Requested {req.requestedAt}</div>
                     </div>
-                    <span className="badge bg-warning-subtle text-warning border border-warning-subtle">⏳ Pending</span>
+                    <span className="badge" style={{ background: 'linear-gradient(135deg, #fbbf24, #f97316)', color: 'white' }}>⏳ Pending</span>
                   </div>
                 </div>
               </div>
@@ -769,27 +878,34 @@ function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; 
 
       {/* Approved Documents */}
       {approved.length > 0 && (
-        <div>
+        <div className="scroll-reveal">
           <p className="text-white-50 small fw-semibold mb-3">✓ Approved Documents</p>
           <div className="d-flex flex-column gap-2">
             {approved.map(req => (
-              <div key={req.id} className="card border-0 rounded-3" style={{ background: "rgba(34, 197, 94, 0.1)", border: "1px solid rgba(34,197,94,0.25)" }}>
+              <div key={req.id} className="card border-0 rounded-3" style={{ 
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1))',
+                border: '1px solid rgba(16, 185, 129, 0.2)'
+              }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-start justify-content-between gap-3">
                     <div>
-                      <div className="fw-bold small text-white">{req.type}</div>
-                      <div className="text-white-50" style={{ fontSize: 11 }}>Approved {req.approvedAt} by {req.approvedBy}</div>
+                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{req.type}</div>
+                      <div style={{ fontSize: 11, color: 'rgba(15, 23, 42, 0.6)' }}>Approved {req.approvedAt} by {req.approvedBy}</div>
                     </div>
                     <div className="text-end flex-shrink-0">
                       {req.releaseDate ? (
                         <div>
-                          <span className="badge bg-info-subtle text-info border border-info-subtle d-block mb-1" style={{ fontSize: 11 }}>
+                          <span className="badge d-block mb-1" style={{ 
+                            fontSize: 11, 
+                            background: 'linear-gradient(135deg, #06b6d4, #0891b2)',
+                            color: 'white' 
+                          }}>
                             📅 Pick up: {req.releaseDate}
                           </span>
-                          <div className="text-white-50" style={{ fontSize: 10 }}>Go to Registrar's Office</div>
+                          <div style={{ fontSize: 10, color: 'rgba(15, 23, 42, 0.6)' }}>Go to Registrar's Office</div>
                         </div>
                       ) : (
-                        <span className="badge bg-warning-subtle text-warning border border-warning-subtle" style={{ fontSize: 11 }}>
+                        <span className="badge" style={{ fontSize: 11, background: 'linear-gradient(135deg, #fbbf24, #f97316)', color: 'white' }}>
                           ⏳ Schedule pending
                         </span>
                       )}
