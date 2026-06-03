@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
+import { PremiumDashboardShell } from "../../components/PremiumDashboardShell";
 
 /* ── Data ── */
 const teacherData = {
@@ -78,7 +78,7 @@ type Panel = "overview" | "subjects" | "schedule" | "students" | "grades" | "att
 /* ── Back Button ── */
 function BackBtn({ onClick }: { onClick: () => void }) {
   return (
-    <button onClick={onClick} className="btn btn-link text-primary text-decoration-none ps-0 mb-4 d-flex align-items-center gap-1 small fw-semibold" style={{ fontSize: 13 }}>
+    <button type="button" onClick={onClick} className="dash-back-btn mb-2">
       ← Back to Dashboard
     </button>
   );
@@ -95,109 +95,93 @@ function OverviewPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   return (
     <div className="d-flex flex-column gap-4">
       {/* Welcome Banner */}
-      <div className="rounded-3 p-4 d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3"
-        style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)", boxShadow: "0 8px 32px rgba(99, 102, 241, 0.25)" }}>
-        <div>
-          <h2 className="text-white fw-black fs-4 mb-1">Welcome back, {teacherData.full_name} 👋</h2>
-          <p className="text-white-50 small mb-0">Department: <span className="text-white fw-semibold">{teacherData.department}</span></p>
-        </div>
-        <div className="d-flex align-items-center gap-3 rounded-3 px-4 py-3 flex-shrink-0" style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)" }}>
-          <span style={{ fontSize: 28 }}>👨‍🏫</span>
-          <div><div className="text-white fw-black fs-3 lh-1">{stats.total_subjects}</div><div className="text-white-50 small">Classes</div></div>
+      <div className="dash-hero dash-reveal">
+        <div className="dash-hero-title">Welcome back, {teacherData.full_name} 👋</div>
+        <div className="dash-hero-sub">Department: {teacherData.department}</div>
+        <div className="dash-hero-badges">
+          <span className="dash-badge">👨‍🏫 Faculty Member</span>
+          <span className="dash-badge dash-badge-gold">{stats.total_subjects} Active Classes</span>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="row g-3">
+      <div className="dash-body dash-reveal">
+      <div className="dash-stat-grid">
         {[
-          { label: "Total Classes", value: stats.total_subjects, icon: "📚", cls: "border-primary-subtle bg-primary-subtle", val: "text-primary" },
-          { label: "Total Students", value: stats.total_students, icon: "🎓", cls: "border-success-subtle bg-success-subtle", val: "text-success" },
-          { label: "Class Avg. Grade", value: `${stats.avg_grade}%`, icon: "📈", cls: "border-warning-subtle bg-warning-subtle", val: "text-warning" },
+          { label: "Total Classes", value: stats.total_subjects, icon: "📚" },
+          { label: "Total Students", value: stats.total_students, icon: "🎓" },
+          { label: "Class Avg. Grade", value: `${stats.avg_grade}%`, icon: "📈" },
+          { label: "Pending Requests", value: gradeRequestsTeacher.filter(r => r.status === "pending").length, icon: "📨" },
         ].map(s => (
-          <div key={s.label} className="col-6 col-lg-3">
-            <div className={`card border rounded-3 h-100 ${s.cls}`}>
-              <div className="card-body p-3">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <span className="text-muted small">{s.label}</span>
-                  <span style={{ fontSize: 20 }}>{s.icon}</span>
-                </div>
-                <div className={`fw-black fs-3 ${s.val}`}>{s.value}</div>
-              </div>
-            </div>
+          <div key={s.label} className="dash-stat-card">
+            <span className="dash-stat-icon">{s.icon}</span>
+            <div className="dash-stat-label">{s.label}</div>
+            <div className="dash-stat-value">{s.value}</div>
           </div>
         ))}
       </div>
 
       {/* Quick Access */}
-      <div>
-        <p className="text-muted text-uppercase small fw-semibold mb-3" style={{ letterSpacing: "0.08em" }}>Quick Access</p>
-        <div className="row g-3">
+      <div className="dash-reveal mt-4">
+        <p className="dash-section-label">Quick Access</p>
+        <div className="dash-quick-grid">
           {[
-            { id: "subjects", label: "My Classes", icon: "📚", bg: "#3b82f6" },
-            { id: "schedule", label: "My Schedule", icon: "📅", bg: "#06b6d4" },
-            { id: "students", label: "My Students", icon: "🎓", bg: "#8b5cf6" },
-            { id: "grades", label: "Submit Grades", icon: "📊", bg: "#14b8a6" },
-            { id: "requests", label: "Grade Requests", icon: "📨", bg: "#ec4899" },
-            { id: "documents", label: "Document Approvals", icon: "📄", bg: "#f59e0b" },
-            { id: "notifications", label: "Notifications", icon: "🔔", bg: "#ef4444" },
-            { id: "attendance", label: "Attendance", icon: "✓", bg: "#6366f1" },
+            { id: "subjects", label: "My Classes", icon: "📚" },
+            { id: "schedule", label: "My Schedule", icon: "📅" },
+            { id: "students", label: "My Students", icon: "🎓" },
+            { id: "grades", label: "Submit Grades", icon: "📊" },
+            { id: "requests", label: "Grade Requests", icon: "📨" },
+            { id: "documents", label: "Documents", icon: "📄" },
+            { id: "notifications", label: "Notifications", icon: "🔔" },
+            { id: "attendance", label: "Attendance", icon: "✓" },
           ].map(q => (
-            <div key={q.id} className="col-6 col-sm-4 col-lg-2">
-              <button onClick={() => setPanel(q.id as Panel)}
-                className="btn w-100 py-3 d-flex flex-column align-items-center gap-2 rounded-3 text-white border-0 shadow-sm"
-                style={{ background: q.bg, transition: "transform 0.15s" }}
-                onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.04)")}
-                onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}>
-                <span style={{ fontSize: 28 }}>{q.icon}</span>
-                <span className="small fw-bold">{q.label}</span>
-              </button>
-            </div>
+            <button key={q.id} type="button" onClick={() => setPanel(q.id as Panel)} className="dash-quick-btn border-0">
+              <span>{q.icon}</span>
+              <span>{q.label}</span>
+            </button>
           ))}
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="row g-4">
+      <div className="row g-4 dash-reveal mt-4">
         <div className="col-12 col-lg-6">
-          <div className="card border-0 shadow-sm rounded-3 h-100">
-            <div className="card-body p-4">
-              <h3 className="fw-bold small text-dark mb-3">Recent Activity</h3>
-              <div className="d-flex flex-column gap-3">
-                {recentActivity.map((a, i) => (
-                  <div key={i} className="d-flex align-items-center gap-3">
-                    <div className="rounded-3 bg-light border d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 36, height: 36, fontSize: 18 }}>{a.icon}</div>
-                    <div className="flex-grow-1 overflow-hidden">
-                      <div className="small fw-semibold text-dark text-truncate">{a.action}</div>
-                      <div className="text-muted" style={{ fontSize: 11 }}>{a.name}</div>
-                    </div>
-                    <span className="text-muted flex-shrink-0" style={{ fontSize: 11 }}>{a.time}</span>
+          <div className="dash-list-card h-100">
+            <h3>Recent Activity</h3>
+            <div className="d-flex flex-column gap-2">
+              {recentActivity.map((a, i) => (
+                <div key={i} className="dash-list-item">
+                  <div className="dash-list-icon">{a.icon}</div>
+                  <div className="flex-grow-1 overflow-hidden">
+                    <div className="small fw-semibold text-truncate">{a.action}</div>
+                    <div className="text-muted" style={{ fontSize: 11 }}>{a.name}</div>
                   </div>
-                ))}
-              </div>
+                  <span className="text-muted flex-shrink-0" style={{ fontSize: 11 }}>{a.time}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
         <div className="col-12 col-lg-6">
-          <div className="card border-0 shadow-sm rounded-3 h-100">
-            <div className="card-body p-4">
-              <h3 className="fw-bold small text-dark mb-3">Class Summary</h3>
-              <div className="d-flex flex-column gap-2">
-                {subjects.map(s => (
-                  <div key={s.id} className="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border border-transparent">
-                    <div>
-                      <div className="small fw-semibold text-dark">{s.name}</div>
-                      <div className="text-muted" style={{ fontSize: 11 }}>{s.code}</div>
-                    </div>
-                    <div className="text-end">
-                      <div className="fw-bold text-primary small">{s.enrolled}/{s.max}</div>
-                      <div className="text-muted" style={{ fontSize: 11 }}>Enrolled</div>
-                    </div>
+          <div className="dash-list-card h-100">
+            <h3>Class Summary</h3>
+            <div className="d-flex flex-column gap-2">
+              {subjects.map(s => (
+                <div key={s.id} className="dash-list-item">
+                  <div>
+                    <div className="small fw-semibold">{s.name}</div>
+                    <div className="text-muted" style={{ fontSize: 11 }}>{s.code}</div>
                   </div>
-                ))}
-              </div>
+                  <div className="text-end">
+                    <div className="fw-bold small" style={{ color: "#fbbf24" }}>{s.enrolled}/{s.max}</div>
+                    <div className="text-muted" style={{ fontSize: 11 }}>Enrolled</div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -664,7 +648,7 @@ function TeacherNotificationsPanel({ setPanel }: { setPanel: (p: Panel) => void 
           <h3 className="fw-bold small text-dark mb-3">🔔 Unread</h3>
           <div className="d-flex flex-column gap-2">
             {unread.map(notif => (
-              <div key={notif.id} className="card border-0 shadow-sm rounded-3" style={{ background: "rgba(59, 130, 246, 0.1)", border: "1px solid rgba(59, 130, 246, 0.25)" }}>
+              <div key={notif.id} className="card border-0 shadow-sm rounded-3" style={{ background: "rgba(220, 38, 38, 0.12)", border: "1px solid rgba(220, 38, 38, 0.3)" }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-start gap-3">
                     <span style={{ fontSize: 18 }}>{notif.icon}</span>
@@ -772,33 +756,30 @@ export default function TeacherDashboardPage() {
   const [panel, setPanel] = useState<Panel>("overview");
 
   return (
-    <div className="d-flex flex-column align-items-center justify-content-start px-3 py-4 position-relative" style={{ minHeight: "100vh", background: "linear-gradient(135deg, #f8fafc 0%, #f0f4f8 50%, #f8fafc 100%)", padding: "20px" }}>
-      <div className="card border-0 shadow-lg rounded-3 overflow-hidden position-relative" style={{ maxWidth: 1000, width: "100%" }}>
-        {/* Header */}
-        <div className="p-4 text-white text-center" style={{ background: "linear-gradient(135deg, #1e40af, #7c3aed)" }}>
-          <h1 className="fw-black fs-4 mb-1">Teacher Dashboard</h1>
-          <p className="text-white-50 small mb-0">Manage your classes, grades, and attendance</p>
-        </div>
-
-        {/* Content */}
-        <div className="card-body p-4">
-          {panel === "overview" && <OverviewPanel setPanel={setPanel} />}
-          {panel === "subjects" && <><BackBtn onClick={() => setPanel("overview")} /><SubjectsPanel setPanel={setPanel} /></>}
-          {panel === "schedule" && <><BackBtn onClick={() => setPanel("overview")} /><SchedulePanel setPanel={setPanel} /></>}
-          {panel === "students" && <><BackBtn onClick={() => setPanel("overview")} /><StudentsPanel setPanel={setPanel} /></>}
-          {panel === "grades" && <><BackBtn onClick={() => setPanel("overview")} /><GradesPanel setPanel={setPanel} /></>}
-          {panel === "requests" && <><BackBtn onClick={() => setPanel("overview")} /><RequestsPanel setPanel={setPanel} /></>}
-          {panel === "documents" && <><BackBtn onClick={() => setPanel("overview")} /><DocumentApprovalsPanel setPanel={setPanel} /></>}
-          {panel === "notifications" && <><BackBtn onClick={() => setPanel("overview")} /><TeacherNotificationsPanel setPanel={setPanel} /></>}
-          {panel === "attendance" && <><BackBtn onClick={() => setPanel("overview")} /><AttendancePanel setPanel={setPanel} /></>}
-        </div>
-
-        {/* Footer */}
-        <div className="card-footer border-top text-center py-3" style={{ background: "#f9fafb" }}>
-          <p className="text-muted small mb-1">© 2026 Cebu Far East Institute. All rights reserved.</p>
-          <Link href="/teacher/login" className="btn btn-outline-primary btn-sm">↪ Log Out</Link>
-        </div>
+    <PremiumDashboardShell
+      portalTitle="INFORM"
+      portalSubtitle="Teacher Portal"
+      userName={teacherData.full_name}
+      userMeta={`${teacherData.department} · ${teacherData.teacher_id}`}
+      logoutHref="/teacher/login"
+      maxWidth={1000}
+    >
+      <div className="dash-glass overflow-hidden">
+        {panel === "overview" && <OverviewPanel setPanel={setPanel} />}
+        {panel !== "overview" && (
+          <div className="p-4">
+            <BackBtn onClick={() => setPanel("overview")} />
+            {panel === "subjects" && <SubjectsPanel setPanel={setPanel} />}
+            {panel === "schedule" && <SchedulePanel setPanel={setPanel} />}
+            {panel === "students" && <StudentsPanel setPanel={setPanel} />}
+            {panel === "grades" && <GradesPanel setPanel={setPanel} />}
+            {panel === "requests" && <RequestsPanel setPanel={setPanel} />}
+            {panel === "documents" && <DocumentApprovalsPanel setPanel={setPanel} />}
+            {panel === "notifications" && <TeacherNotificationsPanel setPanel={setPanel} />}
+            {panel === "attendance" && <AttendancePanel setPanel={setPanel} />}
+          </div>
+        )}
       </div>
-    </div>
+    </PremiumDashboardShell>
   );
 }

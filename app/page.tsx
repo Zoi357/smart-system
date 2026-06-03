@@ -1,278 +1,254 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
-import LoadingScreen from "./components/LoadingScreen";
-import { ThemeToggle } from "./components/ThemeToggle";
-import { useMouseTracking } from "./components/InteractiveFeatures";
+import { useEffect, useRef } from "react";
 
-/* ── Live clock ── */
-function Clock() {
-  const [time, setTime] = useState("");
-  const [date, setDate] = useState("");
+export default function LandingPage() {
+  const featuresRef = useRef<(HTMLDivElement | null)[]>([]);
+  const servicesRef = useRef<(HTMLDivElement | null)[]>([]);
+
   useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      setTime(now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
-      setDate(now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }));
+    // Add js-enabled class
+    document.documentElement.classList.add('js-enabled');
+    
+    // Scroll Reveal Observer
+    const observerOptions = {
+      root: null,
+      rootMargin: "0px",
+      threshold: 0.1,
     };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-  return (
-    <div className="text-center">
-      <div className="font-mono fw-bold fs-3 text-inform animate-blink">{time}</div>
-      <div className="text-muted small">{date}</div>
-    </div>
-  );
-}
 
-/* ── Announcement ticker ── */
-const announcements = [
-  "📢  Enrollment Period is Now Open — Deadline: June 15, 2026",
-  "📋  Final Exam Schedule has been posted — Check your student portal",
-  "🎓  Graduation Ceremony: June 28, 2026 at the Main Auditorium",
-  "📚  Library hours extended during exam week: 7AM – 11PM",
-  "💳  Student ID renewal available at the Registrar's Office",
-];
-function Ticker() {
-  const text = "📢 Enrollment Period is Now Open — Deadline: June 15, 2026     ·     📋 Final Exam Schedule has been posted — Check your student portal     ·     🎓 Graduation Ceremony: June 28, 2026 at the Main Auditorium     ·     📚 Library hours extended during exam week: 7AM – 11PM     ·     💳 Student ID renewal available at the Registrar's Office     ·     ";
-  const ref = useRef<HTMLDivElement>(null);
-  const posRef = useRef(0);
-
-  useEffect(() => {
-    let animId: number;
-    let lastTime = 0;
-    const speed = 60; // pixels per second
-
-    const step = (timestamp: number) => {
-      if (!lastTime) lastTime = timestamp;
-      const delta = (timestamp - lastTime) / 1000; // seconds elapsed
-      lastTime = timestamp;
-
-      posRef.current -= speed * delta;
-
-      if (ref.current) {
-        const halfWidth = ref.current.scrollWidth / 2;
-        if (Math.abs(posRef.current) >= halfWidth) {
-          posRef.current = 0;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.classList.add("revealed");
+          }, index * 100);
         }
-        ref.current.style.transform = `translateX(${posRef.current}px)`;
-      }
+      });
+    }, observerOptions);
 
-      animId = requestAnimationFrame(step);
-    };
+    featuresRef.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
+    servicesRef.current.forEach((el) => {
+      if (el) observer.observe(el);
+    });
 
-    animId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animId);
+    return () => observer.disconnect();
   }, []);
 
-  return (
-    <div style={{ background: "#1d4ed8", padding: "8px 0", overflow: "hidden" }}>
-      <div ref={ref} style={{ display: "inline-block", whiteSpace: "nowrap" }}>
-        <span style={{ color: "white", fontSize: "0.85rem", fontWeight: 600 }}>{text}</span>
-        <span style={{ color: "white", fontSize: "0.85rem", fontWeight: 600 }}>{text}</span>
-      </div>
-    </div>
-  );
-}
+  const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const rotateX = (mouseY - centerY) / 10;
+    const rotateY = (centerX - mouseX) / 10;
 
-/* ── Service tile ── */
-const services = [
-  { 
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 8 12 L 20 4 L 32 12 L 32 28 Q 32 32 28 32 L 12 32 Q 8 32 8 28 Z" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5"/>
-        <rect x="14" y="20" width="12" height="12" fill="white"/>
-      </svg>
-    ),
-    label: "Enrollment",
-    desc: "Register for classes"
-  },
-  { 
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="6" y="8" width="28" height="24" rx="2" fill="none" stroke="#f59e0b" strokeWidth="2"/>
-        <line x1="6" y1="16" x2="34" y2="16" stroke="#f59e0b" strokeWidth="2"/>
-        <line x1="14" y1="20" x2="14" y2="28" stroke="#f59e0b" strokeWidth="2"/>
-        <line x1="20" y1="20" x2="20" y2="28" stroke="#f59e0b" strokeWidth="2"/>
-        <line x1="26" y1="20" x2="26" y2="28" stroke="#f59e0b" strokeWidth="2"/>
-      </svg>
-    ),
-    label: "Grades",
-    desc: "View your results"
-  },
-  { 
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="20" cy="20" r="14" fill="none" stroke="#06b6d4" strokeWidth="2"/>
-        <line x1="20" y1="8" x2="20" y2="20" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round"/>
-        <line x1="20" y1="20" x2="26" y2="26" stroke="#06b6d4" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ),
-    label: "Schedule",
-    desc: "Class timetable"
-  },
-  { 
-    icon: (
-      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 12 10 L 12 32 Q 12 34 14 34 L 26 34 Q 28 34 28 32 L 28 10" fill="none" stroke="#8b5cf6" strokeWidth="2"/>
-        <rect x="10" y="8" width="20" height="3" fill="#8b5cf6"/>
-        <line x1="16" y1="16" x2="24" y2="16" stroke="#8b5cf6" strokeWidth="1.5"/>
-        <line x1="16" y1="22" x2="24" y2="22" stroke="#8b5cf6" strokeWidth="1.5"/>
-        <line x1="16" y1="28" x2="24" y2="28" stroke="#8b5cf6" strokeWidth="1.5"/>
-      </svg>
-    ),
-    label: "Fees & Payments",
-    desc: "Pay tuition & fees"
-  },
-];
+    card.style.setProperty("--rotateX", `${rotateX}deg`);
+    card.style.setProperty("--rotateY", `${rotateY}deg`);
+  };
 
-export default function KioskHome() {
-  const [loaded, setLoaded] = useState(false);
+  const handleTiltMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    card.style.setProperty("--rotateX", "0deg");
+    card.style.setProperty("--rotateY", "0deg");
+  };
 
   return (
-    <>
-      {!loaded && <LoadingScreen onDone={() => setLoaded(true)} />}
-      <div className={`kiosk-bg d-flex flex-column`} style={{ opacity: loaded ? 1 : 0, transition: "opacity 0.5s" }} suppressHydrationWarning>
-
-        {/* ── Navbar ── */}
-        <nav className="navbar glass border-bottom px-3 px-md-4 py-3" style={{ position: "relative", zIndex: 2 }}>
-          <div className="d-flex align-items-center gap-3">
-            <img
-              src="/cfei-logo.jpg"
-              alt="CFEI"
-              className="rounded-circle border"
-              style={{ width: 50, height: 50, objectFit: "cover" }}
-            />
-            <div>
-              <div className="fw-bold lh-1" style={{ fontSize: "1.3rem" }}>Cebu Far East Institute</div>
-              <div style={{ fontSize: 11, opacity: 0.7 }}>Student Information System</div>
+    <div className="min-vh-100 bg-light text-dark">
+      {/* Navigation */}
+      <header className="sticky-top bg-white bg-opacity-90 backdrop-blur border-bottom border-light shadow-sm z-3">
+        <div className="container py-3">
+          <div className="d-flex align-items-center justify-content-between">
+            <Link href="/" className="d-flex align-items-center gap-3 text-decoration-none text-dark">
+              <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle" style={{ width: "40px", height: "40px", objectFit: "cover", border: "2px solid #dc2626" }} />
+              <div>
+                <h5 className="mb-0 fw-bold" style={{ color: "#dc2626" }}>Cebu Far East Institute</h5>
+                <p className="mb-0 text-muted small">Student Information System</p>
+              </div>
+            </Link>
+            <div className="d-flex align-items-center gap-4">
+              <Link href="/login" className="text-decoration-none fw-medium" style={{ color: "#dc2626" }}>Student Login</Link>
+              <Link href="/teacher/login" className="text-decoration-none fw-medium" style={{ color: "#f97316" }}>Teacher Login</Link>
+              <Link href="/admin/login" className="btn btn-shimmer fw-semibold" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white" }}>Admin</Link>
             </div>
           </div>
+        </div>
+      </header>
 
-          <div className="d-none d-md-block mx-auto"><Clock /></div>
-
-          <div className="d-flex align-items-center gap-3">
-            <ThemeToggle />
-            <span className="badge bg-success-subtle text-success border border-success-subtle d-flex align-items-center gap-1">
-              <span className="rounded-circle bg-success d-inline-block" style={{ width: 7, height: 7 }} />
-              System Online
-            </span>
-            <Link href="/admin/login" className="btn btn-sm btn-outline-secondary">Admin Access</Link>
-          </div>
-        </nav>
-
-        {/* ── Ticker ── */}
-        <Ticker />
-
-        {/* ── Main ── */}
-        <main className="flex-grow-1 d-flex flex-column align-items-center justify-content-center px-3 py-5 gap-4" style={{ position: "relative", zIndex: 2 }}>
-
-          {/* Mobile clock */}
-          <div className="d-md-none animate-fade-in"><Clock /></div>
-
-          {/* Headline */}
-          <div className="text-center animate-fade-in delay-1">
-            <h1 className="fw-black display-4 text-white lh-sm mb-3" style={{ fontSize: "3.5rem", letterSpacing: "-1px" }}>
-              Student Information<br />
-              <span style={{ background: "linear-gradient(135deg, #f59e0b, #e11d48)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Management System</span>
-            </h1>
-            <p className="text-white-50 mt-3 fs-5" style={{ maxWidth: 600, margin: "0 auto" }}>Streamlined academic management for Cebu Far East Institute. Access your records, enrollment, and academic information in one unified platform.</p>
-          </div>
-
-          {/* Enrollment banner - Enhanced Card */}
-          <div className="card-accent-line px-5 py-4 d-flex flex-column flex-sm-row align-items-center gap-4 animate-fade-in delay-2" style={{ maxWidth: 640, width: "100%" }}>
-            <div className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 56, height: 56, fontSize: 28, background: "linear-gradient(135deg, #fbbf24, #f59e0b)" }}>📋</div>
-            <div className="flex-grow-1">
-              <div className="fw-bold text-dark mb-1">Enrollment Period is Now Open</div>
-              <div className="text-muted small">
-                Don&apos;t miss the deadline! Enroll by <strong className="text-dark">June 15, 2026</strong>.
+      {/* Hero Section */}
+      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #fff7ed, #fef3c7)" }}>
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-lg-10 col-xl-8 text-center">
+              <div className="d-inline-flex align-items-center gap-2 rounded-pill small fw-medium mb-4" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white", padding: "8px 20px" }}>
+                <span className="w-2 h-2 bg-warning rounded-circle animate-pulse"></span>
+                Official Student Portal
+              </div>
+              <h1 className="display-4 display-md-3 display-lg-2 fw-extrabold mb-4">
+                <span style={{ color: "#dc2626" }}>Student Information</span><br />
+                <span style={{
+                  background: "linear-gradient(135deg, #dc2626, #f97316, #fbbf24)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  display: "inline-block",
+                  color: "#dc2626"
+                }}>
+                  Management System
+                </span>
+              </h1>
+              <p className="lead mb-5 text-muted" style={{ maxWidth: "600px", marginLeft: "auto", marginRight: "auto" }}>
+                Streamlined academic management for Cebu Far East Institute. Access your records, enrollment, and academic information in one unified platform.
+              </p>
+              <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center">
+                <Link href="/login" className="btn btn-lg px-5 py-3 fw-semibold rounded-xl shadow hover:shadow-lg transition-all btn-shimmer" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white" }}>
+                  Student Portal
+                </Link>
+                <Link href="/enrollment" className="btn btn-lg px-5 py-3 fw-semibold rounded-xl border-2 transition-all" style={{ borderColor: "#dc2626", color: "#dc2626" }}>
+                  Enroll Now
+                </Link>
               </div>
             </div>
-            <Link href="/enrollment" className="btn btn-gradient-icon flex-shrink-0">
-              <span>Enroll Now</span>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 3 8 L 13 8 M 10 5 L 13 8 L 10 11" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
           </div>
+        </div>
+      </section>
 
-          {/* Login buttons */}
-          <div className="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-4 animate-fade-in delay-3" style={{ maxWidth: 700, width: "100%", position: "relative" }}>
-            
-            {/* Logo watermark behind buttons - strictly non-interactive */}
-            <div style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              width: 500,
-              height: 500,
-              borderRadius: "50%",
-              backgroundImage: "url('/cfei-logo.jpg')",
-              backgroundSize: "contain",
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "center",
-              opacity: 0.15,
-              pointerEvents: "none",
-              zIndex: 0,
-              boxShadow: "0 0 40px #fbbf24, 0 0 80px #f59e0b, 0 0 120px #dc2626",
-              animation: "sunGlowPulse 3s ease-in-out infinite",
-            }} />
-            
-            <Link href="/login" className="tap-btn text-decoration-none" style={{ width: 200, height: 200, background: "linear-gradient(135deg, #e11d48 0%, #be123c 50%, #9f1239 100%)", zIndex: 1, position: "relative" }}>
-              <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="28" cy="16" r="8" fill="white"/>
-                <path d="M 12 32 Q 12 28 16 28 L 40 28 Q 44 28 44 32 L 44 44 Q 44 48 40 48 L 16 48 Q 12 48 12 44 Z" fill="white"/>
-              </svg>
-              <div className="fw-bold text-white" style={{ fontSize: "0.95rem", lineHeight: 1.3 }}>
-                <div>Log In as</div>
-                <div>Student</div>
-              </div>
-            </Link>
-            <Link href="/teacher/login" className="tap-btn text-decoration-none" style={{ width: 200, height: 200, background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)", zIndex: 1, position: "relative" }}>
-              <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="20" cy="16" r="6" fill="white"/>
-                <path d="M 10 28 Q 10 25 13 25 L 27 25 Q 30 25 30 28 L 30 40 Q 30 43 27 43 L 13 43 Q 10 43 10 40 Z" fill="white"/>
-                <circle cx="40" cy="16" r="6" fill="white"/>
-                <path d="M 30 28 Q 30 25 33 25 L 47 25 Q 50 25 50 28 L 50 40 Q 50 43 47 43 L 33 43 Q 30 43 30 40 Z" fill="white"/>
-              </svg>
-              <div className="fw-bold text-white" style={{ fontSize: "0.95rem", lineHeight: 1.3 }}>
-                <div>Log In as</div>
-                <div>Teacher</div>
-              </div>
-            </Link>
+      {/* Features Section (with Parallax/Scroll Reveal) */}
+      <section className="py-5 py-md-6 py-lg-7 bg-white parallax-section">
+        <div className="container">
+          <div className="text-center mb-5 scroll-reveal">
+            <h6 className="fw-semibold mb-2" style={{ color: "#f97316" }}>Why Choose Us</h6>
+            <h2 className="h1 fw-bold" style={{ color: "#dc2626" }}>Everything You Need in One Place</h2>
           </div>
-
-          {/* Quick services - Enhanced Cards */}
-          <div className="animate-fade-in delay-4" style={{ maxWidth: 720, width: "100%" }}>
-            <p className="caption text-center mb-3">Quick Access Services</p>
-            <div className="row g-3">
-              {services.map((s) => (
-                <div key={s.label} className="col-6 col-sm-3">
-                  <Link href="/login" className="card-elevated h-100 d-flex flex-column align-items-center justify-content-center gap-2 p-3 text-decoration-none">
-                    {s.icon}
-                    <span className="fw-semibold small text-dark">{s.label}</span>
-                    <span className="text-muted" style={{ fontSize: 11 }}>{s.desc}</span>
-                  </Link>
+          <div className="row g-4">
+            {[
+              { icon: "📚", title: "Modern Learning", desc: "Interactive digital resources" },
+              { icon: "📊", title: "Real-time Grades", desc: "Instant grade updates" },
+              { icon: "📅", title: "Smart Scheduling", desc: "Optimized timetables" },
+              { icon: "💬", title: "Easy Communication", desc: "Connect with teachers" }
+            ].map((feature, idx) => (
+              <div
+                key={idx}
+                className="col-12 col-md-6 col-lg-3"
+                ref={(el) => { featuresRef.current[idx] = el; }}
+              >
+                <div className={`h-100 p-5 rounded-4 border border-light hover:shadow-lg transition-all hover:-translate-y-1 scroll-reveal-scale ${idx === 0 ? 'float-slow' : idx === 1 ? 'float-slow-delay-1' : idx === 2 ? 'float-slow-delay-2' : 'float-slow-delay-3'}`} style={{ borderColor: "#fbbf24", background: "linear-gradient(135deg, #fff7ed, #fef3c7)" }}>
+                  <div className="text-5xl mb-3">{feature.icon}</div>
+                  <h5 className="fw-bold mb-2" style={{ color: "#dc2626" }}>{feature.title}</h5>
+                  <p className="text-muted mb-0">{feature.desc}</p>
                 </div>
-              ))}
-            </div>
-          </div>
-        </main>
-
-        {/* ── Footer ── */}
-        <footer className="glass border-top px-4 py-3 d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
-          <p className="text-muted small mb-0">© 2026 Cebu Far East Institute. All rights reserved.</p>
-          <div className="d-flex gap-3">
-            {["Privacy Policy", "Help", "Accessibility"].map((l) => (
-              <a key={l} href="#" className="text-muted small text-decoration-none">{l}</a>
+              </div>
             ))}
           </div>
-        </footer>
-      </div>
-    </>
+        </div>
+      </section>
+
+      {/* Services Section (with 3D hover effects) */}
+      <section className="py-5 py-md-6 py-lg-7" style={{ background: "#fff7ed" }}>
+        <div className="container">
+          <div className="text-center mb-5 scroll-reveal">
+            <h6 className="fw-semibold mb-2" style={{ color: "#f97316" }}>Quick Access</h6>
+            <h2 className="h1 fw-bold" style={{ color: "#dc2626" }}>Our Services</h2>
+          </div>
+          <div className="row g-4">
+            {[
+              { icon: "📋", title: "Enrollment", desc: "Register for classes", href: "/enrollment" },
+              { icon: "📊", title: "Grades", desc: "View your results", href: "/login" },
+              { icon: "🕐", title: "Schedule", desc: "Class timetable", href: "/login" },
+              { icon: "💳", title: "Fees & Payments", desc: "Pay tuition & fees", href: "/login" }
+            ].map((service, idx) => (
+              <div
+                key={idx}
+                className="col-12 col-md-6 col-lg-3"
+                ref={(el) => { servicesRef.current[idx] = el; }}
+              >
+                <Link href={service.href} className="text-decoration-none text-dark">
+                  <div className="card-3d-tilt h-100 scroll-reveal" onMouseMove={(e) => handleTiltMouseMove(e, idx)} onMouseLeave={handleTiltMouseLeave}>
+                    <div className="card-glow-border h-100">
+                      <div className="card-glow-inner h-100 text-center">
+                        <div className="mb-3 rounded-xl" style={{ width: "48px", height: "48px", background: "linear-gradient(135deg, #dc2626, #f97316)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem", margin: "0 auto" }}>
+                          {service.icon}
+                        </div>
+                        <h5 className="fw-bold mb-1" style={{ color: "#dc2626" }}>{service.title}</h5>
+                        <p className="text-muted small mb-0">{service.desc}</p>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white" }}>
+        <div className="container">
+          <div className="row justify-content-center g-4">
+            {[
+              { value: "2,400+", label: "Active Students" },
+              { value: "120+", label: "Faculty Members" },
+              { value: "99.9%", label: "System Uptime" },
+            ].map((stat, idx) => (
+              <div key={idx} className="col-12 col-md-4 text-center scroll-reveal">
+                <p className="display-4 fw-extrabold mb-1" style={{ color: "#fbbf24" }}>{stat.value}</p>
+                <p className="mb-0 fw-medium" style={{ color: "#fff7ed" }}>{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Enrollment CTA */}
+      <section className="py-5 py-md-6 py-lg-7 bg-white">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-lg-10">
+              <div className="text-center p-5 p-md-6 rounded-4 scroll-reveal" style={{ background: "linear-gradient(135deg, #fef3c7, #fff7ed)", border: "2px solid #fbbf24" }}>
+                <div className="text-5xl mb-3">📋</div>
+                <h2 className="h1 fw-bold mb-3" style={{ color: "#dc2626" }}>Enrollment Period is Now Open</h2>
+                <p className="lead mb-4 text-muted">
+                  Don't miss the deadline! Enroll by <strong style={{ color: "#f97316" }}>June 15, 2026</strong>.
+                </p>
+                <Link href="/enrollment" className="btn btn-lg px-5 py-3 fw-semibold rounded-xl shadow hover:shadow-lg transition-all btn-shimmer" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white" }}>
+                  Enroll Now
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="ms-2">
+                    <path d="M 3 8 L 13 8 M 10 5 L 13 8 L 10 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-5" style={{ background: "#dc2626", color: "white" }}>
+        <div className="container">
+          <div className="d-flex flex-column flex-md-row align-items-center justify-content-between gap-4 mb-4">
+            <div className="d-flex align-items-center gap-3">
+              <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle" style={{ width: "40px", height: "40px", objectFit: "cover", border: "2px solid white" }} />
+              <div>
+                <h5 className="mb-0 fw-bold">Cebu Far East Institute</h5>
+                <p className="mb-0 small" style={{ color: "#fef3c7" }}>Student Information System</p>
+              </div>
+            </div>
+            <div className="d-flex gap-4">
+              <a href="#" className="text-decoration-none hover:underline" style={{ color: "#fef3c7" }}>Privacy Policy</a>
+              <a href="#" className="text-decoration-none hover:underline" style={{ color: "#fef3c7" }}>Help</a>
+              <a href="#" className="text-decoration-none hover:underline" style={{ color: "#fef3c7" }}>Accessibility</a>
+            </div>
+          </div>
+          <div className="border-top pt-4 text-center small" style={{ borderColor: "rgba(255,255,255,0.3)", color: "#fef3c7" }}>
+            <p className="mb-0">© 2026 Cebu Far East Institute. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

@@ -1,8 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import type React from "react";
-import Link from "next/link";
+import { PremiumDashboardShell } from "../components/PremiumDashboardShell";
 
 type Panel = "home" | "grades" | "schedule" | "tuition" | "documents" | "notifications";
 type JMsg  = { role: "ai" | "user"; text: string; feedback?: "up" | "down" | null };
@@ -173,7 +173,7 @@ const availableDocuments = [
 /* ── Back button ── */
 function BackBtn({ onClick }: { onClick: () => void }) {
   return (
-    <button onClick={onClick} className="btn btn-link text-primary text-decoration-none ps-0 mb-4 d-flex align-items-center gap-1 small fw-semibold" style={{ fontSize: 13 }}>
+    <button type="button" onClick={onClick} className="dash-back-btn mb-2">
       ← Back to Dashboard
     </button>
   );
@@ -491,16 +491,16 @@ function DashboardHome({ setPanel, onAskJobert, darkMode, notifs, markAsRead, ma
   const read = notifs.filter(n => n.read);
   
   return (
-    <div className="dashboard-card border-0 shadow-lg rounded-3 overflow-hidden position-relative" style={{ maxWidth: 640, width: "100%", background: darkMode ? "#fff" : "#f8fafc", padding: 0 }}>
-      {/* Notifications Bell Icon - Top Right */}
+    <div className="dash-glass position-relative dash-reveal">
+      {/* Notifications */}
       <button
+        type="button"
         onClick={() => setShowNotificationDropdown(!showNotificationDropdown)}
-        className="btn btn-link position-absolute top-0 end-0 m-3 p-0"
-        style={{ zIndex: 20, fontSize: 24, lineHeight: 1, color: "#fbbf24" }}
+        className="dash-notif-btn"
         title="View notifications"
       >
         <div style={{ position: "relative", display: "inline-block" }}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
             <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742.37.142.765.214 1.175.214.72 0 1.404-.337 1.84-.999.46.666 1.19.999 2.003.999.8 0 1.538-.334 1.996-.999.42.675 1.07 1 1.79 1.035-.23-1.218-.711-4.471-.711-5.957 0-.922-.184-1.702-.522-2.256A4.996 4.996 0 0 0 8 1.918z"/>
           </svg>
           {unreadCount > 0 && (
@@ -648,56 +648,36 @@ function DashboardHome({ setPanel, onAskJobert, darkMode, notifs, markAsRead, ma
       )}
 
       {/* Hero banner */}
-      <div className="p-5 text-white text-center" style={{ background: "linear-gradient(135deg,#1e3a6e,#2563eb)" }}>
-        <div className="fw-black fs-3 mb-1">Welcome, Jamie Santos</div>
-        <div className="text-white-50 small">STU-2024-001 · STEM Grade 11 · Term 1 SY 2025–2026</div>
-        <div className="d-flex justify-content-center gap-2 mt-3 flex-wrap">
-          <span className="badge bg-white bg-opacity-20 border border-white border-opacity-25 text-dark px-3 py-2">🎓 Active Student</span>
-          <span className="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">🔔 Enrollment Open</span>
+      <div className="dash-hero">
+        <div className="dash-hero-title">Welcome, Jamie Santos 👋</div>
+        <div className="dash-hero-sub">STU-2024-001 · STEM Grade 11 · Term 1 SY 2025–2026</div>
+        <div className="dash-hero-badges">
+          <span className="dash-badge">🎓 Active Student</span>
+          <span className="dash-badge dash-badge-gold">🔔 Enrollment Open</span>
         </div>
       </div>
 
       {/* Service tiles */}
-      <div className="card-body p-4 position-relative" style={{ overflow: "visible" }}>
-        {/* Glowing logo background */}
-        <div style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: 320,
-          height: 320,
-          borderRadius: "50%",
-          backgroundImage: "url('/cfei-logo.jpg')",
-          backgroundSize: "contain",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-          opacity: 0.4,
-          zIndex: 0,
-          pointerEvents: "none",
-          animation: "glowRGB 4s ease-in-out infinite"
-        }} />
-        
-        <p className="text-uppercase small fw-semibold text-center mb-3 position-relative" style={{ letterSpacing: "0.08em", zIndex: 1, color: darkMode ? "#6b7280" : "#9ca3af" }}>Quick Access</p>
-        <div className="row g-3 mb-4 position-relative" style={{ zIndex: 1 }}>
+      <div className="dash-body">
+        <p className="dash-section-label">Quick Access</p>
+        <div className="dash-tiles">
           {tiles.map(t => (
-            <div key={t.id} className={`${t.id === "tuition" ? "col-12 col-sm-6 mx-auto" : "col-6"}`}>
-              <button onClick={() => setPanel(t.id)}
-                className="btn w-100 py-4 d-flex flex-column align-items-center gap-2 rounded-3 text-white fw-bold border-0 shadow-sm"
-                style={{ background: `linear-gradient(145deg,${t.color},#2563eb)`, boxShadow: "0 4px 16px rgba(30,58,110,0.35)", transition: "transform 0.15s" }}
-                onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.03)")}
-                onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}>
-                <span style={{ fontSize: 32 }}>{t.icon}</span>
-                <span className="small">{t.label}</span>
-              </button>
-            </div>
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setPanel(t.id)}
+              className={`dash-tile border-0 ${
+                t.id === "grades" ? "dash-tile-student" :
+                t.id === "schedule" ? "dash-tile-schedule" :
+                t.id === "tuition" ? "dash-tile-tuition dash-tile-wide" :
+                "dash-tile-docs"
+              }`}
+            >
+              <span className="dash-tile-icon">{t.icon}</span>
+              <span className="dash-tile-label">{t.label}</span>
+            </button>
           ))}
         </div>
-      </div>
-
-      <div className="card-footer border-top text-center py-3" style={{ background: darkMode ? "#f9fafb" : "#f3f4f6" }}>
-        <p className="text-muted small mb-1">© 2026 Cebu Far East Institute. All rights reserved.</p>
-        <Link href="/login" className="btn btn-outline-primary btn-sm">↪ Log Out</Link>
       </div>
     </div>
   );
@@ -771,7 +751,7 @@ function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; 
           <p className="text-white-50 small fw-semibold mb-3">⏳ Pending Requests</p>
           <div className="d-flex flex-column gap-2">
             {pending.map(req => (
-              <div key={req.id} className="card border-0 rounded-3" style={{ background: "rgba(255,255,255,0.08)" }}>
+              <div key={req.id} className="card border-0 rounded-3" style={{ background: "rgba(254,242,242,0.08)" }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-center justify-content-between">
                     <div>
@@ -859,7 +839,7 @@ function NotificationsView({ onBack, onAskJobert, darkMode, notifs, markAsRead, 
           <p className="text-white-50 small fw-semibold mb-3">🔔 Unread</p>
           <div className="d-flex flex-column gap-2">
             {unread.map(notif => (
-              <div key={notif.id} className="card border-0 rounded-3" style={{ background: "rgba(59, 130, 246, 0.15)", border: "1px solid rgba(59, 130, 246, 0.3)" }}>
+              <div key={notif.id} className="card border-0 rounded-3" style={{ background: "rgba(220, 38, 38, 0.15)", border: "1px solid rgba(220, 38, 38, 0.3)" }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-start gap-3">
                     <span style={{ fontSize: 20 }}>{notif.icon}</span>
@@ -920,7 +900,6 @@ function NotificationsView({ onBack, onAskJobert, darkMode, notifs, markAsRead, 
 export default function DashboardPage() {
   const [panel, setPanel]               = useState<Panel>("home");
   const [jobertPrompt, setJobertPrompt] = useState<string | undefined>(undefined);
-  const [darkMode, setDarkMode]         = useState(true);
   const [notifs, setNotifs]             = useState(notifications);
 
   function markAsRead(id: number) {
@@ -941,97 +920,20 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "100vh", background: darkMode ? "linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f172a 50%, #1a1f35 75%, #0f172a 100%)" : "linear-gradient(-45deg, #f0f9ff, #e0f2fe, #f8fafc, #f0f4f8, #e8f4f8, #f0f9ff)", backgroundSize: darkMode ? "auto" : "400% 400%", animation: !darkMode ? "animatedGradient 15s ease infinite" : "none", padding: "20px" }} suppressHydrationWarning>
-      {/* Light mode decorative orbs */}
-      {!darkMode && (
-        <>
-          <div style={{
-            position: "fixed",
-            top: "10%",
-            left: "5%",
-            width: 300,
-            height: 300,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%)",
-            filter: "blur(40px)",
-            animation: "floatOrb1 20s ease-in-out infinite",
-            pointerEvents: "none"
-          }} />
-          <div style={{
-            position: "fixed",
-            top: "60%",
-            right: "10%",
-            width: 350,
-            height: 350,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(239, 68, 68, 0.12) 0%, transparent 70%)",
-            filter: "blur(40px)",
-            animation: "floatOrb2 25s ease-in-out infinite",
-            pointerEvents: "none"
-          }} />
-          <div style={{
-            position: "fixed",
-            bottom: "10%",
-            left: "50%",
-            width: 280,
-            height: 280,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(251, 191, 36, 0.1) 0%, transparent 70%)",
-            filter: "blur(40px)",
-            animation: "floatOrb3 22s ease-in-out infinite",
-            pointerEvents: "none"
-          }} />
-        </>
-      )}
-      
-      {/* Dark Mode Toggle */}
-      <div style={{ position: "fixed", top: "20px", right: "20px", zIndex: 1000 }}>
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="btn rounded-pill d-flex align-items-center gap-2 fw-bold"
-          style={{
-            background: darkMode ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.6)",
-            color: darkMode ? "#fff" : "#1e40af",
-            border: `2px solid ${darkMode ? "rgba(255,255,255,0.2)" : "rgba(30, 64, 175, 0.2)"}`,
-            padding: "10px 18px",
-            transition: "all 0.3s ease",
-            boxShadow: darkMode ? "0 4px 12px rgba(0,0,0,0.15)" : "0 4px 12px rgba(30, 64, 175, 0.1)"
-          }}
-          title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        >
-          {darkMode ? (
-            <>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-              <span className="small">Light</span>
-            </>
-          ) : (
-            <>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-              <span className="small">Dark</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {panel === "home"     && <DashboardHome setPanel={setPanel} onAskJobert={askJobert} darkMode={darkMode} notifs={notifs} markAsRead={markAsRead} markAllAsRead={markAllAsRead} deleteNotification={deleteNotification} />}
-      {panel === "grades"   && <div style={{ width: "100%", maxWidth: 640 }}><GradesView   onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
-      {panel === "schedule" && <div style={{ width: "100%", maxWidth: 640 }}><ScheduleView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
-      {panel === "tuition"  && <div style={{ width: "100%", maxWidth: 640 }}><TuitionView  onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
-      {panel === "documents" && <div style={{ width: "100%", maxWidth: 640 }}><DocumentsView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} /></div>}
-      {panel === "notifications" && <div style={{ width: "100%", maxWidth: 640 }}><NotificationsView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={darkMode} notifs={notifs} markAsRead={markAsRead} markAllAsRead={markAllAsRead} deleteNotification={deleteNotification} /></div>}
+    <PremiumDashboardShell
+      portalTitle="INFORM"
+      portalSubtitle="Student Portal"
+      userName="Jamie Santos"
+      userMeta="STEM Grade 11 · STU-2024-001"
+      logoutHref="/login"
+    >
+      {panel === "home"     && <DashboardHome setPanel={setPanel} onAskJobert={askJobert} darkMode={true} notifs={notifs} markAsRead={markAsRead} markAllAsRead={markAllAsRead} deleteNotification={deleteNotification} />}
+      {panel === "grades"   && <div className="dash-glass p-4 dash-reveal"><GradesView   onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={true} /></div>}
+      {panel === "schedule" && <div className="dash-glass p-4 dash-reveal"><ScheduleView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={true} /></div>}
+      {panel === "tuition"  && <div className="dash-glass p-4 dash-reveal"><TuitionView  onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={true} /></div>}
+      {panel === "documents" && <div className="dash-glass p-4 dash-reveal"><DocumentsView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={true} /></div>}
+      {panel === "notifications" && <div className="dash-glass p-4 dash-reveal"><NotificationsView onBack={() => setPanel("home")} onAskJobert={askJobert} darkMode={true} notifs={notifs} markAsRead={markAsRead} markAllAsRead={markAllAsRead} deleteNotification={deleteNotification} /></div>}
       <JobertChat initialPrompt={jobertPrompt} />
-    </div>
+    </PremiumDashboardShell>
   );
 }
