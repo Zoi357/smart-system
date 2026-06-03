@@ -3495,12 +3495,33 @@ html:not([data-theme="dark"]) .landing-premium .landing-headline-accent {
 .landing-root {
   background: #fafaf8;
   width: 100%;
-  transition: background 0.35s ease, color 0.35s ease;
+  transition: background 0.6s ease, color 0.6s ease;
 }
 
 .landing-dark {
   background: #0f172a !important;
   color: #f1f5f9 !important;
+}
+
+/* Apply transitions to all key elements */
+.landing-root header,
+.landing-root section,
+.landing-root footer,
+.landing-root .landing-feature-tile,
+.landing-root .landing-feature-panel,
+.landing-root .detail-card,
+.landing-root .card-glow-inner,
+.landing-root h1, .landing-root h2,
+.landing-root h3, .landing-root h4,
+.landing-root h5, .landing-root h6,
+.landing-root p, .landing-root a,
+.landing-root .text-muted {
+  transition:
+    background 0.6s ease,
+    background-color 0.6s ease,
+    color 0.5s ease,
+    border-color 0.5s ease,
+    box-shadow 0.5s ease !important;
 }
 
 /* Nav */

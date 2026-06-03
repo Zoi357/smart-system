@@ -70,6 +70,7 @@ const FEATURES = [
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
   const [dark, setDark] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [panelPos, setPanelPos] = useState({ x: 0, y: 0 });
   const [aimPos, setAimPos] = useState({ x: 50, y: 50 });
@@ -158,6 +159,13 @@ export default function LandingPage() {
     <>
       {loading && <LoadingScreen onDone={() => setLoading(false)} />}
       <div className={`min-vh-100 text-dark landing-root${dark ? " landing-dark" : ""}`} ref={pageRef} style={{ opacity: loading ? 0 : 1, transition: "opacity 0.4s", width: "100%" }}>
+      {/* Theme transition overlay */}
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 9990, pointerEvents: "none",
+        background: dark ? "#0f172a" : "#fafaf8",
+        opacity: transitioning ? 0.7 : 0,
+        transition: transitioning ? "opacity 0.15s ease-in" : "opacity 0.4s ease-out",
+      }} />
       {/* Navigation */}
       <header className="sticky-top bg-white bg-opacity-90 backdrop-blur border-bottom border-light shadow-sm z-3">
         <div className="container py-3">
@@ -174,7 +182,13 @@ export default function LandingPage() {
               <Link href="/teacher/login" className="text-decoration-none fw-medium" style={{ color: "#f97316" }}>Teacher Login</Link>
               {/* Dark / Light toggle */}
               <button
-                onClick={() => setDark(d => !d)}
+                onClick={() => {
+                  setTransitioning(true);
+                  setTimeout(() => {
+                    setDark(d => !d);
+                    setTimeout(() => setTransitioning(false), 400);
+                  }, 150);
+                }}
                 aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
                 style={{
                   width: 44, height: 26,
