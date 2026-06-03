@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import LoadingScreen from "./components/LoadingScreen";
 
 export default function LandingPage() {
+  const [loading, setLoading] = useState(true);
   const featuresRef = useRef<(HTMLDivElement | null)[]>([]);
   const servicesRef = useRef<(HTMLDivElement | null)[]>([]);
   const pageRef = useRef<HTMLDivElement>(null);
@@ -83,7 +85,9 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-vh-100 bg-light text-dark" ref={pageRef}>
+    <>
+      {loading && <LoadingScreen onDone={() => setLoading(false)} />}
+      <div className="min-vh-100 bg-light text-dark" ref={pageRef} style={{ opacity: loading ? 0 : 1, transition: "opacity 0.4s" }}>
       {/* Navigation */}
       <header className="sticky-top bg-white bg-opacity-90 backdrop-blur border-bottom border-light shadow-sm z-3">
         <div className="container py-3">
@@ -275,5 +279,6 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
