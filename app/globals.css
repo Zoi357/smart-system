@@ -3518,3 +3518,20 @@ html:not([data-theme="dark"]) .landing-premium .landing-headline-accent {
     transform: none !important;
   }
 }
+
+/* ── Feature Tile Animations (landing page only) ── */
+@keyframes featurePanelIn {
+  0%   { opacity: 0; transform: translateY(-18px) scaleY(0.92); }
+  100% { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+
+@keyframes featureDetailIn {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes featureShimmer {
+  0%   { transform: translateX(-100%) skewX(-15deg); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: translateX(200%) skewX(-15deg); opacity: 0; }
+}

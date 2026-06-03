@@ -4,84 +4,141 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import LoadingScreen from "./components/LoadingScreen";
 
+const FEATURES = [
+  {
+    icon: "📚",
+    title: "Modern Learning",
+    short: "Interactive digital resources",
+    color: "#dc2626",
+    gradient: "linear-gradient(135deg, #dc2626, #f97316)",
+    details: [
+      { icon: "🖥️", label: "Digital Classrooms", desc: "Access learning materials, lecture notes, and modules anytime from any device." },
+      { icon: "🎯", label: "Personalized Path", desc: "Adaptive content tailored to your academic strand and learning pace." },
+      { icon: "📁", label: "Resource Library", desc: "Thousands of references, past exams, and supplemental reading materials." },
+      { icon: "🏆", label: "Achievement Tracking", desc: "Monitor milestones and celebrate your academic accomplishments." },
+    ],
+    bg: "linear-gradient(135deg, rgba(220,38,38,0.06), rgba(249,115,22,0.06))",
+    border: "rgba(220,38,38,0.25)",
+  },
+  {
+    icon: "📊",
+    title: "Real-time Grades",
+    short: "Instant grade updates",
+    color: "#f97316",
+    gradient: "linear-gradient(135deg, #f97316, #fbbf24)",
+    details: [
+      { icon: "⚡", label: "Live Updates", desc: "Grades appear the moment your teacher submits them — no more waiting." },
+      { icon: "📈", label: "GWA Calculator", desc: "Automatic General Weighted Average computed across all subjects." },
+      { icon: "📉", label: "Performance Trends", desc: "Visual charts showing your progress term by term." },
+      { icon: "🔔", label: "Grade Alerts", desc: "Get notified instantly when a new grade or remark is posted." },
+    ],
+    bg: "linear-gradient(135deg, rgba(249,115,22,0.06), rgba(251,191,36,0.06))",
+    border: "rgba(249,115,22,0.25)",
+  },
+  {
+    icon: "📅",
+    title: "Smart Scheduling",
+    short: "Optimized timetables",
+    color: "#d97706",
+    gradient: "linear-gradient(135deg, #d97706, #fbbf24)",
+    details: [
+      { icon: "🗓️", label: "Auto Timetable", desc: "Your weekly schedule is generated and updated automatically each term." },
+      { icon: "⏰", label: "Class Reminders", desc: "Never miss a class with smart reminders 15 minutes before each session." },
+      { icon: "🔄", label: "Schedule Changes", desc: "Instant notifications when a class is moved, cancelled, or rescheduled." },
+      { icon: "📍", label: "Room Mapping", desc: "Know exactly which room and building your next class is in." },
+    ],
+    bg: "linear-gradient(135deg, rgba(217,119,6,0.06), rgba(251,191,36,0.06))",
+    border: "rgba(217,119,6,0.25)",
+  },
+  {
+    icon: "💬",
+    title: "Easy Communication",
+    short: "Connect with teachers",
+    color: "#b91c1c",
+    gradient: "linear-gradient(135deg, #b91c1c, #dc2626)",
+    details: [
+      { icon: "✉️", label: "Direct Messaging", desc: "Message your teachers or the registrar directly from the portal." },
+      { icon: "📢", label: "Announcements", desc: "School-wide and class-specific announcements delivered in real time." },
+      { icon: "📝", label: "Grade Inquiries", desc: "Submit grade reconsideration requests and track their status." },
+      { icon: "🤖", label: "JOBERT AI", desc: "Ask JOBERT anything — from your GWA to enrollment deadlines, 24/7." },
+    ],
+    bg: "linear-gradient(135deg, rgba(185,28,28,0.06), rgba(220,38,38,0.06))",
+    border: "rgba(185,28,28,0.25)",
+  },
+];
+
 export default function LandingPage() {
   const [loading, setLoading] = useState(true);
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [panelPos, setPanelPos] = useState({ x: 0, y: 0 });
+  const [aimPos, setAimPos] = useState({ x: 50, y: 50 });
   const featuresRef = useRef<(HTMLDivElement | null)[]>([]);
   const servicesRef = useRef<(HTMLDivElement | null)[]>([]);
   const pageRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const featureSectionRef = useRef<HTMLElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Add js-enabled class
     document.documentElement.classList.add('js-enabled');
-    
-    // Scroll Reveal Observer
-    const observerOptions = {
-      root: null,
-      rootMargin: "0px",
-      threshold: 0.1,
-    };
 
+    const observerOptions = { root: null, rootMargin: "0px", threshold: 0.1 };
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry, index) => {
         if (entry.isIntersecting) {
-          setTimeout(() => {
-            entry.target.classList.add("revealed");
-          }, index * 100);
+          setTimeout(() => entry.target.classList.add("revealed"), index * 100);
         }
       });
     }, observerOptions);
+    document.querySelectorAll('.scroll-reveal, .scroll-reveal-scale').forEach(el => observer.observe(el));
 
-    // Observe all scroll-reveal elements
-    const allScrollReveal = document.querySelectorAll('.scroll-reveal, .scroll-reveal-scale');
-    allScrollReveal.forEach(el => observer.observe(el));
-
-    // Parallax scroll effect
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      if (pageRef.current) {
-        pageRef.current.style.setProperty('--scroll-y', `${scrollY}px`);
-      }
-      if (heroRef.current) {
-        heroRef.current.style.transform = `translateY(${scrollY * 0.2}px)`;
-      }
-      if (statsRef.current) {
-        statsRef.current.style.transform = `translateY(${-scrollY * 0.1}px)`;
-      }
-      if (ctaRef.current) {
-        ctaRef.current.style.transform = `translateY(${scrollY * 0.15}px)`;
-      }
+      if (pageRef.current) pageRef.current.style.setProperty('--scroll-y', `${scrollY}px`);
+      if (heroRef.current) heroRef.current.style.transform = `translateY(${scrollY * 0.2}px)`;
+      if (statsRef.current) statsRef.current.style.transform = `translateY(${-scrollY * 0.1}px)`;
+      if (ctaRef.current) ctaRef.current.style.transform = `translateY(${scrollY * 0.15}px)`;
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial call
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('scroll', handleScroll);
-    };
+    handleScroll();
+    return () => { observer.disconnect(); window.removeEventListener('scroll', handleScroll); };
   }, []);
+
+  // Aim parallax: track mouse over the features section
+  const handleFeatureSectionMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setAimPos({ x, y });
+  };
+
+  const handleFeatureClick = (idx: number, e: React.MouseEvent<HTMLDivElement>) => {
+    if (activeFeature === idx) { setActiveFeature(null); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const sectionRect = featureSectionRef.current?.getBoundingClientRect();
+    if (sectionRect) {
+      setPanelPos({
+        x: rect.left - sectionRect.left + rect.width / 2,
+        y: rect.top - sectionRect.top + rect.height,
+      });
+    }
+    setActiveFeature(idx);
+  };
 
   const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const rotateX = (mouseY - centerY) / 10;
-    const rotateY = (centerX - mouseX) / 10;
-
+    const rotateX = ((e.clientY - rect.top) - rect.height / 2) / 10;
+    const rotateY = (rect.width / 2 - (e.clientX - rect.left)) / 10;
     card.style.setProperty("--rotateX", `${rotateX}deg`);
     card.style.setProperty("--rotateY", `${rotateY}deg`);
   };
 
   const handleTiltMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    const card = e.currentTarget;
-    card.style.setProperty("--rotateX", "0deg");
-    card.style.setProperty("--rotateY", "0deg");
+    e.currentTarget.style.setProperty("--rotateX", "0deg");
+    e.currentTarget.style.setProperty("--rotateY", "0deg");
   };
 
   return (
@@ -146,33 +203,217 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Section (with Parallax/Scroll Reveal) */}
-      <section className="py-5 py-md-6 py-lg-7 bg-white parallax-section">
-        <div className="parallax-bg" style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.05), rgba(249,115,22,0.05), rgba(251,191,36,0.05))" }}></div>
-        <div className="container">
+      {/* Features Section — aim parallax + click expand */}
+      <section
+        className="py-5 py-md-6 py-lg-7 bg-white position-relative overflow-hidden"
+        ref={featureSectionRef}
+        onMouseMove={handleFeatureSectionMouseMove}
+        onMouseLeave={() => setAimPos({ x: 50, y: 50 })}
+        style={{ cursor: "crosshair" }}
+      >
+        {/* Aim parallax spotlight — follows cursor */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            zIndex: 0,
+            background: `radial-gradient(ellipse 520px 380px at ${aimPos.x}% ${aimPos.y}%, rgba(220,38,38,0.09) 0%, rgba(249,115,22,0.06) 40%, transparent 70%)`,
+            transition: "background 0.08s linear",
+          }}
+        />
+        {/* Crosshair lines */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden",
+        }}>
+          <div style={{
+            position: "absolute",
+            left: `${aimPos.x}%`, top: 0, bottom: 0,
+            width: 1,
+            background: "linear-gradient(180deg, transparent, rgba(220,38,38,0.12), transparent)",
+            transform: "translateX(-50%)",
+            transition: "left 0.08s linear",
+          }} />
+          <div style={{
+            position: "absolute",
+            top: `${aimPos.y}%`, left: 0, right: 0,
+            height: 1,
+            background: "linear-gradient(90deg, transparent, rgba(220,38,38,0.12), transparent)",
+            transform: "translateY(-50%)",
+            transition: "top 0.08s linear",
+          }} />
+          {/* Aim dot */}
+          <div style={{
+            position: "absolute",
+            left: `${aimPos.x}%`, top: `${aimPos.y}%`,
+            width: 10, height: 10,
+            borderRadius: "50%",
+            border: "2px solid rgba(220,38,38,0.4)",
+            transform: "translate(-50%, -50%)",
+            transition: "left 0.08s linear, top 0.08s linear",
+            boxShadow: "0 0 8px rgba(220,38,38,0.3)",
+          }} />
+        </div>
+
+        <div className="container position-relative" style={{ zIndex: 1 }}>
           <div className="text-center mb-5 scroll-reveal">
             <h6 className="fw-semibold mb-2" style={{ color: "#f97316" }}>Why Choose Us</h6>
             <h2 className="h1 fw-bold" style={{ color: "#dc2626" }}>Everything You Need in One Place</h2>
+            <p className="text-muted small mt-2">Click any card to explore</p>
           </div>
-          <div className="row g-4">
-            {[
-              { icon: "📚", title: "Modern Learning", desc: "Interactive digital resources" },
-              { icon: "📊", title: "Real-time Grades", desc: "Instant grade updates" },
-              { icon: "📅", title: "Smart Scheduling", desc: "Optimized timetables" },
-              { icon: "💬", title: "Easy Communication", desc: "Connect with teachers" }
-            ].map((feature, idx) => (
-              <div
-                key={idx}
-                className="col-12 col-md-6 col-lg-3"
-                ref={(el) => { featuresRef.current[idx] = el; }}
-              >
-                <div className={`h-100 p-5 rounded-4 border border-light hover:shadow-lg transition-all hover:-translate-y-1 scroll-reveal-scale ${idx === 0 ? 'float-slow' : idx === 1 ? 'float-slow-delay-1' : idx === 2 ? 'float-slow-delay-2' : 'float-slow-delay-3'}`} style={{ borderColor: "#fbbf24", background: "linear-gradient(135deg, #fff7ed, #fef3c7)" }}>
-                  <div className="text-5xl mb-3">{feature.icon}</div>
-                  <h5 className="fw-bold mb-2" style={{ color: "#dc2626" }}>{feature.title}</h5>
-                  <p className="text-muted mb-0">{feature.desc}</p>
+
+          <div className="row g-4 position-relative">
+            {FEATURES.map((feature, idx) => {
+              const isActive = activeFeature === idx;
+              return (
+                <div
+                  key={idx}
+                  className="col-12 col-md-6 col-lg-3"
+                  ref={(el) => { featuresRef.current[idx] = el; }}
+                >
+                  <div
+                    className={`scroll-reveal-scale ${idx === 0 ? 'float-slow' : idx === 1 ? 'float-slow-delay-1' : idx === 2 ? 'float-slow-delay-2' : 'float-slow-delay-3'}`}
+                    onClick={(e) => handleFeatureClick(idx, e)}
+                    style={{
+                      cursor: "pointer",
+                      borderRadius: "1rem",
+                      border: `2px solid ${isActive ? feature.color : "rgba(251,191,36,0.4)"}`,
+                      background: isActive ? feature.bg : "linear-gradient(135deg, #fff7ed, #fef3c7)",
+                      padding: "2rem",
+                      transition: "all 0.35s cubic-bezier(0.4,0,0.2,1)",
+                      transform: isActive ? "translateY(-8px) scale(1.03)" : "translateY(0) scale(1)",
+                      boxShadow: isActive
+                        ? `0 20px 50px rgba(0,0,0,0.12), 0 0 0 3px ${feature.color}22`
+                        : "0 2px 8px rgba(0,0,0,0.06)",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* Shimmer on active */}
+                    {isActive && (
+                      <div style={{
+                        position: "absolute", inset: 0, pointerEvents: "none",
+                        background: "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)",
+                        animation: "featureShimmer 1.2s ease-in-out",
+                      }} />
+                    )}
+
+                    {/* Icon with spin-in on activate */}
+                    <div style={{
+                      fontSize: "2.2rem", marginBottom: "0.75rem",
+                      display: "inline-block",
+                      transition: "transform 0.4s cubic-bezier(0.34,1.56,0.64,1)",
+                      transform: isActive ? "scale(1.25) rotate(-8deg)" : "scale(1) rotate(0deg)",
+                      filter: isActive ? "drop-shadow(0 4px 8px rgba(0,0,0,0.15))" : "none",
+                    }}>{feature.icon}</div>
+
+                    <h5 className="fw-bold mb-1" style={{ color: feature.color, transition: "color 0.3s" }}>
+                      {feature.title}
+                    </h5>
+                    <p className="text-muted mb-0 small">{feature.short}</p>
+
+                    {/* Active indicator */}
+                    <div style={{
+                      position: "absolute", bottom: 0, left: 0, right: 0,
+                      height: 3,
+                      background: feature.gradient,
+                      transform: isActive ? "scaleX(1)" : "scaleX(0)",
+                      transformOrigin: "left",
+                      transition: "transform 0.4s cubic-bezier(0.4,0,0.2,1)",
+                      borderRadius: "0 0 1rem 1rem",
+                    }} />
+
+                    {/* Click hint chevron */}
+                    <div style={{
+                      position: "absolute", top: 12, right: 14,
+                      fontSize: 13, color: feature.color,
+                      opacity: isActive ? 1 : 0.35,
+                      transition: "all 0.3s",
+                      transform: isActive ? "rotate(180deg)" : "rotate(0deg)",
+                    }}>▼</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
+
+            {/* Expanded detail panel — appears below the clicked tile */}
+            {activeFeature !== null && (() => {
+              const f = FEATURES[activeFeature];
+              return (
+                <div className="col-12" style={{ order: Math.floor(activeFeature / 1) + 1 }}>
+                  <div
+                    ref={panelRef}
+                    style={{
+                      borderRadius: "1.25rem",
+                      border: `1.5px solid ${f.border}`,
+                      background: f.bg,
+                      padding: "2rem 2.5rem",
+                      animation: "featurePanelIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both",
+                      position: "relative",
+                      overflow: "hidden",
+                      backdropFilter: "blur(8px)",
+                    }}
+                  >
+                    {/* Parallax inner glow that shifts with aim */}
+                    <div style={{
+                      position: "absolute", inset: 0, pointerEvents: "none",
+                      background: `radial-gradient(ellipse 600px 300px at ${aimPos.x}% ${aimPos.y}%, ${f.color}14 0%, transparent 65%)`,
+                      transition: "background 0.1s linear",
+                      zIndex: 0,
+                    }} />
+
+                    <div className="position-relative" style={{ zIndex: 1 }}>
+                      <div className="d-flex align-items-center gap-3 mb-4">
+                        <div style={{
+                          fontSize: "2rem",
+                          background: f.gradient,
+                          borderRadius: "0.75rem",
+                          width: 52, height: 52,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          boxShadow: `0 8px 20px ${f.color}33`,
+                        }}>{f.icon}</div>
+                        <div>
+                          <h4 className="fw-black mb-0" style={{ color: f.color }}>{f.title}</h4>
+                          <p className="text-muted small mb-0">{f.short}</p>
+                        </div>
+                        <button
+                          onClick={() => setActiveFeature(null)}
+                          style={{
+                            marginLeft: "auto",
+                            background: "none", border: "none", cursor: "pointer",
+                            color: "#64748b", fontSize: 20, lineHeight: 1,
+                            padding: "4px 8px", borderRadius: 6,
+                          }}
+                        >✕</button>
+                      </div>
+
+                      <div className="row g-3">
+                        {f.details.map((d, di) => (
+                          <div key={di} className="col-12 col-sm-6 col-lg-3">
+                            <div style={{
+                              background: "rgba(255,255,255,0.75)",
+                              borderRadius: "0.875rem",
+                              padding: "1.25rem",
+                              border: `1px solid ${f.border}`,
+                              height: "100%",
+                              animation: `featureDetailIn 0.35s cubic-bezier(0.4,0,0.2,1) ${di * 0.07}s both`,
+                              transition: "transform 0.2s, box-shadow 0.2s",
+                            }}
+                              onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-4px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 28px ${f.color}22`; }}
+                              onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = ""; (e.currentTarget as HTMLDivElement).style.boxShadow = ""; }}
+                            >
+                              <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>{d.icon}</div>
+                              <div className="fw-bold small mb-1" style={{ color: f.color }}>{d.label}</div>
+                              <div className="text-muted" style={{ fontSize: "0.8rem", lineHeight: 1.5 }}>{d.desc}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </div>
       </section>
