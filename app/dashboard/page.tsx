@@ -866,7 +866,7 @@ function DashboardHome({ setPanel, onAskJobert, darkMode, notifs, markAsRead, ma
               className={`dash-tile border-0 ${
                 t.id === "grades" ? "dash-tile-student" :
                 t.id === "schedule" ? "dash-tile-schedule" :
-                t.id === "tuition" ? "dash-tile-tuition dash-tile-wide" :
+                t.id === "tuition" ? "dash-tile-tuition" :
                 "dash-tile-docs"
               }`}
             >

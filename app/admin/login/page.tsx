@@ -37,9 +37,15 @@ export default function AdminLoginPage() {
       style={{ background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%)" }}
       suppressHydrationWarning>
 
-      <Link href="/" className="position-absolute top-0 start-0 m-3 text-decoration-none" style={{ color: "rgba(165,180,252,0.35)", fontSize: 12, transition: "color 0.2s" }}
-        onMouseEnter={e => (e.currentTarget.style.color = "rgba(165,180,252,0.8)")}
-        onMouseLeave={e => (e.currentTarget.style.color = "rgba(165,180,252,0.35)")}>← Back</Link>
+      <Link href="/" className="position-absolute top-0 start-0 m-3 d-inline-flex align-items-center gap-2 text-decoration-none fw-medium rounded-pill px-3 py-2"
+        style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(165,180,252,0.9)", fontSize: 13, transition: "all 0.2s" }}
+        onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "white"; }}
+        onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(165,180,252,0.9)"; }}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Home
+      </Link>
 
       <div className="rounded-3 p-4 p-md-5 d-flex flex-column align-items-center gap-4" style={{ width: "100%", maxWidth: 400, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)", backdropFilter: "blur(16px)" }}>
 
