@@ -62,7 +62,7 @@ function JobertChat({ initialPrompt }: { initialPrompt?: string }) {
                   <img src="/jobert-avatar.png" alt="JOBERT" style={{ width: 28, height: 28, objectFit: "cover", objectPosition: "center top" }} />
                 </div>}
                 <div className="d-flex flex-column gap-1" style={{ maxWidth: "80%" }}>
-                  <div className={`rounded-3 px-3 py-2 small lh-base ${m.role === "ai" ? "bg-white border text-dark shadow-sm" : "bg-primary text-white"}`} style={{ whiteSpace: "pre-line" }}>{m.text}</div>
+                  <div className={`rounded-3 px-3 py-2 small lh-base ${m.role === "ai" ? "bg-white border shadow-sm" : "bg-primary text-white"}`} style={{ whiteSpace: "pre-line", color: m.role === "ai" ? "#1e293b" : undefined }}>{m.text}</div>
                   {m.role === "ai" && i > 0 && (
                     <div className="d-flex gap-1 ms-1">
                       <button onClick={() => setFeedback(i, "up")} className={`btn btn-sm py-0 px-1 border-0 ${m.feedback === "up" ? "text-success" : "text-secondary"}`} style={{ fontSize: 13 }}>👍</button>

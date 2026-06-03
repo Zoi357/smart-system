@@ -22,7 +22,7 @@ export function PremiumDashboardShell({
   userMeta,
   logoutHref,
   logoutLabel = "Log Out",
-  maxWidth = 680,
+  maxWidth = 1100,
 }: PremiumDashboardShellProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
@@ -50,27 +50,24 @@ export function PremiumDashboardShell({
       onScroll();
     }
 
-    const revealObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -6% 0px" }
-    );
+    const revealSelectors = ".scroll-reveal-3d, .scroll-reveal-flip, .dash-reveal, .scroll-reveal, .scroll-reveal-scale, .scroll-reveal-left, .scroll-reveal-right";
 
-    root.querySelectorAll(".scroll-reveal-3d, .scroll-reveal-flip, .dash-reveal").forEach((el) => {
-      if (reduced) el.classList.add("is-visible");
-      else revealObserver.observe(el);
-    });
+    // Reveal all currently existing elements
+    const revealAll = () => {
+      root.querySelectorAll(revealSelectors).forEach((el) => {
+        el.classList.add("is-visible", "revealed");
+      });
+    };
+    revealAll();
+
+    // Watch for new elements added when tiles are clicked
+    const mutationObserver = new MutationObserver(() => revealAll());
+    mutationObserver.observe(root, { childList: true, subtree: true });
 
     return () => {
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(raf);
-      revealObserver.disconnect();
+      mutationObserver.disconnect();
     };
   }, []);
 
@@ -105,7 +102,7 @@ export function PremiumDashboardShell({
       </nav>
 
       <main className="dash-main flex-grow-1 w-100 d-flex flex-column align-items-center px-3 pb-4">
-        <div className="dash-content w-100 scroll-reveal-3d is-visible" style={{ maxWidth }}>
+        <div className="dash-content w-100" style={{ maxWidth }}>
           {children}
         </div>
       </main>

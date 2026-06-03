@@ -3451,14 +3451,20 @@ html:not([data-theme="dark"]) .landing-premium .landing-headline-accent {
 }
 
 .dash-reveal {
-  opacity: 0;
-  transform: perspective(900px) rotateX(20deg) translateY(40px);
-  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 1;
+  transform: none;
+  animation: dashRevealIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.dash-reveal.is-visible {
-  opacity: 1;
-  transform: perspective(900px) rotateX(0) translateY(0);
+@keyframes dashRevealIn {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateX(20deg) translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(900px) rotateX(0) translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
