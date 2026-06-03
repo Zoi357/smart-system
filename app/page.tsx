@@ -6,6 +6,10 @@ import { useEffect, useRef } from "react";
 export default function LandingPage() {
   const featuresRef = useRef<(HTMLDivElement | null)[]>([]);
   const servicesRef = useRef<(HTMLDivElement | null)[]>([]);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Add js-enabled class
@@ -28,14 +32,34 @@ export default function LandingPage() {
       });
     }, observerOptions);
 
-    featuresRef.current.forEach((el) => {
-      if (el) observer.observe(el);
-    });
-    servicesRef.current.forEach((el) => {
-      if (el) observer.observe(el);
-    });
+    // Observe all scroll-reveal elements
+    const allScrollReveal = document.querySelectorAll('.scroll-reveal, .scroll-reveal-scale');
+    allScrollReveal.forEach(el => observer.observe(el));
 
-    return () => observer.disconnect();
+    // Parallax scroll effect
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      if (pageRef.current) {
+        pageRef.current.style.setProperty('--scroll-y', `${scrollY}px`);
+      }
+      if (heroRef.current) {
+        heroRef.current.style.transform = `translateY(${scrollY * 0.2}px)`;
+      }
+      if (statsRef.current) {
+        statsRef.current.style.transform = `translateY(${-scrollY * 0.1}px)`;
+      }
+      if (ctaRef.current) {
+        ctaRef.current.style.transform = `translateY(${scrollY * 0.15}px)`;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial call
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
@@ -59,7 +83,7 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-vh-100 bg-light text-dark">
+    <div className="min-vh-100 bg-light text-dark" ref={pageRef}>
       {/* Navigation */}
       <header className="sticky-top bg-white bg-opacity-90 backdrop-blur border-bottom border-light shadow-sm z-3">
         <div className="container py-3">
@@ -81,7 +105,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #fff7ed, #fef3c7)" }}>
+      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #fff7ed, #fef3c7)" }} ref={heroRef}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-10 col-xl-8 text-center">
@@ -120,6 +144,7 @@ export default function LandingPage() {
 
       {/* Features Section (with Parallax/Scroll Reveal) */}
       <section className="py-5 py-md-6 py-lg-7 bg-white parallax-section">
+        <div className="parallax-bg" style={{ background: "linear-gradient(135deg, rgba(220,38,38,0.05), rgba(249,115,22,0.05), rgba(251,191,36,0.05))" }}></div>
         <div className="container">
           <div className="text-center mb-5 scroll-reveal">
             <h6 className="fw-semibold mb-2" style={{ color: "#f97316" }}>Why Choose Us</h6>
@@ -187,7 +212,7 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white" }}>
+      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white" }} ref={statsRef}>
         <div className="container">
           <div className="row justify-content-center g-4">
             {[
@@ -205,7 +230,7 @@ export default function LandingPage() {
       </section>
 
       {/* Enrollment CTA */}
-      <section className="py-5 py-md-6 py-lg-7 bg-white">
+      <section className="py-5 py-md-6 py-lg-7 bg-white" ref={ctaRef}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-10">
