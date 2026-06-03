@@ -97,9 +97,6 @@ export default function LandingPage() {
     const handleScroll = () => {
       const scrollY = window.scrollY;
       if (pageRef.current) pageRef.current.style.setProperty('--scroll-y', `${scrollY}px`);
-      if (heroRef.current) heroRef.current.style.transform = `translateY(${scrollY * 0.2}px)`;
-      if (statsRef.current) statsRef.current.style.transform = `translateY(${-scrollY * 0.1}px)`;
-      if (ctaRef.current) ctaRef.current.style.transform = `translateY(${scrollY * 0.15}px)`;
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
@@ -166,7 +163,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #fff7ed, #fef3c7)" }} ref={heroRef}>
+      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #fff7ed, #fef3c7)" }}>
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-10 col-xl-8 text-center">
@@ -457,7 +454,7 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white" }} ref={statsRef}>
+      <section className="py-5 py-md-6 py-lg-7" style={{ background: "linear-gradient(135deg, #dc2626, #f97316)", color: "white" }}>
         <div className="container">
           <div className="row justify-content-center g-4">
             {[
@@ -475,7 +472,7 @@ export default function LandingPage() {
       </section>
 
       {/* Enrollment CTA */}
-      <section className="py-5 py-md-6 py-lg-7 bg-white" ref={ctaRef}>
+      <section className="py-5 py-md-6 py-lg-7 bg-white">
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-lg-10">
