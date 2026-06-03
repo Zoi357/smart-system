@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { PremiumDashboardShell } from "../../components/PremiumDashboardShell";
 
 /* ── Data ── */
@@ -91,6 +91,28 @@ function OverviewPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
     total_students: students.length,
     avg_grade: 90.5,
   };
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (mouseY - centerY) / 15;
+    const rotateY = (centerX - mouseX) / 15;
+    card.style.setProperty('--rotateX', `${rotateX}deg`);
+    card.style.setProperty('--rotateY', `${rotateY}deg`);
+  };
+
+  const handleTiltMouseLeave = (index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    card.style.setProperty('--rotateX', '0deg');
+    card.style.setProperty('--rotateY', '0deg');
+  };
 
   return (
     <div className="d-flex flex-column gap-4">
@@ -108,15 +130,28 @@ function OverviewPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
       <div className="dash-body dash-reveal">
       <div className="dash-stat-grid">
         {[
-          { label: "Total Classes", value: stats.total_subjects, icon: "📚" },
-          { label: "Total Students", value: stats.total_students, icon: "🎓" },
-          { label: "Class Avg. Grade", value: `${stats.avg_grade}%`, icon: "📈" },
-          { label: "Pending Requests", value: gradeRequestsTeacher.filter(r => r.status === "pending").length, icon: "📨" },
-        ].map(s => (
-          <div key={s.label} className="dash-stat-card">
+          { label: "Total Classes", value: stats.total_subjects, icon: "📚", color: "linear-gradient(135deg, #0f172a, #1e293b)" },
+          { label: "Total Students", value: stats.total_students, icon: "🎓", color: "linear-gradient(135deg, #fbbf24, #f59e0b)" },
+          { label: "Class Avg. Grade", value: `${stats.avg_grade}%`, icon: "📈", color: "linear-gradient(135deg, #10b981, #059669)" },
+          { label: "Pending Requests", value: gradeRequestsTeacher.filter(r => r.status === "pending").length, icon: "📨", color: "linear-gradient(135deg, #dc2626, #f97316)" },
+        ].map((s, i) => (
+          <div 
+            key={s.label} 
+            className="dash-stat-card"
+            ref={(el) => { cardRefs.current[i] = el; }}
+            onMouseMove={(e) => handleTiltMouseMove(e, i)}
+            onMouseLeave={() => handleTiltMouseLeave(i)}
+            style={{
+              background: s.color,
+              transform: 'translateY(0) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg))',
+              transformStyle: 'preserve-3d',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+            }}
+          >
             <span className="dash-stat-icon">{s.icon}</span>
-            <div className="dash-stat-label">{s.label}</div>
-            <div className="dash-stat-value">{s.value}</div>
+            <div className="dash-stat-label" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.label}</div>
+            <div className="dash-stat-value" style={{ color: 'white' }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -146,8 +181,13 @@ function OverviewPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
       {/* Recent Activity */}
       <div className="row g-4 dash-reveal mt-4">
         <div className="col-12 col-lg-6">
-          <div className="dash-list-card h-100">
-            <h3>Recent Activity</h3>
+          <div className="dash-list-card h-100 card-glow-border">
+            <h3 style={{ 
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Recent Activity</h3>
             <div className="d-flex flex-column gap-2">
               {recentActivity.map((a, i) => (
                 <div key={i} className="dash-list-item">
@@ -163,8 +203,13 @@ function OverviewPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
           </div>
         </div>
         <div className="col-12 col-lg-6">
-          <div className="dash-list-card h-100">
-            <h3>Class Summary</h3>
+          <div className="dash-list-card h-100 card-glow-border">
+            <h3 style={{ 
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Class Summary</h3>
             <div className="d-flex flex-column gap-2">
               {subjects.map(s => (
                 <div key={s.id} className="dash-list-item">
@@ -193,16 +238,47 @@ function SchedulePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   const todayIdx = Math.min(new Date().getDay() - 1, 4);
   const [day, setDay] = useState(days[todayIdx >= 0 ? todayIdx : 0]);
   const daySchedule = teacherSchedule.filter(s => s.day === day);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (mouseY - centerY) / 15;
+    const rotateY = (centerX - mouseX) / 15;
+    card.style.setProperty('--rotateX', `${rotateX}deg`);
+    card.style.setProperty('--rotateY', `${rotateY}deg`);
+  };
+
+  const handleTiltMouseLeave = (index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    card.style.setProperty('--rotateX', '0deg');
+    card.style.setProperty('--rotateY', '0deg');
+  };
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column gap-4 scroll-reveal">
       <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">My Teaching Schedule</h2><p className="text-muted small mb-0">Term 1 · 2025–2026</p></div>
+        <div><h2 className="fw-black fs-4 mb-0" style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>My Teaching Schedule</h2><p className="text-white-50 small mb-0">Term 1 · 2025–2026</p></div>
       </div>
       <div className="d-flex gap-2 overflow-auto pb-1">
         {days.map(d => (
           <button key={d} onClick={() => setDay(d)}
-            className={`btn btn-sm flex-shrink-0 ${day === d ? "btn-primary shadow-sm" : "btn-outline-secondary"}`}>
+            className={`btn btn-sm flex-shrink-0 ${day === d ? "shadow-sm" : "btn-outline-secondary"}`}
+            style={day === d ? { background: 'linear-gradient(135deg, #dc2626, #f97316)', border: 'none', color: 'white' } : { borderColor: '#dc2626', color: '#dc2626' }}
+            onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(220,38,38,0.3)'; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+          >
             {d.slice(0, 3)}
           </button>
         ))}
@@ -216,14 +292,24 @@ function SchedulePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
       ) : (
         <div className="d-flex flex-column gap-2">
           {daySchedule.map((cls, i) => (
-            <div key={i} className="card border-0 shadow-sm rounded-3">
+            <div key={i} className="card border-0 shadow-sm rounded-3 card-glow-border"
+                 ref={(el) => { cardRefs.current[i] = el; }}
+                 onMouseMove={(e) => handleTiltMouseMove(e, i)}
+                 onMouseLeave={() => handleTiltMouseLeave(i)}
+                 style={{
+                   background: 'white',
+                   transform: 'translateY(0) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg))',
+                   transformStyle: 'preserve-3d',
+                   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                 }}
+            >
               <div className="card-body p-4">
                 <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
                   <div>
-                    <div className="fw-bold text-dark mb-1">{cls.subject}</div>
+                    <div className="fw-bold mb-1" style={{ color: '#0f172a' }}>{cls.subject}</div>
                     <div className="text-muted small">📍 {cls.room}</div>
                   </div>
-                  <span className="badge bg-primary-subtle text-primary border border-primary-subtle">{cls.time}</span>
+                  <span className="badge" style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: 'white' }}>{cls.time}</span>
                 </div>
                 <div className="row g-3">
                   <div className="col-6 col-sm-3">
@@ -263,38 +349,50 @@ function SchedulePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
 /* ── Subjects Panel ── */
 function SubjectsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column gap-4 scroll-reveal">
       <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">My Classes</h2><p className="text-muted small mb-0">{subjects.length} classes assigned</p></div>
+        <div><h2 className="fw-black fs-4 mb-0" style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>My Classes</h2><p className="text-white-50 small mb-0">{subjects.length} classes assigned</p></div>
       </div>
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden card-glow-border" style={{ background: 'white' }}>
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead className="table-light">
+            <thead style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))' }}>
               <tr>
-                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Code</th>
-                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing: "0.05em" }}>Subject</th>
-                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em" }}>Units</th>
-                <th className="small text-muted fw-semibold text-uppercase text-end" style={{ letterSpacing: "0.05em" }}>Enrollment</th>
-                <th className="small text-muted fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em" }}>Action</th>
+                <th className="small fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Code</th>
+                <th className="small fw-semibold text-uppercase" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Subject</th>
+                <th className="small fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Units</th>
+                <th className="small fw-semibold text-uppercase text-end" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Enrollment</th>
+                <th className="small fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Action</th>
               </tr>
             </thead>
             <tbody>
               {subjects.map(s => (
                 <tr key={s.id}>
-                  <td className="ps-4 font-mono text-muted small fw-semibold">{s.code}</td>
-                  <td className="small fw-medium text-dark">{s.name}</td>
-                  <td className="d-none d-sm-table-cell text-muted small">{s.units}</td>
+                  <td className="ps-4 font-mono small fw-semibold" style={{ color: '#64748b' }}>{s.code}</td>
+                  <td className="small fw-medium" style={{ color: '#0f172a' }}>{s.name}</td>
+                  <td className="d-none d-sm-table-cell small" style={{ color: '#64748b' }}>{s.units}</td>
                   <td className="text-end">
                     <div className="d-flex align-items-center justify-content-end gap-2">
                       <div className="progress flex-shrink-0" style={{ width: 60, height: 6 }}>
-                        <div className="progress-bar bg-primary" style={{ width: `${(s.enrolled / s.max) * 100}%` }} />
+                        <div className="progress-bar" style={{ width: `${(s.enrolled / s.max) * 100}%`, background: 'linear-gradient(90deg, #dc2626, #f97316, #fbbf24)' }} />
                       </div>
-                      <span className="small fw-semibold text-dark">{s.enrolled}/{s.max}</span>
+                      <span className="small fw-semibold" style={{ color: '#0f172a' }}>{s.enrolled}/{s.max}</span>
                     </div>
                   </td>
                   <td className="text-end pe-4">
-                    <button className="btn btn-primary btn-sm" style={{ fontSize: 11 }}>Manage</button>
+                    <button className="btn btn-sm" style={{ 
+                      fontSize: 11, 
+                      background: 'linear-gradient(135deg, #dc2626, #f97316)', 
+                      border: 'none', 
+                      color: 'white' 
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(220,38,38,0.3)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>Manage</button>
                   </td>
                 </tr>
               ))}
@@ -312,36 +410,41 @@ function StudentsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   const filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column gap-4 scroll-reveal">
       <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">My Students</h2><p className="text-muted small mb-0">{students.length} students in your classes</p></div>
+        <div><h2 className="fw-black fs-4 mb-0" style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>My Students</h2><p className="text-white-50 small mb-0">{students.length} students in your classes</p></div>
       </div>
       <div className="input-group shadow-sm">
         <span className="input-group-text bg-white">🔍</span>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or ID..." className="form-control border-start-0" />
       </div>
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden card-glow-border" style={{ background: 'white' }}>
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead className="table-light">
+            <thead style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))' }}>
               <tr>
-                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Name</th>
-                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em" }}>ID</th>
-                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing: "0.05em" }}>Pathway</th>
-                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing: "0.05em" }}>Grade</th>
-                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing: "0.05em" }}>Status</th>
+                <th className="small fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Name</th>
+                <th className="small fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>ID</th>
+                <th className="small fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Pathway</th>
+                <th className="small fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Grade</th>
+                <th className="small fw-semibold text-uppercase" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Status</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0
-                ? <tr><td colSpan={5} className="text-center text-muted py-4 small">No students found.</td></tr>
+                ? <tr><td colSpan={5} className="text-center py-4 small" style={{ color: '#64748b' }}>No students found.</td></tr>
                 : filtered.map(s => (
                   <tr key={s.id}>
-                    <td className="ps-4 small fw-medium text-dark">{s.name}</td>
-                    <td className="d-none d-sm-table-cell font-mono text-muted small">{s.id}</td>
-                    <td className="d-none d-lg-table-cell text-muted small">{s.pathway}</td>
-                    <td className="d-none d-lg-table-cell text-muted small">Grade {s.grade}</td>
-                    <td><span className={`badge ${s.status === "Active" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}`}>{s.status}</span></td>
+                    <td className="ps-4 small fw-medium" style={{ color: '#0f172a' }}>{s.name}</td>
+                    <td className="d-none d-sm-table-cell font-mono small" style={{ color: '#64748b' }}>{s.id}</td>
+                    <td className="d-none d-lg-table-cell small" style={{ color: '#64748b' }}>{s.pathway}</td>
+                    <td className="d-none d-lg-table-cell small" style={{ color: '#64748b' }}>Grade {s.grade}</td>
+                    <td><span className="badge" style={s.status === "Active" ? { background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' } : { background: 'linear-gradient(135deg, #64748b, #475569)', color: 'white' }}>{s.status}</span></td>
                   </tr>
                 ))
               }
@@ -360,48 +463,53 @@ function GradesPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   const avg = subjectGrades.length > 0 ? Math.round(subjectGrades.reduce((a, g) => a + g.percentage, 0) / subjectGrades.length) : 0;
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column gap-4 scroll-reveal">
       <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">Grade Management</h2><p className="text-muted small mb-0">Submit and manage student grades</p></div>
+        <div><h2 className="fw-black fs-4 mb-0" style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Grade Management</h2><p className="text-white-50 small mb-0">Submit and manage student grades</p></div>
       </div>
       <div className="d-flex flex-column flex-sm-row gap-3">
         <div style={{ width: 220 }}>
-          <label className="form-label text-muted fw-semibold text-uppercase mb-1" style={{ fontSize: 11 }}>Select Subject</label>
+          <label className="form-label fw-semibold text-uppercase mb-1" style={{ fontSize: 11, color: '#0f172a' }}>Select Subject</label>
           <select value={selectedSubject} onChange={e => setSelectedSubject(Number(e.target.value))} className="form-select form-select-sm rounded-3">
             {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
-        <div className="flex-grow-1 rounded-3 p-3 d-flex align-items-center gap-3 bg-primary bg-opacity-10 border border-primary border-opacity-25">
-          <div className="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style={{ width: 44, height: 44, fontSize: 16 }}>📊</div>
-          <div className="flex-grow-1"><div className="fw-bold text-dark">{subjects.find(s => s.id === selectedSubject)?.name}</div><div className="text-muted small">{subjectGrades.length} students graded</div></div>
-          <div className="text-end"><div className="fw-black fs-3 text-primary">{avg}%</div><div className="text-muted small">Class Average</div></div>
+        <div className="flex-grow-1 rounded-3 p-3 d-flex align-items-center gap-3 card-glow-border" style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))', border: '1px solid rgba(220,38,38,0.2)' }}>
+          <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style={{ width: 44, height: 44, fontSize: 16, background: 'linear-gradient(135deg, #dc2626, #f97316)' }}>📊</div>
+          <div className="flex-grow-1"><div className="fw-bold" style={{ color: '#0f172a' }}>{subjects.find(s => s.id === selectedSubject)?.name}</div><div className="small" style={{ color: '#64748b' }}>{subjectGrades.length} students graded</div></div>
+          <div className="text-end"><div className="fw-black fs-3" style={{ color: '#dc2626' }}>{avg}%</div><div className="small" style={{ color: '#64748b' }}>Class Average</div></div>
         </div>
       </div>
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden card-glow-border" style={{ background: 'white' }}>
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead className="table-light">
+            <thead style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))' }}>
               <tr>
-                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Student</th>
-                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em" }}>ID</th>
-                <th className="small text-muted fw-semibold text-uppercase text-end" style={{ letterSpacing: "0.05em" }}>Score</th>
-                <th className="small text-muted fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em" }}>Grade</th>
+                <th className="small fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Student</th>
+                <th className="small fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>ID</th>
+                <th className="small fw-semibold text-uppercase text-end" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Score</th>
+                <th className="small fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Grade</th>
               </tr>
             </thead>
             <tbody>
               {subjectGrades.map((g, i) => (
                 <tr key={i}>
-                  <td className="ps-4 small fw-medium text-dark">{g.name}</td>
-                  <td className="d-none d-sm-table-cell font-mono text-muted small">{g.student_id}</td>
+                  <td className="ps-4 small fw-medium" style={{ color: '#0f172a' }}>{g.name}</td>
+                  <td className="d-none d-sm-table-cell font-mono small" style={{ color: '#64748b' }}>{g.student_id}</td>
                   <td className="text-end">
                     <div className="d-flex align-items-center justify-content-end gap-2">
                       <div className="progress flex-shrink-0" style={{ width: 60, height: 6 }}>
-                        <div className="progress-bar bg-primary" style={{ width: `${g.percentage}%` }} />
+                        <div className="progress-bar" style={{ width: `${g.percentage}%`, background: 'linear-gradient(90deg, #dc2626, #f97316, #fbbf24)' }} />
                       </div>
-                      <span className="small fw-semibold text-dark">{g.percentage}%</span>
+                      <span className="small fw-semibold" style={{ color: '#0f172a' }}>{g.percentage}%</span>
                     </div>
                   </td>
-                  <td className="text-end pe-4 fw-black small text-primary">{g.percentage >= 90 ? "A" : g.percentage >= 80 ? "B" : "C"}</td>
+                  <td className="text-end pe-4 fw-black small" style={{ color: '#dc2626' }}>{g.percentage >= 90 ? "A" : g.percentage >= 80 ? "B" : "C"}</td>
                 </tr>
               ))}
             </tbody>
@@ -430,23 +538,28 @@ function RequestsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   const processed = requests.filter(r => r.status !== "pending");
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column gap-4 scroll-reveal">
       <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">Grade Requests</h2><p className="text-muted small mb-0">Manage student grade requests for Term 3</p></div>
+        <div><h2 className="fw-black fs-4 mb-0" style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Grade Requests</h2><p className="text-white-50 small mb-0">Manage student grade requests for Term 3</p></div>
       </div>
 
       {/* Stats */}
       <div className="row g-3">
         {[
-          { label: "Pending", value: pending.length, icon: "⏳", cls: "bg-warning-subtle border-warning-subtle text-warning" },
-          { label: "Approved", value: requests.filter(r => r.status === "approved").length, icon: "✓", cls: "bg-success-subtle border-success-subtle text-success" },
-          { label: "Rejected", value: requests.filter(r => r.status === "rejected").length, icon: "✕", cls: "bg-danger-subtle border-danger-subtle text-danger" },
+          { label: "Pending", value: pending.length, icon: "⏳", color: 'linear-gradient(135deg, #fbbf24, #f59e0b)' },
+          { label: "Approved", value: requests.filter(r => r.status === "approved").length, icon: "✓", color: 'linear-gradient(135deg, #10b981, #059669)' },
+          { label: "Rejected", value: requests.filter(r => r.status === "rejected").length, icon: "✕", color: 'linear-gradient(135deg, #dc2626, #f97316)' },
         ].map(s => (
           <div key={s.label} className="col-4">
-            <div className={`card border rounded-3 ${s.cls}`}>
+            <div className="card border-0 rounded-3 card-glow-border" style={{ background: s.color }}>
               <div className="card-body p-3 text-center">
-                <div className="text-muted small mb-1">{s.label}</div>
-                <div className="fw-black fs-3">{s.value}</div>
+                <div className="small mb-1" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.label}</div>
+                <div className="fw-black fs-3" style={{ color: 'white' }}>{s.value}</div>
               </div>
             </div>
           </div>
@@ -456,30 +569,30 @@ function RequestsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
       {/* Pending Requests */}
       {pending.length > 0 && (
         <div>
-          <h3 className="fw-bold small text-dark mb-3">⏳ Pending Requests</h3>
+          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>⏳ Pending Requests</h3>
           <div className="d-flex flex-column gap-2">
             {pending.map(req => (
-              <div key={req.id} className="card border-0 shadow-sm rounded-3">
+              <div key={req.id} className="card border-0 shadow-sm rounded-3 card-glow-border" style={{ background: 'white' }}>
                 <div className="card-body p-4">
                   <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
                     <div>
-                      <div className="fw-bold text-dark">{req.student}</div>
-                      <div className="text-muted small">{req.subject} · Requested {req.requestedAt}</div>
+                      <div className="fw-bold" style={{ color: '#0f172a' }}>{req.student}</div>
+                      <div className="small" style={{ color: '#64748b' }}>{req.subject} · Requested {req.requestedAt}</div>
                     </div>
-                    <span className="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                    <span className="badge" style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: 'white' }}>Pending</span>
                   </div>
                   <div className="d-flex gap-2">
                     <button
                       onClick={() => handleRequest(req.id, "approve")}
-                      className="btn btn-success btn-sm flex-grow-1"
-                      style={{ fontSize: 12 }}
+                      className="btn btn-sm flex-grow-1"
+                      style={{ fontSize: 12, background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: 'white' }}
                     >
                       ✓ Approve
                     </button>
                     <button
                       onClick={() => handleRequest(req.id, "reject")}
-                      className="btn btn-danger btn-sm flex-grow-1"
-                      style={{ fontSize: 12 }}
+                      className="btn btn-sm flex-grow-1"
+                      style={{ fontSize: 12, background: 'linear-gradient(135deg, #dc2626, #f97316)', border: 'none', color: 'white' }}
                     >
                       ✕ Reject
                     </button>
@@ -494,17 +607,17 @@ function RequestsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
       {/* Processed Requests */}
       {processed.length > 0 && (
         <div>
-          <h3 className="fw-bold small text-dark mb-3">✓ Processed Requests</h3>
+          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>✓ Processed Requests</h3>
           <div className="d-flex flex-column gap-2">
             {processed.map(req => (
-              <div key={req.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+              <div key={req.id} className="card border-0 shadow-sm rounded-3 opacity-75" style={{ background: 'white' }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-center justify-content-between">
                     <div>
-                      <div className="fw-bold small text-dark">{req.student}</div>
-                      <div className="text-muted" style={{ fontSize: 11 }}>{req.subject}</div>
+                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{req.student}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>{req.subject}</div>
                     </div>
-                    <span className={`badge ${req.status === "approved" ? "bg-success-subtle text-success border border-success-subtle" : "bg-danger-subtle text-danger border border-danger-subtle"}`}>
+                    <span className="badge" style={req.status === "approved" ? { background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' } : { background: 'linear-gradient(135deg, #dc2626, #f97316)', color: 'white' }}>
                       {req.status === "approved" ? "✓ Approved" : "✕ Rejected"}
                     </span>
                   </div>
@@ -548,22 +661,27 @@ function DocumentApprovalsPanel({ setPanel }: { setPanel: (p: Panel) => void }) 
   const approved = docs.filter(d => d.status === "approved");
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column gap-4 scroll-reveal">
       <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">Document Approvals</h2><p className="text-muted small mb-0">Verify and approve student document requests</p></div>
+        <div><h2 className="fw-black fs-4 mb-0" style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Document Approvals</h2><p className="text-white-50 small mb-0">Verify and approve student document requests</p></div>
       </div>
 
       {/* Stats */}
       <div className="row g-3">
         {[
-          { label: "Pending", value: pending.length, icon: "⏳", cls: "bg-warning-subtle border-warning-subtle text-warning" },
-          { label: "Approved", value: approved.length, icon: "✓", cls: "bg-success-subtle border-success-subtle text-success" },
+          { label: "Pending", value: pending.length, icon: "⏳", color: 'linear-gradient(135deg, #fbbf24, #f59e0b)' },
+          { label: "Approved", value: approved.length, icon: "✓", color: 'linear-gradient(135deg, #10b981, #059669)' },
         ].map(s => (
           <div key={s.label} className="col-6">
-            <div className={`card border rounded-3 ${s.cls}`}>
+            <div className="card border-0 rounded-3 card-glow-border" style={{ background: s.color }}>
               <div className="card-body p-3 text-center">
-                <div className="text-muted small mb-1">{s.label}</div>
-                <div className="fw-black fs-3">{s.value}</div>
+                <div className="small mb-1" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.label}</div>
+                <div className="fw-black fs-3" style={{ color: 'white' }}>{s.value}</div>
               </div>
             </div>
           </div>
@@ -573,21 +691,21 @@ function DocumentApprovalsPanel({ setPanel }: { setPanel: (p: Panel) => void }) 
       {/* Pending */}
       {pending.length > 0 && (
         <div>
-          <h3 className="fw-bold small text-dark mb-3">⏳ Pending Approvals</h3>
+          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>⏳ Pending Approvals</h3>
           <div className="d-flex flex-column gap-2">
             {pending.map(doc => (
-              <div key={doc.id} className="card border-0 shadow-sm rounded-3">
+              <div key={doc.id} className="card border-0 shadow-sm rounded-3 card-glow-border" style={{ background: 'white' }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <div>
-                      <div className="fw-bold small text-dark">{doc.student}</div>
-                      <div className="text-muted" style={{ fontSize: 11 }}>{doc.type} · Requested {doc.requestedAt}</div>
+                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{doc.student}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>{doc.type} · Requested {doc.requestedAt}</div>
                     </div>
-                    <span className="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                    <span className="badge" style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: 'white' }}>Pending</span>
                   </div>
                   <div className="d-flex gap-2">
-                    <button onClick={() => approveDocument(doc.id)} className="btn btn-success btn-sm flex-grow-1" style={{ fontSize: 11 }}>✓ Approve</button>
-                    <button onClick={() => rejectDocument(doc.id)} className="btn btn-danger btn-sm flex-grow-1" style={{ fontSize: 11 }}>✕ Reject</button>
+                    <button onClick={() => approveDocument(doc.id)} className="btn btn-sm flex-grow-1" style={{ fontSize: 11, background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: 'white' }}>✓ Approve</button>
+                    <button onClick={() => rejectDocument(doc.id)} className="btn btn-sm flex-grow-1" style={{ fontSize: 11, background: 'linear-gradient(135deg, #dc2626, #f97316)', border: 'none', color: 'white' }}>✕ Reject</button>
                   </div>
                 </div>
               </div>
@@ -599,17 +717,17 @@ function DocumentApprovalsPanel({ setPanel }: { setPanel: (p: Panel) => void }) 
       {/* Approved */}
       {approved.length > 0 && (
         <div>
-          <h3 className="fw-bold small text-dark mb-3">✓ Approved Documents</h3>
+          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>✓ Approved Documents</h3>
           <div className="d-flex flex-column gap-2">
             {approved.map(doc => (
-              <div key={doc.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+              <div key={doc.id} className="card border-0 shadow-sm rounded-3 opacity-75" style={{ background: 'white' }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-center justify-content-between">
                     <div>
-                      <div className="fw-bold small text-dark">{doc.student}</div>
-                      <div className="text-muted" style={{ fontSize: 11 }}>{doc.type} · Approved {doc.approvedAt}</div>
+                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{doc.student}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>{doc.type} · Approved {doc.approvedAt}</div>
                     </div>
-                    <span className="badge bg-success-subtle text-success border border-success-subtle">✓ Approved</span>
+                    <span className="badge" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}>✓ Approved</span>
                   </div>
                 </div>
               </div>
@@ -637,29 +755,34 @@ function TeacherNotificationsPanel({ setPanel }: { setPanel: (p: Panel) => void 
   const read = notifs.filter(n => n.read);
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column gap-4 scroll-reveal">
       <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">Notifications</h2><p className="text-muted small mb-0">{unread.length} unread</p></div>
+        <div><h2 className="fw-black fs-4 mb-0" style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Notifications</h2><p className="text-white-50 small mb-0">{unread.length} unread</p></div>
       </div>
 
       {/* Unread */}
       {unread.length > 0 && (
         <div>
-          <h3 className="fw-bold small text-dark mb-3">🔔 Unread</h3>
+          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>🔔 Unread</h3>
           <div className="d-flex flex-column gap-2">
             {unread.map(notif => (
-              <div key={notif.id} className="card border-0 shadow-sm rounded-3" style={{ background: "rgba(220, 38, 38, 0.12)", border: "1px solid rgba(220, 38, 38, 0.3)" }}>
+              <div key={notif.id} className="card border-0 shadow-sm rounded-3 card-glow-border" style={{ background: "rgba(220, 38, 38, 0.12)", border: "1px solid rgba(220, 38, 38, 0.3)" }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-start gap-3">
                     <span style={{ fontSize: 18 }}>{notif.icon}</span>
                     <div className="flex-grow-1">
-                      <div className="fw-bold small text-dark">{notif.title}</div>
-                      <div className="text-muted small mt-1">{notif.message}</div>
-                      <div className="text-muted small mt-2" style={{ fontSize: 11 }}>{notif.time}</div>
+                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{notif.title}</div>
+                      <div className="small mt-1" style={{ color: '#64748b' }}>{notif.message}</div>
+                      <div className="small mt-2" style={{ fontSize: 11, color: '#64748b' }}>{notif.time}</div>
                     </div>
                     <div className="d-flex gap-1 flex-shrink-0">
-                      <button onClick={() => markAsRead(notif.id)} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 11 }}>✓</button>
-                      <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize: 11 }}>✕</button>
+                      <button onClick={() => markAsRead(notif.id)} className="btn btn-link btn-sm p-0" style={{ fontSize: 11, color: '#dc2626' }}>✓</button>
+                      <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0" style={{ fontSize: 11, color: '#dc2626' }}>✕</button>
                     </div>
                   </div>
                 </div>
@@ -672,20 +795,20 @@ function TeacherNotificationsPanel({ setPanel }: { setPanel: (p: Panel) => void 
       {/* Read */}
       {read.length > 0 && (
         <div>
-          <h3 className="fw-bold small text-dark mb-3">✓ Read</h3>
+          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>✓ Read</h3>
           <div className="d-flex flex-column gap-2">
             {read.map(notif => (
-              <div key={notif.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+              <div key={notif.id} className="card border-0 shadow-sm rounded-3 opacity-75 card-glow-border" style={{ background: 'white' }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-start justify-content-between gap-3">
                     <div className="d-flex align-items-start gap-3 flex-grow-1">
                       <span style={{ fontSize: 16 }}>{notif.icon}</span>
                       <div>
-                        <div className="fw-bold small text-dark">{notif.title}</div>
-                        <div className="text-muted small mt-1">{notif.message}</div>
+                        <div className="fw-bold small" style={{ color: '#0f172a' }}>{notif.title}</div>
+                        <div className="small mt-1" style={{ color: '#64748b' }}>{notif.message}</div>
                       </div>
                     </div>
-                    <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger flex-shrink-0" style={{ fontSize: 11 }}>✕</button>
+                    <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 flex-shrink-0" style={{ fontSize: 11, color: '#dc2626' }}>✕</button>
                   </div>
                 </div>
               </div>
@@ -704,43 +827,48 @@ function AttendancePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   const avgAttendance = subjectAttendance.length > 0 ? Math.round(subjectAttendance.reduce((a, att) => a + att.percentage, 0) / subjectAttendance.length) : 0;
 
   return (
-    <div className="d-flex flex-column gap-4">
+    <div className="d-flex flex-column gap-4 scroll-reveal">
       <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 text-dark mb-0">Attendance Management</h2><p className="text-muted small mb-0">Track and manage student attendance</p></div>
+        <div><h2 className="fw-black fs-4 mb-0" style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Attendance Management</h2><p className="text-white-50 small mb-0">Track and manage student attendance</p></div>
       </div>
       <div className="d-flex flex-column flex-sm-row gap-3">
         <div style={{ width: 220 }}>
-          <label className="form-label text-muted fw-semibold text-uppercase mb-1" style={{ fontSize: 11 }}>Select Subject</label>
+          <label className="form-label fw-semibold text-uppercase mb-1" style={{ fontSize: 11, color: '#0f172a' }}>Select Subject</label>
           <select value={selectedSubject} onChange={e => setSelectedSubject(Number(e.target.value))} className="form-select form-select-sm rounded-3">
             {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
-        <div className="flex-grow-1 rounded-3 p-3 d-flex align-items-center gap-3 bg-success bg-opacity-10 border border-success border-opacity-25">
-          <div className="rounded-circle bg-success d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style={{ width: 44, height: 44, fontSize: 16 }}>✓</div>
-          <div className="flex-grow-1"><div className="fw-bold text-dark">{subjects.find(s => s.id === selectedSubject)?.name}</div><div className="text-muted small">{subjectAttendance.length} students tracked</div></div>
-          <div className="text-end"><div className="fw-black fs-3 text-success">{avgAttendance}%</div><div className="text-muted small">Class Average</div></div>
+        <div className="flex-grow-1 rounded-3 p-3 d-flex align-items-center gap-3 card-glow-border" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(251, 191, 36, 0.1))', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+          <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style={{ width: 44, height: 44, fontSize: 16, background: 'linear-gradient(135deg, #10b981, #059669)' }}>✓</div>
+          <div className="flex-grow-1"><div className="fw-bold" style={{ color: '#0f172a' }}>{subjects.find(s => s.id === selectedSubject)?.name}</div><div className="small" style={{ color: '#64748b' }}>{subjectAttendance.length} students tracked</div></div>
+          <div className="text-end"><div className="fw-black fs-3" style={{ color: '#10b981' }}>{avgAttendance}%</div><div className="small" style={{ color: '#64748b' }}>Class Average</div></div>
         </div>
       </div>
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden card-glow-border" style={{ background: 'white' }}>
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead className="table-light">
+            <thead style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(251, 191, 36, 0.1))' }}>
               <tr>
-                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Student</th>
-                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em" }}>ID</th>
-                <th className="small text-muted fw-semibold text-uppercase text-center" style={{ letterSpacing: "0.05em" }}>Present</th>
-                <th className="small text-muted fw-semibold text-uppercase text-center" style={{ letterSpacing: "0.05em" }}>Total</th>
-                <th className="small text-muted fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em" }}>%</th>
+                <th className="small fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Student</th>
+                <th className="small fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>ID</th>
+                <th className="small fw-semibold text-uppercase text-center" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Present</th>
+                <th className="small fw-semibold text-uppercase text-center" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Total</th>
+                <th className="small fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>%</th>
               </tr>
             </thead>
             <tbody>
               {subjectAttendance.map((a, i) => (
                 <tr key={i}>
-                  <td className="ps-4 small fw-medium text-dark">{a.name}</td>
-                  <td className="d-none d-sm-table-cell font-mono text-muted small">{a.student_id}</td>
-                  <td className="text-center text-muted small">{a.present}</td>
-                  <td className="text-center text-muted small">{a.total}</td>
-                  <td className="text-end pe-4 fw-black small text-success">{a.percentage}%</td>
+                  <td className="ps-4 small fw-medium" style={{ color: '#0f172a' }}>{a.name}</td>
+                  <td className="d-none d-sm-table-cell font-mono small" style={{ color: '#64748b' }}>{a.student_id}</td>
+                  <td className="text-center small" style={{ color: '#64748b' }}>{a.present}</td>
+                  <td className="text-center small" style={{ color: '#64748b' }}>{a.total}</td>
+                  <td className="text-end pe-4 fw-black small" style={{ color: '#10b981' }}>{a.percentage}%</td>
                 </tr>
               ))}
             </tbody>

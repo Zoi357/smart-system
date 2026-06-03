@@ -183,6 +183,28 @@ function BackBtn({ onClick }: { onClick: () => void }) {
 function GradesView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onAskJobert: (p: string) => void; darkMode: boolean }) {
   const [selectedTerm, setSelectedTerm] = useState<"term1" | "term2" | "term3">("term1");
   const [requests, setRequests] = useState(gradeRequests);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  
+  const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (mouseY - centerY) / 15;
+    const rotateY = (centerX - mouseX) / 15;
+    card.style.setProperty('--rotateX', `${rotateX}deg`);
+    card.style.setProperty('--rotateY', `${rotateY}deg`);
+  };
+
+  const handleTiltMouseLeave = (index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    card.style.setProperty('--rotateX', '0deg');
+    card.style.setProperty('--rotateY', '0deg');
+  };
   
   const termGrades = gradeData.map(g => ({
     ...g,
@@ -206,32 +228,45 @@ function GradesView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onA
   return (
     <div className="d-flex flex-column gap-4 w-100">
       <BackBtn onClick={onBack} />
-      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
+      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3 scroll-reveal">
         <div>
-          <h2 className="fw-black fs-4 text-white mb-0">My Grades</h2>
+          <h2 className="fw-black fs-4 text-white mb-0">
+            <span style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>My Grades</span>
+          </h2>
           <p className="text-white-50 small mb-0">School Year 2025–2026</p>
         </div>
         <div className="d-flex flex-column align-items-center gap-1 flex-shrink-0">
-          <div className="bg-primary bg-opacity-10 border border-primary border-opacity-25 rounded-3 px-4 py-2 text-center">
-            <div className="text-muted" style={{ fontSize: 11 }}>General Average</div>
-            <div className="fw-black fs-3 text-primary">{avg}%</div>
+          <div className="rounded-3 px-4 py-2 text-center card-glow-border" style={{ 
+              background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))',
+              border: '1px solid rgba(220,38,38,0.2)' 
+          }}>
+            <div style={{ fontSize: 11, color: '#64748b' }}>General Average</div>
+            <div className="fw-black fs-3" style={{ color: '#dc2626' }}>{avg}%</div>
           </div>
           <button onClick={() => onAskJobert(`My general average is ${avg}%. Can you explain what this means in the Philippine grading scale?`)}
-            className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 12 }}>🤖 Ask JOBERT to explain</button>
+            className="btn btn-link btn-sm p-0" style={{ fontSize: 12, color: '#dc2626' }}>🤖 Ask JOBERT to explain</button>
         </div>
       </div>
 
       {/* Term Selector */}
-      <div className="d-flex gap-2">
+      <div className="d-flex gap-2 scroll-reveal">
         {[
-          { id: "term1" as const, label: "Term 1", color: "primary" },
-          { id: "term2" as const, label: "Term 2", color: "success" },
-          { id: "term3" as const, label: "Term 3", color: "warning" },
+          { id: "term1" as const, label: "Term 1", color: 'linear-gradient(135deg, #dc2626, #f97316)' },
+          { id: "term2" as const, label: "Term 2", color: 'linear-gradient(135deg, #10b981, #059669)' },
+          { id: "term3" as const, label: "Term 3", color: 'linear-gradient(135deg, #fbbf24, #f59e0b)' },
         ].map(t => (
           <button
             key={t.id}
             onClick={() => setSelectedTerm(t.id)}
-            className={`btn btn-sm flex-grow-1 ${selectedTerm === t.id ? `btn-${t.color} shadow-sm` : "btn-outline-secondary"}`}
+            className={`btn btn-sm flex-grow-1 ${selectedTerm === t.id ? "shadow-sm" : ""}`}
+            style={selectedTerm === t.id ? { background: t.color, border: 'none', color: 'white' } : { borderColor: '#dc2626', color: '#dc2626', background: 'transparent' }}
+            onMouseEnter={(e) => { if (selectedTerm !== t.id) { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))'; } }}
+            onMouseLeave={(e) => { if (selectedTerm !== t.id) { e.currentTarget.style.background = 'transparent'; } }}
           >
             {t.label}
           </button>
@@ -240,28 +275,37 @@ function GradesView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onA
 
       {/* Term 3 Request Info */}
       {selectedTerm === "term3" && (
-        <div className="alert alert-info border-0 rounded-3 d-flex align-items-start gap-3" role="alert">
+        <div className="alert border-0 rounded-3 d-flex align-items-start gap-3 scroll-reveal" role="alert" style={{ 
+            background: 'linear-gradient(135deg, rgba(6,182,212,0.1), rgba(8,145,178,0.1))',
+            border: '1px solid rgba(6,182,212,0.3)' 
+        }}>
           <span style={{ fontSize: 20 }}>ℹ️</span>
           <div>
-            <div className="fw-bold small">Term 3 Grades</div>
-            <div className="text-muted small">Request Term 3 grades from your teachers. Once approved, your grades will appear here.</div>
+            <div className="fw-bold small" style={{ color: '#0f172a' }}>Term 3 Grades</div>
+            <div className="small" style={{ color: '#64748b' }}>Request Term 3 grades from your teachers. Once approved, your grades will appear here.</div>
           </div>
         </div>
       )}
 
       {/* Pending Requests */}
       {requests.length > 0 && (
-        <div className="card border-0 rounded-3 bg-warning bg-opacity-10 border border-warning border-opacity-25">
+        <div className="card border-0 rounded-3 card-glow-border scroll-reveal" style={{ 
+            background: 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(249,115,22,0.1))',
+            border: '1px solid rgba(251,191,36,0.2)' 
+        }}>
           <div className="card-body p-3">
-            <div className="fw-bold small text-dark mb-2">📋 Pending Grade Requests</div>
+            <div className="fw-bold small mb-2" style={{ color: '#0f172a' }}>📋 Pending Grade Requests</div>
             <div className="d-flex flex-column gap-2">
               {requests.map(req => (
-                <div key={req.id} className="d-flex align-items-center justify-content-between p-2 rounded-2 bg-white">
+                <div key={req.id} className="d-flex align-items-center justify-content-between p-2 rounded-2" style={{ background: 'white' }}>
                   <div className="small">
-                    <div className="fw-semibold text-dark">{req.subject}</div>
-                    <div className="text-muted" style={{ fontSize: 11 }}>{req.teacher} · {req.requestedAt}</div>
+                    <div className="fw-semibold" style={{ color: '#0f172a' }}>{req.subject}</div>
+                    <div style={{ fontSize: 11, color: '#64748b' }}>{req.teacher} · {req.requestedAt}</div>
                   </div>
-                  <span className={`badge ${req.status === "pending" ? "bg-warning-subtle text-warning border border-warning-subtle" : "bg-success-subtle text-success border border-success-subtle"}`}>
+                  <span className="badge" style={{ 
+                      background: req.status === "pending" ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : 'linear-gradient(135deg, #10b981, #059669)', 
+                      color: 'white' 
+                  }}>
                     {req.status === "pending" ? "⏳ Pending" : "✓ Approved"}
                   </span>
                 </div>
@@ -272,48 +316,82 @@ function GradesView({ onBack, onAskJobert, darkMode }: { onBack: () => void; onA
       )}
 
       {/* Grades Grid */}
-      <div className="row g-3">
+      <div className="row g-3 scroll-reveal">
         {termGrades.map((g, i) => {
           const hasGrade = g.currentGrade !== null;
           const hasRequested = g.hasRequested;
 
           return (
             <div key={i} className="col-12 col-sm-6">
-              <div className={`card-elevated border-0 rounded-3 h-100 ${!hasGrade && selectedTerm === "term3" ? "opacity-75" : ""}`}>
-                <div className="card-body p-4">
-                  <div className="d-flex align-items-center gap-3 mb-3">
-                    <div className="rounded-3 bg-primary d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 40, height: 40, fontSize: 20 }}>{g.icon}</div>
-                    <div className="flex-grow-1 overflow-hidden">
-                      <div className="fw-bold small text-dark text-truncate">{g.subject}</div>
-                      <div className="text-muted" style={{ fontSize: 11 }}>{g.teacher}</div>
+              <div 
+                className={`card-glow-border h-100 ${!hasGrade && selectedTerm === "term3" ? "opacity-75" : ""}`}
+                ref={(el) => { cardRefs.current[i] = el; }}
+                onMouseMove={(e) => handleTiltMouseMove(e, i)}
+                onMouseLeave={() => handleTiltMouseLeave(i)}
+              >
+                <div className="card-elevated border-0 rounded-3 h-100" style={{ 
+                    background: 'white',
+                    transform: 'translateY(0) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg))',
+                    transformStyle: 'preserve-3d',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}>
+                  <div className="card-body p-4">
+                    <div className="d-flex align-items-center gap-3 mb-3">
+                      <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style={{ 
+                          width: 40, height: 40, fontSize: 20, 
+                          background: 'linear-gradient(135deg, #0f172a, #1e293b)' 
+                      }}>{g.icon}</div>
+                      <div className="flex-grow-1 overflow-hidden">
+                        <div className="fw-bold small text-truncate" style={{ color: '#0f172a' }}>{g.subject}</div>
+                        <div style={{ fontSize: 11, color: '#64748b' }}>{g.teacher}</div>
+                      </div>
+                      {hasGrade && g.currentGrade && <div className="fw-black fs-4 flex-shrink-0" style={{ color: '#dc2626' }}>{g.currentGrade.grade}</div>}
                     </div>
-                    {hasGrade && g.currentGrade && <div className="fw-black fs-4 text-primary flex-shrink-0">{g.currentGrade.grade}</div>}
-                  </div>
 
-                  {hasGrade && g.currentGrade ? (
-                    <>
-                      <div className="progress mb-2" style={{ height: 6 }}>
-                        <div className="progress-bar bg-primary" style={{ width: `${g.currentGrade.pct}%` }} />
-                      </div>
-                      <div className="d-flex justify-content-between align-items-center mb-3">
-                        <span className="text-muted small">{g.currentGrade.pct}%</span>
-                        <span className={`badge-status ${g.currentGrade.pct >= 90 ? "badge-active" : "badge-pending"}`}>{g.status}</span>
-                      </div>
-                      <button onClick={() => onAskJobert(`I got ${g.currentGrade!.grade} (${g.currentGrade!.pct}%) in ${g.subject} with ${g.teacher}. Can you explain this grade and give me tips to improve?`)}
-                        className="btn btn-outline-primary btn-sm w-100" style={{ fontSize: 12 }}>🤖 Ask JOBERT about this grade</button>
-                    </>
-                  ) : selectedTerm === "term3" ? (
-                    <button
-                      onClick={() => requestTerm3Grade(g.subject, g.teacher)}
-                      disabled={hasRequested}
-                      className={`btn w-100 ${hasRequested ? "btn-secondary" : "btn-primary"}`}
-                      style={{ fontSize: 12 }}
-                    >
-                      {hasRequested ? "✓ Request Sent" : "📨 Request Grade"}
-                    </button>
-                  ) : (
-                    <div className="text-center text-muted small">No grade available</div>
-                  )}
+                    {hasGrade && g.currentGrade ? (
+                      <>
+                        <div className="progress mb-2" style={{ height: 6 }}>
+                          <div className="progress-bar" style={{ 
+                              width: `${g.currentGrade.pct}%`, 
+                              background: 'linear-gradient(90deg, #dc2626, #f97316, #fbbf24)' 
+                          }} />
+                        </div>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                          <span className="small" style={{ color: '#64748b' }}>{g.currentGrade.pct}%</span>
+                          <span className="badge" style={{ 
+                              background: g.currentGrade.pct >= 90 ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #fbbf24, #f59e0b)', 
+                              color: 'white' 
+                          }}>{g.status}</span>
+                        </div>
+                        <button onClick={() => onAskJobert(`I got ${g.currentGrade!.grade} (${g.currentGrade!.pct}%) in ${g.subject} with ${g.teacher}. Can you explain this grade and give me tips to improve?`)}
+                          className="btn btn-sm w-100" style={{ 
+                              fontSize: 12, 
+                              borderColor: '#dc2626', 
+                              color: '#dc2626', 
+                              background: 'transparent' 
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #dc2626, #f97316)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.border = 'none'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.border = '1px solid #dc2626'; }}
+                          >🤖 Ask JOBERT about this grade</button>
+                      </>
+                    ) : selectedTerm === "term3" ? (
+                      <button
+                        onClick={() => requestTerm3Grade(g.subject, g.teacher)}
+                        disabled={hasRequested}
+                        className={`btn w-100`}
+                        style={{ 
+                            fontSize: 12, 
+                            background: hasRequested ? 'linear-gradient(135deg, #64748b, #475569)' : 'linear-gradient(135deg, #dc2626, #f97316)', 
+                            border: 'none', 
+                            color: 'white' 
+                        }}
+                      >
+                        {hasRequested ? "✓ Request Sent" : "📨 Request Grade"}
+                      </button>
+                    ) : (
+                      <div className="text-center small" style={{ color: '#64748b' }}>No grade available</div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -330,62 +408,131 @@ function ScheduleView({ onBack, onAskJobert, darkMode }: { onBack: () => void; o
   const todayIdx = Math.min(new Date().getDay() - 1, 4);
   const [day, setDay] = useState(days[todayIdx >= 0 ? todayIdx : 0]);
   const subjectList = timetable[day].map(c => c.subject).join(", ");
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  
+  const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = (mouseY - centerY) / 15;
+    const rotateY = (centerX - mouseX) / 15;
+    card.style.setProperty('--rotateX', `${rotateX}deg`);
+    card.style.setProperty('--rotateY', `${rotateY}deg`);
+  };
+
+  const handleTiltMouseLeave = (index: number) => {
+    const card = cardRefs.current[index];
+    if (!card) return;
+    card.style.setProperty('--rotateX', '0deg');
+    card.style.setProperty('--rotateY', '0deg');
+  };
 
   return (
     <div className="d-flex flex-column gap-4 w-100">
       <BackBtn onClick={onBack} />
-      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
+      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3 scroll-reveal">
         <div>
-          <h2 className="fw-black fs-4 text-white mb-0">My Schedule</h2>
+          <h2 className="fw-black fs-4 text-white mb-0">
+            <span style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>My Schedule</span>
+          </h2>
           <p className="text-white-50 small mb-0">Term 1 · 2025–2026</p>
         </div>
         <button onClick={() => onAskJobert(`Today is ${day}. My classes are: ${subjectList}. Can you give me study tips for each subject?`)}
-          className="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 flex-shrink-0" style={{ fontSize: 12 }}>🤖 Study tips for today</button>
+          className="btn btn-sm d-flex align-items-center gap-1 flex-shrink-0" style={{ 
+            fontSize: 12, 
+            borderColor: '#dc2626', 
+            color: '#dc2626',
+            background: 'transparent'
+          }} 
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #dc2626, #f97316)'; e.currentTarget.style.color = 'white'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#dc2626'; }}
+          >🤖 Study tips for today</button>
       </div>
-      <div className="d-flex gap-2 overflow-auto pb-1">
+      <div className="d-flex gap-2 overflow-auto pb-1 scroll-reveal">
         {days.map(d => (
           <button key={d} onClick={() => setDay(d)}
-            className={`btn btn-sm flex-shrink-0 ${day === d ? "btn-primary shadow-sm" : "btn-outline-secondary"}`}>
+            className={`btn btn-sm flex-shrink-0 ${day === d ? "shadow-sm" : ""}`}
+            style={day === d ? { background: 'linear-gradient(135deg, #dc2626, #f97316)', border: 'none', color: 'white' } : { borderColor: '#dc2626', color: '#dc2626', background: 'transparent' }}
+            onMouseEnter={(e) => { if (day !== d) { e.currentTarget.style.background = 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))'; } }}
+            onMouseLeave={(e) => { if (day !== d) { e.currentTarget.style.background = 'transparent'; } }}
+            >
             {d.slice(0, 3)}
           </button>
         ))}
       </div>
-      <div className="d-flex flex-column gap-2">
+      <div className="d-flex flex-column gap-2 scroll-reveal">
         {timetable[day].map((cls, i) => (
-          <div key={i} className="card-elevated border-0 rounded-3">
-            <div className="card-body p-4">
-              <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
-                <div className="d-flex align-items-center gap-3 flex-grow-1">
-                  <div className={`rounded-3 bg-${cls.color} d-flex align-items-center justify-content-center flex-shrink-0`} style={{ width: 44, height: 44, fontSize: 22 }}>{cls.icon}</div>
-                  <div className="flex-grow-1">
-                    <div className="fw-bold small text-dark">{cls.subject}</div>
-                    <div className="text-muted" style={{ fontSize: 11 }}>👨‍🏫 {cls.teacher}</div>
+          <div key={i} 
+            className="card-glow-border"
+            ref={(el) => { cardRefs.current[i] = el; }}
+            onMouseMove={(e) => handleTiltMouseMove(e, i)}
+            onMouseLeave={() => handleTiltMouseLeave(i)}
+            >
+            <div className="card-elevated border-0 rounded-3" style={{ 
+                background: 'white',
+                transform: 'translateY(0) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg))',
+                transformStyle: 'preserve-3d',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}>
+              <div className="card-body p-4">
+                <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
+                  <div className="d-flex align-items-center gap-3 flex-grow-1">
+                    <div className="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style={{ 
+                        width: 44, height: 44, fontSize: 22, 
+                        background: 'linear-gradient(135deg, #0f172a, #1e293b)'
+                    }}>{cls.icon}</div>
+                    <div className="flex-grow-1">
+                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{cls.subject}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>👨‍🏫 {cls.teacher}</div>
+                    </div>
                   </div>
+                  <span className="badge flex-shrink-0" style={{ 
+                      background: 'linear-gradient(135deg, #0f172a, #1e293b)',
+                      color: 'white' 
+                  }}>{cls.time}</span>
                 </div>
-                <span className="badge bg-primary-subtle text-primary border border-primary-subtle flex-shrink-0">{cls.time}</span>
-              </div>
-              <div className="row g-2">
-                <div className="col-6 col-sm-3">
-                  <div className="rounded-3 p-2 bg-light border text-center">
-                    <div className="text-muted" style={{ fontSize: 10 }}>📍 Room</div>
-                    <div className="fw-bold small text-dark">{cls.room}</div>
+                <div className="row g-2">
+                  <div className="col-6 col-sm-3">
+                    <div className="rounded-3 p-2 text-center" style={{ 
+                        background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))',
+                        border: '1px solid rgba(220,38,38,0.2)' 
+                    }}>
+                      <div style={{ fontSize: 10, color: '#64748b' }}>📍 Room</div>
+                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{cls.room}</div>
+                    </div>
                   </div>
-                </div>
-                <div className="col-6 col-sm-3">
-                  <div className="rounded-3 p-2 bg-success bg-opacity-10 border border-success border-opacity-25 text-center">
-                    <div className="text-muted" style={{ fontSize: 10 }}>🚪 Enter</div>
-                    <div className="fw-bold small text-success">{cls.enter}</div>
+                  <div className="col-6 col-sm-3">
+                    <div className="rounded-3 p-2 text-center" style={{ 
+                        background: 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.1))',
+                        border: '1px solid rgba(16,185,129,0.2)' 
+                    }}>
+                      <div style={{ fontSize: 10, color: '#64748b' }}>🚪 Enter</div>
+                      <div className="fw-bold small" style={{ color: '#10b981' }}>{cls.enter}</div>
+                    </div>
                   </div>
-                </div>
-                <div className="col-6 col-sm-3">
-                  <div className="rounded-3 p-2 bg-danger bg-opacity-10 border border-danger border-opacity-25 text-center">
-                    <div className="text-muted" style={{ fontSize: 10 }}>� Leave</div>
-                    <div className="fw-bold small text-danger">{cls.leave}</div>
+                  <div className="col-6 col-sm-3">
+                    <div className="rounded-3 p-2 text-center" style={{ 
+                        background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(249,115,22,0.1))',
+                        border: '1px solid rgba(220,38,38,0.2)' 
+                    }}>
+                      <div style={{ fontSize: 10, color: '#64748b' }}>🚪 Leave</div>
+                      <div className="fw-bold small" style={{ color: '#dc2626' }}>{cls.leave}</div>
+                    </div>
                   </div>
-                </div>
-                <div className="col-6 col-sm-3">
-                  <button onClick={() => onAskJobert(`Give me a quick study tip for ${cls.subject} class at ${cls.time} in ${cls.room}.`)}
-                    className="btn btn-link btn-sm p-0 text-primary w-100" title="Ask JOBERT" style={{ fontSize: 12 }}>🤖 Ask JOBERT</button>
+                  <div className="col-6 col-sm-3">
+                    <button onClick={() => onAskJobert(`Give me a quick study tip for ${cls.subject} class at ${cls.time} in ${cls.room}.`)}
+                      className="btn btn-link btn-sm p-0 w-100" title="Ask JOBERT" 
+                      style={{ fontSize: 12, color: '#dc2626' }}>🤖 Ask JOBERT</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -937,13 +1084,28 @@ function NotificationsView({ onBack, onAskJobert, darkMode, notifs, markAsRead, 
   return (
     <div className="d-flex flex-column gap-4 w-100">
       <BackBtn onClick={onBack} />
-      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
+      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3 scroll-reveal">
         <div>
-          <h2 className="fw-black fs-4 text-white mb-0">Notifications</h2>
+          <h2 className="fw-black fs-4 text-white mb-0">
+            <span style={{
+              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}>Notifications</span>
+          </h2>
           <p className="text-white-50 small mb-0">{unread.length} unread notifications</p>
         </div>
         {unread.length > 0 && (
-          <button onClick={markAllAsRead} className="btn btn-outline-primary btn-sm flex-shrink-0" style={{ fontSize: 12 }}>
+          <button onClick={markAllAsRead} className="btn btn-sm flex-shrink-0" style={{ 
+              fontSize: 12, 
+              borderColor: '#dc2626', 
+              color: '#dc2626', 
+              background: 'transparent' 
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #dc2626, #f97316)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.border = 'none'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#dc2626'; e.currentTarget.style.border = '1px solid #dc2626'; }}
+          >
             ✓ Mark all as read
           </button>
         )}
@@ -951,22 +1113,25 @@ function NotificationsView({ onBack, onAskJobert, darkMode, notifs, markAsRead, 
 
       {/* Unread Notifications */}
       {unread.length > 0 && (
-        <div>
+        <div className="scroll-reveal">
           <p className="text-white-50 small fw-semibold mb-3">🔔 Unread</p>
           <div className="d-flex flex-column gap-2">
             {unread.map(notif => (
-              <div key={notif.id} className="card border-0 rounded-3" style={{ background: "rgba(220, 38, 38, 0.15)", border: "1px solid rgba(220, 38, 38, 0.3)" }}>
+              <div key={notif.id} className="card border-0 rounded-3 card-glow-border" style={{ 
+                  background: 'linear-gradient(135deg, rgba(220,38,38,0.15), rgba(251,191,36,0.1))', 
+                  border: '1px solid rgba(220,38,38,0.3)' 
+              }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-start gap-3">
                     <span style={{ fontSize: 20 }}>{notif.icon}</span>
                     <div className="flex-grow-1">
-                      <div className="fw-bold small text-white">{notif.title}</div>
-                      <div className="text-white-50 small mt-1">{notif.message}</div>
-                      <div className="text-white-50 small mt-2" style={{ fontSize: 11 }}>{notif.time}</div>
+                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{notif.title}</div>
+                      <div className="small mt-1" style={{ color: '#64748b' }}>{notif.message}</div>
+                      <div className="small mt-2" style={{ fontSize: 11, color: '#64748b' }}>{notif.time}</div>
                     </div>
                     <div className="d-flex gap-1 flex-shrink-0">
-                      <button onClick={() => markAsRead(notif.id)} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 12 }}>✓ Read</button>
-                      <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize: 12 }}>✕</button>
+                      <button onClick={() => markAsRead(notif.id)} className="btn btn-link btn-sm p-0" style={{ fontSize: 12, color: '#dc2626' }}>✓ Read</button>
+                      <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0" style={{ fontSize: 12, color: '#dc2626' }}>✕</button>
                     </div>
                   </div>
                 </div>
@@ -978,21 +1143,21 @@ function NotificationsView({ onBack, onAskJobert, darkMode, notifs, markAsRead, 
 
       {/* Read Notifications */}
       {read.length > 0 && (
-        <div>
+        <div className="scroll-reveal">
           <p className="text-white-50 small fw-semibold mb-3">✓ Read</p>
           <div className="d-flex flex-column gap-2">
             {read.map(notif => (
-              <div key={notif.id} className="card border-0 rounded-3 opacity-75" style={{ background: "rgba(255,255,255,0.05)" }}>
+              <div key={notif.id} className="card border-0 rounded-3 opacity-75 card-glow-border" style={{ background: 'white' }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-start justify-content-between gap-3">
                     <div className="d-flex align-items-start gap-3 flex-grow-1">
                       <span style={{ fontSize: 18 }}>{notif.icon}</span>
                       <div>
-                        <div className="fw-bold small text-white">{notif.title}</div>
-                        <div className="text-white-50 small mt-1">{notif.message}</div>
+                        <div className="fw-bold small" style={{ color: '#0f172a' }}>{notif.title}</div>
+                        <div className="small mt-1" style={{ color: '#64748b' }}>{notif.message}</div>
                       </div>
                     </div>
-                    <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 text-danger flex-shrink-0" style={{ fontSize: 12 }}>✕</button>
+                    <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 flex-shrink-0" style={{ fontSize: 12, color: '#dc2626' }}>✕</button>
                   </div>
                 </div>
               </div>
@@ -1002,8 +1167,8 @@ function NotificationsView({ onBack, onAskJobert, darkMode, notifs, markAsRead, 
       )}
 
       {notifs.length === 0 && (
-        <div className="card border-0 rounded-3" style={{ background: "rgba(255,255,255,0.05)" }}>
-          <div className="card-body p-4 text-center text-white-50">
+        <div className="card border-0 rounded-3 card-glow-border scroll-reveal" style={{ background: 'white' }}>
+          <div className="card-body p-4 text-center" style={{ color: '#64748b' }}>
             <p className="small mb-0">No notifications</p>
           </div>
         </div>
