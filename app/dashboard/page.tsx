@@ -476,7 +476,7 @@ function TuitionView({ onBack, onAskJobert, darkMode }: { onBack: () => void; on
         ].map((s, i) => (
           <div key={s.label} className="col-4">
             <div 
-              ref={(el) => cardRefs.current[i] = el}
+              ref={(el) => { cardRefs.current[i] = el; }}
               className="rounded-3 p-4 text-center card-3d-tilt"
               style={{ 
                 background: s.color,
@@ -802,7 +802,7 @@ function DocumentsView({ onBack, onAskJobert, darkMode }: { onBack: () => void; 
           {availableDocuments.map((doc, i) => (
             <div key={doc.id} className="col-12 col-sm-6">
               <div 
-                ref={(el) => cardRefs.current[i] = el}
+                ref={(el) => { cardRefs.current[i] = el; }}
                 className="card-glow-border card-3d-tilt h-100"
                 onMouseMove={(e) => handleTiltMouseMove(e, i)}
                 onMouseLeave={() => handleTiltMouseLeave(i)}

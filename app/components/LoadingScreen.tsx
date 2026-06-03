@@ -61,7 +61,6 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
           <h1
             className="fw-black fs-3 mb-2"
             style={{
-              animation: "schoolNameReveal 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both",
               background: "linear-gradient(90deg, #fbbf24 0%, #ffffff 40%, #fbbf24 60%, #f59e0b 80%, #ffffff 100%)",
               backgroundSize: "200% auto",
               WebkitBackgroundClip: "text",
