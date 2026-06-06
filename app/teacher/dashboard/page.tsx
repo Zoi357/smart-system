@@ -1,7 +1,28 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { PremiumDashboardShell } from "../../components/PremiumDashboardShell";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+
+const TIMELOG_KEY = "inform_teacher_timelog";
+
+export type TimeLogEntry = {
+  id: number;
+  teacherId: string;
+  teacherName: string;
+  date: string;
+  timeIn: string;
+  timeOut: string | null;
+  status: "in" | "out";
+};
+
+function loadTimeLogs(): TimeLogEntry[] {
+  if (typeof window === "undefined") return [];
+  try { return JSON.parse(localStorage.getItem(TIMELOG_KEY) || "[]"); } catch { return []; }
+}
+function saveTimeLogs(logs: TimeLogEntry[]) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(TIMELOG_KEY, JSON.stringify(logs));
+}
 
 /* ── Data ── */
 const teacherData = {
@@ -12,387 +33,361 @@ const teacherData = {
 };
 
 const subjects = [
-  { id: 1, code: "MATH101", name: "Algebra I", units: 3, enrolled: 35, max: 40 },
-  { id: 2, code: "MATH102", name: "Geometry", units: 3, enrolled: 32, max: 40 },
+  { id: 1, code: "MATH101", name: "Algebra I",  units: 3, enrolled: 35, max: 40 },
+  { id: 2, code: "MATH102", name: "Geometry",   units: 3, enrolled: 32, max: 40 },
   { id: 3, code: "MATH201", name: "Calculus I", units: 4, enrolled: 28, max: 35 },
 ];
 
 const teacherSchedule = [
-  { day: "Monday", time: "07:30–08:30", subject: "Algebra I", room: "Room 301", enter: "07:25", leave: "08:35" },
-  { day: "Monday", time: "08:30–09:30", subject: "Geometry", room: "Room 205", enter: "08:25", leave: "09:35" },
-  { day: "Tuesday", time: "07:30–09:00", subject: "Calculus I", room: "Sci. Lab", enter: "07:20", leave: "09:05" },
-  { day: "Wednesday", time: "07:30–08:30", subject: "Algebra I", room: "Room 301", enter: "07:25", leave: "08:35" },
-  { day: "Thursday", time: "07:30–09:00", subject: "Calculus I", room: "Sci. Lab", enter: "07:20", leave: "09:05" },
-  { day: "Friday", time: "07:30–08:30", subject: "Algebra I", room: "Room 301", enter: "07:25", leave: "08:35" },
+  { day: "Monday",    time: "07:30–08:30", subject: "Algebra I",  room: "Room 301", enter: "07:25", leave: "08:35" },
+  { day: "Monday",    time: "08:30–09:30", subject: "Geometry",   room: "Room 205", enter: "08:25", leave: "09:35" },
+  { day: "Tuesday",   time: "07:30–09:00", subject: "Calculus I", room: "Sci. Lab", enter: "07:20", leave: "09:05" },
+  { day: "Wednesday", time: "07:30–08:30", subject: "Algebra I",  room: "Room 301", enter: "07:25", leave: "08:35" },
+  { day: "Thursday",  time: "07:30–09:00", subject: "Calculus I", room: "Sci. Lab", enter: "07:20", leave: "09:05" },
+  { day: "Friday",    time: "07:30–08:30", subject: "Algebra I",  room: "Room 301", enter: "07:25", leave: "08:35" },
 ];
 
 const students = [
-  { id: "STU-2024-001", name: "Jamie Santos", pathway: "Academic", grade: 11, status: "Active" },
-  { id: "STU-2024-002", name: "Maria Reyes", pathway: "Academic", grade: 11, status: "Active" },
+  { id: "STU-2024-001", name: "Jamie Santos",    pathway: "Academic", grade: 11, status: "Active" },
+  { id: "STU-2024-002", name: "Maria Reyes",     pathway: "Academic", grade: 11, status: "Active" },
   { id: "STU-2024-003", name: "Carlo Dela Cruz", pathway: "Academic", grade: 12, status: "Active" },
-  { id: "STU-2024-005", name: "Luis Fernandez", pathway: "Academic", grade: 12, status: "Active" },
-  { id: "STU-2024-008", name: "Lena Cruz", pathway: "Academic", grade: 11, status: "Active" },
+  { id: "STU-2024-005", name: "Luis Fernandez",  pathway: "Academic", grade: 12, status: "Active" },
+  { id: "STU-2024-008", name: "Lena Cruz",       pathway: "Academic", grade: 11, status: "Active" },
 ];
 
 const grades = [
-  { student_id: "STU-2024-001", name: "Jamie Santos", subject: "Algebra I", percentage: 92, term: "Term 1" },
-  { student_id: "STU-2024-002", name: "Maria Reyes", subject: "Algebra I", percentage: 87, term: "Term 1" },
+  { student_id: "STU-2024-001", name: "Jamie Santos",    subject: "Algebra I",  percentage: 92, term: "Term 1" },
+  { student_id: "STU-2024-002", name: "Maria Reyes",     subject: "Algebra I",  percentage: 87, term: "Term 1" },
   { student_id: "STU-2024-003", name: "Carlo Dela Cruz", subject: "Calculus I", percentage: 95, term: "Term 1" },
-  { student_id: "STU-2024-005", name: "Luis Fernandez", subject: "Calculus I", percentage: 88, term: "Term 1" },
+  { student_id: "STU-2024-005", name: "Luis Fernandez",  subject: "Calculus I", percentage: 88, term: "Term 1" },
 ];
 
 const gradeRequestsTeacher = [
-  { id: 1, student: "Jamie Santos", subject: "Algebra I", status: "pending", requestedAt: "2h ago" },
-  { id: 2, student: "Maria Reyes", subject: "Algebra I", status: "pending", requestedAt: "1h ago" },
+  { id: 1, student: "Jamie Santos",    subject: "Algebra I",  status: "pending",  requestedAt: "2h ago" },
+  { id: 2, student: "Maria Reyes",     subject: "Algebra I",  status: "pending",  requestedAt: "1h ago" },
   { id: 3, student: "Carlo Dela Cruz", subject: "Calculus I", status: "approved", requestedAt: "30m ago" },
 ];
 
 const attendance = [
-  { student_id: "STU-2024-001", name: "Jamie Santos", subject: "Algebra I", present: 18, total: 20, percentage: 90 },
-  { student_id: "STU-2024-002", name: "Maria Reyes", subject: "Algebra I", present: 19, total: 20, percentage: 95 },
+  { student_id: "STU-2024-001", name: "Jamie Santos",    subject: "Algebra I",  present: 18, total: 20, percentage: 90 },
+  { student_id: "STU-2024-002", name: "Maria Reyes",     subject: "Algebra I",  present: 19, total: 20, percentage: 95 },
   { student_id: "STU-2024-003", name: "Carlo Dela Cruz", subject: "Calculus I", present: 17, total: 20, percentage: 85 },
-  { student_id: "STU-2024-005", name: "Luis Fernandez", subject: "Calculus I", present: 20, total: 20, percentage: 100 },
+  { student_id: "STU-2024-005", name: "Luis Fernandez",  subject: "Calculus I", present: 20, total: 20, percentage: 100 },
 ];
 
 const recentActivity = [
-  { action: "Grade Submitted", name: "Jamie Santos", time: "2h ago", icon: "📊" },
-  { action: "Attendance Updated", name: "Maria Reyes", time: "3h ago", icon: "✓" },
-  { action: "Grade Submitted", name: "Carlo Dela Cruz", time: "5h ago", icon: "📊" },
-  { action: "Attendance Updated", name: "Luis Fernandez", time: "Yesterday", icon: "✓" },
+  { action: "Grade Submitted",    name: "Jamie Santos",    time: "2h ago",   icon: "📊" },
+  { action: "Attendance Updated", name: "Maria Reyes",     time: "3h ago",   icon: "✅" },
+  { action: "Grade Submitted",    name: "Carlo Dela Cruz", time: "5h ago",   icon: "📊" },
+  { action: "Attendance Updated", name: "Luis Fernandez",  time: "Yesterday",icon: "✅" },
 ];
 
 const teacherNotifications = [
-  { id: 1, type: "document", title: "Document Request", message: "Jamie Santos requested a TOR", time: "1h ago", read: false, icon: "📄" },
-  { id: 2, type: "grade", title: "Grade Submitted", message: "Your grades for Algebra I have been submitted", time: "2h ago", read: false, icon: "✓" },
-  { id: 3, type: "enrollment", title: "New Student Enrolled", message: "Rosa Bautista enrolled in your Geometry class", time: "1d ago", read: true, icon: "🎓" },
+  { id: 1, type: "document",   title: "Document Request",   message: "Jamie Santos requested a TOR",                        time: "1h ago", read: false, icon: "📄" },
+  { id: 2, type: "grade",      title: "Grade Submitted",    message: "Your grades for Algebra I have been submitted",       time: "2h ago", read: false, icon: "✅" },
+  { id: 3, type: "enrollment", title: "New Student Enrolled",message: "Rosa Bautista enrolled in your Geometry class",     time: "1d ago", read: true,  icon: "🎓" },
 ];
 
 const documentApprovals = [
-  { id: 1, student: "Jamie Santos", type: "TOR", status: "pending", requestedAt: "May 18, 2026", icon: "📄" },
-  { id: 2, student: "Maria Reyes", type: "Certificate", status: "pending", requestedAt: "May 17, 2026", icon: "📜" },
-  { id: 3, student: "Carlo Dela Cruz", type: "TOR", status: "approved", requestedAt: "May 15, 2026", approvedAt: "May 16, 2026", icon: "✓" },
+  { id: 1, student: "Jamie Santos",    type: "TOR",         status: "pending",  requestedAt: "May 18, 2026", approvedAt: "",            icon: "📄" },
+  { id: 2, student: "Maria Reyes",     type: "Certificate", status: "pending",  requestedAt: "May 17, 2026", approvedAt: "",            icon: "📜" },
+  { id: 3, student: "Carlo Dela Cruz", type: "TOR",         status: "approved", requestedAt: "May 15, 2026", approvedAt: "May 16, 2026",icon: "✅" },
 ];
 
-type Panel = "overview" | "subjects" | "schedule" | "students" | "grades" | "attendance" | "requests" | "documents" | "notifications";
+/* ── Trimester deadline logic ── */
+const TEACHER_TERM_DEADLINES: Record<string, Date> = {
+  "Term 1": new Date("2026-02-28"),
+  "Term 2": new Date("2026-05-15"),
+  "Term 3": new Date("2026-07-15"),
+};
+function getActiveTerm() {
+  const now = new Date();
+  const entries = Object.entries(TEACHER_TERM_DEADLINES);
+  const upcoming = entries.filter(([, d]) => d >= now);
+  return upcoming.length > 0 ? upcoming[0][0] : entries[entries.length - 1][0];
+}
+function isDeadlinePassed() {
+  return new Date() > TEACHER_TERM_DEADLINES[getActiveTerm()];
+}
 
-/* ── Back Button ── */
-function BackBtn({ onClick }: { onClick: () => void }) {
+type Panel = "overview"|"subjects"|"schedule"|"students"|"grades"|"attendance"|"requests"|"documents"|"notifications"|"timelog";
+
+const navItems: { id: Panel|"overview"; label: string; icon: string }[] = [
+  { id: "overview",       label: "Overview",        icon: "🏠" },
+  { id: "subjects",       label: "My Classes",       icon: "📚" },
+  { id: "schedule",       label: "My Schedule",      icon: "📅" },
+  { id: "students",       label: "My Students",      icon: "🎓" },
+  { id: "grades",         label: "Submit Grades",    icon: "📊" },
+  { id: "requests",       label: "Grade Requests",   icon: "📨" },
+  { id: "attendance",     label: "Attendance",       icon: "✅" },
+  { id: "documents",      label: "Documents",        icon: "📄" },
+  { id: "notifications",  label: "Notifications",    icon: "🔔" },
+  { id: "timelog" as Panel, label: "Time Log", icon: "🕐" },
+];
+
+/* ── Sidebar ── */
+function Sidebar({ active, setActive, show, setShow }: { active: string; setActive: (s: Panel) => void; show: boolean; setShow: (b: boolean) => void }) {
+  const [expanded, setExpanded] = useState(false);
   return (
-    <button type="button" onClick={onClick} className="dash-back-btn mb-2">
-      ← Back to Dashboard
-    </button>
+    <>
+      {show && <div className="position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-lg-none" style={{ zIndex: 1040 }} onClick={() => setShow(false)} />}
+      <div
+        className={`d-flex flex-column flex-shrink-0 position-fixed top-0 start-0 h-100 ${show ? "" : "d-none d-lg-flex"}`}
+        style={{ width: expanded ? 256 : 80, zIndex: 1045, background: "linear-gradient(180deg,#1e1b4b 0%,#312e81 100%)", overflowY: "auto", overflowX: "hidden", transition: "width 0.3s ease" }}
+        onMouseEnter={() => setExpanded(true)}
+        onMouseLeave={() => setExpanded(false)}
+      >
+        {/* Logo */}
+        <div className="d-flex align-items-center gap-3 px-4 py-4 border-bottom border-white border-opacity-10" style={{ minHeight: 80 }}>
+          <img src="/cfei-logo.jpg" alt="CFEI" className="rounded-circle flex-shrink-0" style={{ width: 32, height: 32, objectFit: "cover", border: "1px solid rgba(255,255,255,0.2)" }} />
+          {expanded && (
+            <>
+              <img src="/newimlogo.png" alt="INFORM" className="rounded-3 flex-shrink-0" style={{ width: 36, height: 36, objectFit: "cover" }} />
+              <div><div className="text-white fw-bold lh-1" style={{ fontSize: 15 }}>INFORM</div><div style={{ color: "#818cf8", fontSize: 11 }}>Teacher Portal</div></div>
+            </>
+          )}
+          {expanded && <button className="btn-close btn-close-white ms-auto d-lg-none" onClick={() => setShow(false)} />}
+        </div>
+
+        {/* Teacher badge */}
+        {expanded && (
+          <div className="mx-3 mt-3 mb-1 px-3 py-2 rounded-3 d-flex align-items-center gap-2" style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.35)" }}>
+            <span>👨‍🏫</span>
+            <div><div style={{ color: "#6ee7b7", fontSize: 12, fontWeight: 700 }}>Faculty</div><div style={{ color: "rgba(110,231,183,0.6)", fontSize: 11 }}>{teacherData.department}</div></div>
+          </div>
+        )}
+
+        {/* Nav */}
+        <nav className="flex-grow-1 px-3 py-2 d-flex flex-column gap-1">
+          {navItems.map(item => (
+            <button key={item.id} onClick={() => { setActive(item.id as Panel); setShow(false); }}
+              className="btn text-start d-flex align-items-center gap-3 px-3 py-2 rounded-3 small fw-medium border-0"
+              style={{ color: active === item.id ? "#fff" : "rgba(255,255,255,0.5)", background: active === item.id ? "#059669" : "transparent", justifyContent: expanded ? "flex-start" : "center", whiteSpace: "nowrap" }}
+              title={item.label}>
+              <span style={{ fontSize: 18 }}>{item.icon}</span>
+              {expanded && <span>{item.label}</span>}
+            </button>
+          ))}
+        </nav>
+
+        {/* User */}
+        {expanded && (
+          <div className="px-3 py-4 border-top border-white border-opacity-10">
+            <div className="d-flex align-items-center gap-3 rounded-3 px-3 py-2" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style={{ width: 32, height: 32, fontSize: 12, background: "linear-gradient(135deg,#059669,#10b981)" }}>
+                {teacherData.full_name.split(" ").map(n => n[0]).join("").slice(0,2)}
+              </div>
+              <div className="flex-grow-1 overflow-hidden">
+                <div className="text-white small fw-semibold text-truncate">{teacherData.full_name}</div>
+                <div className="text-truncate" style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>{teacherData.email}</div>
+              </div>
+              <Link href="/teacher/login" className="text-decoration-none" style={{ color: "rgba(255,255,255,0.3)", fontSize: 16 }} title="Log out">↩</Link>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
-/* ── Overview Panel ── */
-function OverviewPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
-  const stats = {
-    total_subjects: subjects.length,
-    total_students: students.length,
-    avg_grade: 90.5,
-  };
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+/* ── Overview ── */
+function Overview({ setActive, isGradeLocked, activeTerm }: { setActive: (s: Panel) => void; isGradeLocked: boolean; activeTerm: string }) {
+  const pendingRequests = gradeRequestsTeacher.filter(r => r.status === "pending").length;
+  const avgGrade = Math.round(grades.reduce((a, g) => a + g.percentage, 0) / grades.length);
 
-  const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
-    const card = cardRefs.current[index];
-    if (!card) return;
-    const rect = card.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = (mouseY - centerY) / 15;
-    const rotateY = (centerX - mouseX) / 15;
-    card.style.setProperty('--rotateX', `${rotateX}deg`);
-    card.style.setProperty('--rotateY', `${rotateY}deg`);
-  };
-
-  const handleTiltMouseLeave = (index: number) => {
-    const card = cardRefs.current[index];
-    if (!card) return;
-    card.style.setProperty('--rotateX', '0deg');
-    card.style.setProperty('--rotateY', '0deg');
-  };
+  const quickLinks = [
+    { id: "subjects"  as Panel, label: "My Classes",     icon: "📚", bg: "#3b82f6" },
+    { id: "grades"    as Panel, label: "Submit Grades",  icon: "📊", bg: isGradeLocked ? "#94a3b8" : "#8b5cf6" },
+    { id: "requests"  as Panel, label: "Grade Requests", icon: "📨", bg: isGradeLocked ? "#94a3b8" : "#f59e0b" },
+    { id: "attendance"as Panel, label: "Attendance",     icon: "✅", bg: "#14b8a6" },
+    { id: "documents" as Panel, label: "Documents",      icon: "📄", bg: "#ec4899" },
+  ];
 
   return (
     <div className="d-flex flex-column gap-4">
-      {/* Welcome Banner */}
-      <div className="dash-hero dash-reveal">
-        <div className="dash-hero-title">Welcome back, {teacherData.full_name} 👋</div>
-        <div className="dash-hero-sub">Department: {teacherData.department}</div>
-        <div className="dash-hero-badges">
-          <span className="dash-badge">👨‍🏫 Faculty Member</span>
-          <span className="dash-badge dash-badge-gold">{stats.total_subjects} Active Classes</span>
-        </div>
+      {/* Welcome */}
+      <div className="rounded-3 p-4" style={{ background: "linear-gradient(135deg,#059669,#10b981)", boxShadow: "0 8px 32px rgba(5,150,105,0.25)" }}>
+        <h2 className="text-white fw-black fs-4 mb-1">Welcome back, {teacherData.full_name} 👋</h2>
+        <p className="text-white-50 small mb-0">Department: {teacherData.department} · {teacherData.teacher_id}</p>
       </div>
 
+      {/* Lock banner */}
+      {isGradeLocked && (
+        <div className="rounded-3 p-3 d-flex align-items-start gap-3" style={{ background: "#fef2f2", border: "1px solid #fecaca" }}>
+          <span style={{ fontSize: 22 }}>🔒</span>
+          <div>
+            <div className="fw-bold small text-danger">Grade Submission Locked — {activeTerm} Deadline Passed</div>
+            <div className="text-muted small">You have unresolved grade requests. Visit the <strong>Registrar&apos;s Office</strong> to restore access.</div>
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
-      <div className="dash-body dash-reveal">
-      <div className="dash-stat-grid">
+      <div className="row g-3">
         {[
-          { label: "Total Classes", value: stats.total_subjects, icon: "📚", color: "linear-gradient(135deg, #0f172a, #1e293b)" },
-          { label: "Total Students", value: stats.total_students, icon: "🎓", color: "linear-gradient(135deg, #fbbf24, #f59e0b)" },
-          { label: "Class Avg. Grade", value: `${stats.avg_grade}%`, icon: "📈", color: "linear-gradient(135deg, #10b981, #059669)" },
-          { label: "Pending Requests", value: gradeRequestsTeacher.filter(r => r.status === "pending").length, icon: "📨", color: "linear-gradient(135deg, #dc2626, #f97316)" },
-        ].map((s, i) => (
-          <div 
-            key={s.label} 
-            className="dash-stat-card"
-            ref={(el) => { cardRefs.current[i] = el; }}
-            onMouseMove={(e) => handleTiltMouseMove(e, i)}
-            onMouseLeave={() => handleTiltMouseLeave(i)}
-            style={{
-              background: s.color,
-              transform: 'translateY(0) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg))',
-              transformStyle: 'preserve-3d',
-              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
-            }}
-          >
-            <span className="dash-stat-icon">{s.icon}</span>
-            <div className="dash-stat-label" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.label}</div>
-            <div className="dash-stat-value" style={{ color: 'white' }}>{s.value}</div>
+          { label: "My Classes",       value: subjects.length,    icon: "📚", cls: "border-primary-subtle bg-primary-subtle",   val: "text-primary"   },
+          { label: "My Students",      value: students.length,    icon: "🎓", cls: "border-success-subtle bg-success-subtle",   val: "text-success"   },
+          { label: "Class Avg. Grade", value: `${avgGrade}%`,     icon: "📈", cls: "border-warning-subtle bg-warning-subtle",   val: "text-warning"   },
+          { label: "Pending Requests", value: pendingRequests,    icon: "📨", cls: "border-danger-subtle bg-danger-subtle",     val: "text-danger"    },
+        ].map(s => (
+          <div key={s.label} className="col-6 col-lg-3">
+            <div className={`card border rounded-3 h-100 ${s.cls}`}>
+              <div className="card-body p-3">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <span className="text-muted small">{s.label}</span>
+                  <span style={{ fontSize: 20 }}>{s.icon}</span>
+                </div>
+                <div className={`fw-black fs-3 ${s.val}`}>{s.value}</div>
+              </div>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Quick Access */}
-      <div className="dash-reveal mt-4">
-        <p className="dash-section-label">Quick Access</p>
-        <div className="dash-quick-grid">
-          {[
-            { id: "subjects", label: "My Classes", icon: "📚" },
-            { id: "schedule", label: "My Schedule", icon: "📅" },
-            { id: "students", label: "My Students", icon: "🎓" },
-            { id: "grades", label: "Submit Grades", icon: "📊" },
-            { id: "requests", label: "Grade Requests", icon: "📨" },
-            { id: "documents", label: "Documents", icon: "📄" },
-            { id: "notifications", label: "Notifications", icon: "🔔" },
-            { id: "attendance", label: "Attendance", icon: "✓" },
-          ].map(q => (
-            <button key={q.id} type="button" onClick={() => setPanel(q.id as Panel)} className="dash-quick-btn border-0">
-              <span>{q.icon}</span>
-              <span>{q.label}</span>
-            </button>
-          ))}
+      <div>
+        <p className="text-muted text-uppercase small fw-semibold mb-3" style={{ letterSpacing: "0.08em" }}>Quick Access</p>
+        <div className="row g-3">
+          {quickLinks.map(q => {
+            const locked = isGradeLocked && (q.id === "grades" || q.id === "requests");
+            return (
+              <div key={q.id} className="col-6 col-sm-4 col-lg-2">
+                <button onClick={() => !locked && setActive(q.id)}
+                  disabled={locked}
+                  title={locked ? "Locked — visit Registrar's Office" : undefined}
+                  className="btn w-100 py-3 d-flex flex-column align-items-center gap-2 rounded-3 text-white border-0 shadow-sm"
+                  style={{ background: q.bg, transition: "transform 0.15s", opacity: locked ? 0.5 : 1, cursor: locked ? "not-allowed" : "pointer" }}
+                  onMouseEnter={e => { if (!locked) e.currentTarget.style.transform = "scale(1.04)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; }}>
+                  <span style={{ fontSize: 28 }}>{locked ? "🔒" : q.icon}</span>
+                  <span className="small fw-bold">{q.label}</span>
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Recent Activity */}
-      <div className="row g-4 dash-reveal mt-4">
+      {/* Recent Activity + Class Summary */}
+      <div className="row g-4">
         <div className="col-12 col-lg-6">
-          <div className="dash-list-card h-100 card-glow-border">
-            <h3 style={{ 
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>Recent Activity</h3>
-            <div className="d-flex flex-column gap-2">
-              {recentActivity.map((a, i) => (
-                <div key={i} className="dash-list-item">
-                  <div className="dash-list-icon">{a.icon}</div>
-                  <div className="flex-grow-1 overflow-hidden">
-                    <div className="small fw-semibold text-truncate">{a.action}</div>
-                    <div className="text-muted" style={{ fontSize: 11 }}>{a.name}</div>
+          <div className="card border-0 shadow-sm rounded-3 h-100">
+            <div className="card-body p-4">
+              <h3 className="fw-bold small text-dark mb-3">Recent Activity</h3>
+              <div className="d-flex flex-column gap-3">
+                {recentActivity.map((a, i) => (
+                  <div key={i} className="d-flex align-items-center gap-3">
+                    <div className="rounded-3 bg-light border d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 36, height: 36, fontSize: 18 }}>{a.icon}</div>
+                    <div className="flex-grow-1 overflow-hidden">
+                      <div className="small fw-semibold text-dark text-truncate">{a.action}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>{a.name}</div>
+                    </div>
+                    <span className="text-muted flex-shrink-0" style={{ fontSize: 11 }}>{a.time}</span>
                   </div>
-                  <span className="text-muted flex-shrink-0" style={{ fontSize: 11 }}>{a.time}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
         <div className="col-12 col-lg-6">
-          <div className="dash-list-card h-100 card-glow-border">
-            <h3 style={{ 
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>Class Summary</h3>
-            <div className="d-flex flex-column gap-2">
-              {subjects.map(s => (
-                <div key={s.id} className="dash-list-item">
-                  <div>
-                    <div className="small fw-semibold">{s.name}</div>
-                    <div className="text-muted" style={{ fontSize: 11 }}>{s.code}</div>
+          <div className="card border-0 shadow-sm rounded-3 h-100">
+            <div className="card-body p-4">
+              <h3 className="fw-bold small text-dark mb-3">Class Summary</h3>
+              <div className="d-flex flex-column gap-3">
+                {subjects.map(s => (
+                  <div key={s.id} className="d-flex align-items-center gap-3">
+                    <div className="rounded-3 bg-success bg-opacity-10 border border-success border-opacity-25 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 36, height: 36, fontSize: 18 }}>📚</div>
+                    <div className="flex-grow-1 overflow-hidden">
+                      <div className="small fw-semibold text-dark text-truncate">{s.name}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>{s.code} · {s.units} units</div>
+                    </div>
+                    <span className="badge bg-success-subtle text-success border border-success-subtle">{s.enrolled}/{s.max}</span>
                   </div>
-                  <div className="text-end">
-                    <div className="fw-bold small" style={{ color: "#fbbf24" }}>{s.enrolled}/{s.max}</div>
-                    <div className="text-muted" style={{ fontSize: 11 }}>Enrolled</div>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
 }
 
 /* ── Schedule Panel ── */
-function SchedulePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+function SchedulePanel() {
+  const days = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
   const todayIdx = Math.min(new Date().getDay() - 1, 4);
   const [day, setDay] = useState(days[todayIdx >= 0 ? todayIdx : 0]);
   const daySchedule = teacherSchedule.filter(s => s.day === day);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  const handleTiltMouseMove = (e: React.MouseEvent<HTMLDivElement>, index: number) => {
-    const card = cardRefs.current[index];
-    if (!card) return;
-    const rect = card.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = (mouseY - centerY) / 15;
-    const rotateY = (centerX - mouseX) / 15;
-    card.style.setProperty('--rotateX', `${rotateX}deg`);
-    card.style.setProperty('--rotateY', `${rotateY}deg`);
-  };
-
-  const handleTiltMouseLeave = (index: number) => {
-    const card = cardRefs.current[index];
-    if (!card) return;
-    card.style.setProperty('--rotateX', '0deg');
-    card.style.setProperty('--rotateY', '0deg');
-  };
-
   return (
-    <div className="d-flex flex-column gap-4 scroll-reveal">
-      <div className="d-flex flex-column flex-sm-row align-items-start justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 mb-0" style={{
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>My Teaching Schedule</h2><p className="text-white-50 small mb-0">Term 1 · 2025–2026</p></div>
-      </div>
+    <div className="d-flex flex-column gap-4">
+      <div><h2 className="fw-black fs-4 text-dark mb-1">My Teaching Schedule</h2><p className="text-muted small mb-0">Term 1 · 2025–2026</p></div>
       <div className="d-flex gap-2 overflow-auto pb-1">
         {days.map(d => (
           <button key={d} onClick={() => setDay(d)}
-            className={`btn btn-sm flex-shrink-0 ${day === d ? "shadow-sm" : "btn-outline-secondary"}`}
-            style={day === d ? { background: 'linear-gradient(135deg, #dc2626, #f97316)', border: 'none', color: 'white' } : { borderColor: '#dc2626', color: '#dc2626' }}
-            onMouseEnter={(e) => { if (!e.currentTarget.disabled) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(220,38,38,0.3)'; } }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-          >
+            className={`btn btn-sm flex-shrink-0 ${day === d ? "btn-success text-white" : "btn-outline-secondary"}`}>
             {d.slice(0, 3)}
           </button>
         ))}
       </div>
-      {daySchedule.length === 0 ? (
-        <div className="card border-0 shadow-sm rounded-3">
-          <div className="card-body p-4 text-center text-muted">
-            <p className="small mb-0">No classes scheduled for {day}</p>
-          </div>
-        </div>
-      ) : (
-        <div className="d-flex flex-column gap-2">
-          {daySchedule.map((cls, i) => (
-            <div key={i} className="card border-0 shadow-sm rounded-3 card-glow-border"
-                 ref={(el) => { cardRefs.current[i] = el; }}
-                 onMouseMove={(e) => handleTiltMouseMove(e, i)}
-                 onMouseLeave={() => handleTiltMouseLeave(i)}
-                 style={{
-                   background: 'white',
-                   transform: 'translateY(0) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg))',
-                   transformStyle: 'preserve-3d',
-                   transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-                 }}
-            >
-              <div className="card-body p-4">
-                <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
-                  <div>
-                    <div className="fw-bold mb-1" style={{ color: '#0f172a' }}>{cls.subject}</div>
-                    <div className="text-muted small">📍 {cls.room}</div>
+      {daySchedule.length === 0
+        ? <div className="card border-0 shadow-sm rounded-3"><div className="card-body p-4 text-center text-muted small">No classes scheduled for {day}</div></div>
+        : <div className="d-flex flex-column gap-3">
+            {daySchedule.map((cls, i) => (
+              <div key={i} className="card border-0 shadow-sm rounded-3">
+                <div className="card-body p-4">
+                  <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
+                    <div><div className="fw-bold text-dark">{cls.subject}</div><div className="text-muted small">📍 {cls.room}</div></div>
+                    <span className="badge bg-dark text-white">{cls.time}</span>
                   </div>
-                  <span className="badge" style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: 'white' }}>{cls.time}</span>
-                </div>
-                <div className="row g-3">
-                  <div className="col-6 col-sm-3">
-                    <div className="rounded-3 p-3 bg-light border">
-                      <div className="text-muted small mb-1">📍 Room</div>
-                      <div className="fw-bold text-dark">{cls.room}</div>
-                    </div>
-                  </div>
-                  <div className="col-6 col-sm-3">
-                    <div className="rounded-3 p-3 bg-success bg-opacity-10 border border-success border-opacity-25">
-                      <div className="text-muted small mb-1">🚪 Enter</div>
-                      <div className="fw-bold text-success">{cls.enter}</div>
-                    </div>
-                  </div>
-                  <div className="col-6 col-sm-3">
-                    <div className="rounded-3 p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25">
-                      <div className="text-muted small mb-1">🚪 Leave</div>
-                      <div className="fw-bold text-danger">{cls.leave}</div>
-                    </div>
-                  </div>
-                  <div className="col-6 col-sm-3">
-                    <div className="rounded-3 p-3 bg-info bg-opacity-10 border border-info border-opacity-25">
-                      <div className="text-muted small mb-1">👥 Students</div>
-                      <div className="fw-bold text-info">{subjects.find(s => s.name === cls.subject)?.enrolled || 0}</div>
-                    </div>
+                  <div className="row g-2">
+                    {[["📍 Room", cls.room, "bg-light"], ["🚪 Enter", cls.enter, "bg-success bg-opacity-10 border-success border-opacity-25"], ["🚪 Leave", cls.leave, "bg-danger bg-opacity-10 border-danger border-opacity-25"], ["👥 Students", String(subjects.find(s => s.name === cls.subject)?.enrolled || 0), "bg-info bg-opacity-10 border-info border-opacity-25"]].map(([label, val, bg]) => (
+                      <div key={label} className="col-6 col-sm-3">
+                        <div className={`rounded-3 p-3 border ${bg}`}>
+                          <div className="text-muted small mb-1">{label}</div>
+                          <div className="fw-bold text-dark small">{val}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+      }
     </div>
   );
 }
 
 /* ── Subjects Panel ── */
-function SubjectsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+function SubjectsPanel() {
   return (
-    <div className="d-flex flex-column gap-4 scroll-reveal">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 mb-0" style={{
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>My Classes</h2><p className="text-white-50 small mb-0">{subjects.length} classes assigned</p></div>
-      </div>
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden card-glow-border" style={{ background: 'white' }}>
+    <div className="d-flex flex-column gap-4">
+      <div><h2 className="fw-black fs-4 text-dark mb-1">My Classes</h2><p className="text-muted small mb-0">{subjects.length} classes assigned</p></div>
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))' }}>
+            <thead className="table-light">
               <tr>
-                <th className="small fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Code</th>
-                <th className="small fw-semibold text-uppercase" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Subject</th>
-                <th className="small fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Units</th>
-                <th className="small fw-semibold text-uppercase text-end" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Enrollment</th>
-                <th className="small fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Action</th>
+                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Code</th>
+                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing: "0.05em" }}>Subject</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em" }}>Units</th>
+                <th className="small text-muted fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em" }}>Enrollment</th>
               </tr>
             </thead>
             <tbody>
               {subjects.map(s => (
                 <tr key={s.id}>
-                  <td className="ps-4 font-mono small fw-semibold" style={{ color: '#64748b' }}>{s.code}</td>
-                  <td className="small fw-medium" style={{ color: '#0f172a' }}>{s.name}</td>
-                  <td className="d-none d-sm-table-cell small" style={{ color: '#64748b' }}>{s.units}</td>
-                  <td className="text-end">
+                  <td className="ps-4 small fw-semibold text-muted">{s.code}</td>
+                  <td className="small fw-medium text-dark">{s.name}</td>
+                  <td className="d-none d-sm-table-cell small text-muted">{s.units}</td>
+                  <td className="text-end pe-4">
                     <div className="d-flex align-items-center justify-content-end gap-2">
                       <div className="progress flex-shrink-0" style={{ width: 60, height: 6 }}>
-                        <div className="progress-bar" style={{ width: `${(s.enrolled / s.max) * 100}%`, background: 'linear-gradient(90deg, #dc2626, #f97316, #fbbf24)' }} />
+                        <div className="progress-bar bg-success" style={{ width: `${(s.enrolled / s.max) * 100}%` }} />
                       </div>
-                      <span className="small fw-semibold" style={{ color: '#0f172a' }}>{s.enrolled}/{s.max}</span>
+                      <span className="small fw-semibold text-dark">{s.enrolled}/{s.max}</span>
                     </div>
-                  </td>
-                  <td className="text-end pe-4">
-                    <button className="btn btn-sm" style={{ 
-                      fontSize: 11, 
-                      background: 'linear-gradient(135deg, #dc2626, #f97316)', 
-                      border: 'none', 
-                      color: 'white' 
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(220,38,38,0.3)'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}>Manage</button>
                   </td>
                 </tr>
               ))}
@@ -405,46 +400,38 @@ function SubjectsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
 }
 
 /* ── Students Panel ── */
-function StudentsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+function StudentsPanel() {
   const [search, setSearch] = useState("");
   const filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
-
   return (
-    <div className="d-flex flex-column gap-4 scroll-reveal">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 mb-0" style={{
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>My Students</h2><p className="text-white-50 small mb-0">{students.length} students in your classes</p></div>
-      </div>
-      <div className="input-group shadow-sm">
+    <div className="d-flex flex-column gap-4">
+      <div><h2 className="fw-black fs-4 text-dark mb-1">My Students</h2><p className="text-muted small mb-0">{students.length} students in your classes</p></div>
+      <div className="input-group shadow-sm" style={{ maxWidth: 400 }}>
         <span className="input-group-text bg-white">🔍</span>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or ID..." className="form-control border-start-0" />
       </div>
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden card-glow-border" style={{ background: 'white' }}>
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))' }}>
+            <thead className="table-light">
               <tr>
-                <th className="small fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Name</th>
-                <th className="small fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>ID</th>
-                <th className="small fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Pathway</th>
-                <th className="small fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Grade</th>
-                <th className="small fw-semibold text-uppercase" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Status</th>
+                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Name</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em" }}>ID</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing: "0.05em" }}>Pathway</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-lg-table-cell" style={{ letterSpacing: "0.05em" }}>Grade</th>
+                <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing: "0.05em" }}>Status</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0
-                ? <tr><td colSpan={5} className="text-center py-4 small" style={{ color: '#64748b' }}>No students found.</td></tr>
+                ? <tr><td colSpan={5} className="text-center py-4 small text-muted">No students found.</td></tr>
                 : filtered.map(s => (
                   <tr key={s.id}>
-                    <td className="ps-4 small fw-medium" style={{ color: '#0f172a' }}>{s.name}</td>
-                    <td className="d-none d-sm-table-cell font-mono small" style={{ color: '#64748b' }}>{s.id}</td>
-                    <td className="d-none d-lg-table-cell small" style={{ color: '#64748b' }}>{s.pathway}</td>
-                    <td className="d-none d-lg-table-cell small" style={{ color: '#64748b' }}>Grade {s.grade}</td>
-                    <td><span className="badge" style={s.status === "Active" ? { background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' } : { background: 'linear-gradient(135deg, #64748b, #475569)', color: 'white' }}>{s.status}</span></td>
+                    <td className="ps-4 small fw-medium text-dark">{s.name}</td>
+                    <td className="d-none d-sm-table-cell small text-muted">{s.id}</td>
+                    <td className="d-none d-lg-table-cell small text-muted">{s.pathway}</td>
+                    <td className="d-none d-lg-table-cell small text-muted">Grade {s.grade}</td>
+                    <td><span className={`badge ${s.status === "Active" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}`}>{s.status}</span></td>
                   </tr>
                 ))
               }
@@ -457,59 +444,62 @@ function StudentsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
 }
 
 /* ── Grades Panel ── */
-function GradesPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+function GradesPanel({ isGradeLocked, activeTerm }: { isGradeLocked: boolean; activeTerm: string }) {
   const [selectedSubject, setSelectedSubject] = useState(subjects[0].id);
   const subjectGrades = grades.filter(g => g.subject === subjects.find(s => s.id === selectedSubject)?.name);
   const avg = subjectGrades.length > 0 ? Math.round(subjectGrades.reduce((a, g) => a + g.percentage, 0) / subjectGrades.length) : 0;
-
   return (
-    <div className="d-flex flex-column gap-4 scroll-reveal">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 mb-0" style={{
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>Grade Management</h2><p className="text-white-50 small mb-0">Submit and manage student grades</p></div>
-      </div>
-      <div className="d-flex flex-column flex-sm-row gap-3">
+    <div className="d-flex flex-column gap-4">
+      <div><h2 className="fw-black fs-4 text-dark mb-1">Grade Management</h2><p className="text-muted small mb-0">Submit and manage student grades</p></div>
+      {isGradeLocked && (
+        <div className="rounded-3 p-3 d-flex align-items-start gap-3" style={{ background: "#fef2f2", border: "1px solid #fecaca" }}>
+          <span style={{ fontSize: 22 }}>🔒</span>
+          <div>
+            <div className="fw-bold small text-danger">Grade Submission Locked — {activeTerm} deadline passed</div>
+            <div className="text-muted small">This panel is read-only. Visit the <strong>Registrar&apos;s Office</strong> to restore access.</div>
+          </div>
+        </div>
+      )}
+      <div className="d-flex gap-3 flex-wrap align-items-center">
         <div style={{ width: 220 }}>
-          <label className="form-label fw-semibold text-uppercase mb-1" style={{ fontSize: 11, color: '#0f172a' }}>Select Subject</label>
+          <label className="form-label fw-semibold text-uppercase mb-1" style={{ fontSize: 11 }}>Select Subject</label>
           <select value={selectedSubject} onChange={e => setSelectedSubject(Number(e.target.value))} className="form-select form-select-sm rounded-3">
             {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
-        <div className="flex-grow-1 rounded-3 p-3 d-flex align-items-center gap-3 card-glow-border" style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))', border: '1px solid rgba(220,38,38,0.2)' }}>
-          <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style={{ width: 44, height: 44, fontSize: 16, background: 'linear-gradient(135deg, #dc2626, #f97316)' }}>📊</div>
-          <div className="flex-grow-1"><div className="fw-bold" style={{ color: '#0f172a' }}>{subjects.find(s => s.id === selectedSubject)?.name}</div><div className="small" style={{ color: '#64748b' }}>{subjectGrades.length} students graded</div></div>
-          <div className="text-end"><div className="fw-black fs-3" style={{ color: '#dc2626' }}>{avg}%</div><div className="small" style={{ color: '#64748b' }}>Class Average</div></div>
+        <div className="card border-0 bg-success-subtle flex-grow-1 rounded-3">
+          <div className="card-body p-3 d-flex align-items-center gap-3">
+            <span style={{ fontSize: 24 }}>📊</span>
+            <div className="flex-grow-1"><div className="fw-bold text-dark small">{subjects.find(s => s.id === selectedSubject)?.name}</div><div className="text-muted" style={{ fontSize: 11 }}>{subjectGrades.length} students graded</div></div>
+            <div className="fw-black fs-3 text-success">{avg}%</div>
+          </div>
         </div>
       </div>
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden card-glow-border" style={{ background: 'white' }}>
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead style={{ background: 'linear-gradient(135deg, rgba(220,38,38,0.1), rgba(251,191,36,0.1))' }}>
+            <thead className="table-light">
               <tr>
-                <th className="small fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Student</th>
-                <th className="small fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>ID</th>
-                <th className="small fw-semibold text-uppercase text-end" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Score</th>
-                <th className="small fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Grade</th>
+                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Student</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em" }}>ID</th>
+                <th className="small text-muted fw-semibold text-uppercase text-end" style={{ letterSpacing: "0.05em" }}>Score</th>
+                <th className="small text-muted fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em" }}>Grade</th>
               </tr>
             </thead>
             <tbody>
               {subjectGrades.map((g, i) => (
                 <tr key={i}>
-                  <td className="ps-4 small fw-medium" style={{ color: '#0f172a' }}>{g.name}</td>
-                  <td className="d-none d-sm-table-cell font-mono small" style={{ color: '#64748b' }}>{g.student_id}</td>
+                  <td className="ps-4 small fw-medium text-dark">{g.name}</td>
+                  <td className="d-none d-sm-table-cell small text-muted">{g.student_id}</td>
                   <td className="text-end">
                     <div className="d-flex align-items-center justify-content-end gap-2">
                       <div className="progress flex-shrink-0" style={{ width: 60, height: 6 }}>
-                        <div className="progress-bar" style={{ width: `${g.percentage}%`, background: 'linear-gradient(90deg, #dc2626, #f97316, #fbbf24)' }} />
+                        <div className="progress-bar bg-success" style={{ width: `${g.percentage}%` }} />
                       </div>
-                      <span className="small fw-semibold" style={{ color: '#0f172a' }}>{g.percentage}%</span>
+                      <span className="small fw-semibold text-dark">{g.percentage}%</span>
                     </div>
                   </td>
-                  <td className="text-end pe-4 fw-black small" style={{ color: '#dc2626' }}>{g.percentage >= 90 ? "A" : g.percentage >= 80 ? "B" : "C"}</td>
+                  <td className="text-end pe-4 fw-black small text-success">{g.percentage >= 90 ? "A" : g.percentage >= 80 ? "B" : "C"}</td>
                 </tr>
               ))}
             </tbody>
@@ -521,82 +511,163 @@ function GradesPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
 }
 
 /* ── Grade Requests Panel ── */
-function RequestsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
-  const [requests, setRequests] = useState(gradeRequestsTeacher);
+function RequestsPanel({ isGradeLocked, activeTerm }: { isGradeLocked: boolean; activeTerm: string }) {
+  const [requests, setRequests] = useState<import("../../../app/lib/gradeRequests").GradeRequest[]>([]);
+  const [grading, setGrading] = useState<Record<number, { score: string; remarks: string }>>({});
+  const [toast, setToast] = useState<string | null>(null);
 
-  function handleRequest(id: number, action: "approve" | "reject") {
-    setRequests(prev =>
-      prev.map(r =>
-        r.id === id
-          ? { ...r, status: action === "approve" ? "approved" : "rejected" }
-          : r
-      )
-    );
+  useEffect(() => {
+    const { loadRequests } = require("../../../app/lib/gradeRequests");
+    // Teacher T001 = "Mr. Dela Cruz" — show requests assigned to this teacher
+    setRequests(loadRequests().filter((r: import("../../../app/lib/gradeRequests").GradeRequest) =>
+      r.teacher === "Mr. Dela Cruz"
+    ));
+  }, []);
+
+  function reload() {
+    const { loadRequests } = require("../../../app/lib/gradeRequests");
+    setRequests(loadRequests().filter((r: import("../../../app/lib/gradeRequests").GradeRequest) =>
+      r.teacher === "Mr. Dela Cruz"
+    ));
   }
 
-  const pending = requests.filter(r => r.status === "pending");
-  const processed = requests.filter(r => r.status !== "pending");
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000); }
+
+  function acceptRequest(id: number) {
+    if (isGradeLocked) return;
+    const { updateRequest } = require("../../../app/lib/gradeRequests");
+    updateRequest(id, { status: "teacher_calculating" });
+    reload();
+    showToast("📝 Request accepted — enter the calculated grade below");
+  }
+
+  function submitToAdmin(id: number) {
+    if (isGradeLocked) return;
+    const g = grading[id];
+    if (!g?.score || isNaN(Number(g.score))) { showToast("⚠️ Enter a valid score first"); return; }
+    const score = Number(g.score);
+    const letterGrade = score >= 97 ? "A+" : score >= 93 ? "A" : score >= 90 ? "A-"
+      : score >= 87 ? "B+" : score >= 83 ? "B" : score >= 80 ? "B-"
+      : score >= 77 ? "C+" : score >= 73 ? "C" : score >= 70 ? "C-"
+      : score >= 65 ? "D" : "F";
+    const { updateRequest } = require("../../../app/lib/gradeRequests");
+    updateRequest(id, {
+      status: "submitted_to_admin",
+      score,
+      letterGrade,
+      remarks: g.remarks || "",
+      submittedToAdminAt: new Date().toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" }),
+    });
+    setGrading(prev => { const n = { ...prev }; delete n[id]; return n; });
+    reload();
+    showToast(`📤 Grade submitted to Admin for verification`);
+  }
+
+  function releaseToStudent(id: number) {
+    if (isGradeLocked) return;
+    const { updateRequest } = require("../../../app/lib/gradeRequests");
+    updateRequest(id, {
+      status: "released_to_student",
+      releasedAt: new Date().toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" }),
+    });
+    reload();
+    showToast("🎓 Grade released to student!");
+  }
+
+  function rejectRequest(id: number) {
+    if (isGradeLocked) return;
+    const { updateRequest } = require("../../../app/lib/gradeRequests");
+    updateRequest(id, {
+      status: "rejected",
+      rejectedBy: "Teacher",
+      rejectedAt: new Date().toLocaleDateString("en-PH", { month: "long", day: "numeric", year: "numeric" }),
+    });
+    reload();
+    showToast("✕ Request rejected");
+  }
+
+  const { statusLabel, statusBadgeClass } = require("../../../app/lib/gradeRequests");
+
+  const newRequests     = requests.filter(r => r.status === "student_requested");
+  const inProgress      = requests.filter(r => r.status === "teacher_calculating");
+  const pendingAdmin    = requests.filter(r => r.status === "submitted_to_admin");
+  const verifiedByAdmin = requests.filter(r => r.status === "admin_verified");
+  const released        = requests.filter(r => r.status === "released_to_student");
+  const rejected        = requests.filter(r => r.status === "rejected");
+
+  // Lock check: if deadline passed and teacher still has unsubmitted requests
+  const unsubmitted = requests.filter(r => ["student_requested", "teacher_calculating"].includes(r.status));
 
   return (
-    <div className="d-flex flex-column gap-4 scroll-reveal">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 mb-0" style={{
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>Grade Requests</h2><p className="text-white-50 small mb-0">Manage student grade requests for Term 3</p></div>
-      </div>
+    <div className="d-flex flex-column gap-4">
+      {/* Toast */}
+      {toast && (
+        <div className="position-fixed bottom-0 end-0 m-4 alert alert-dark shadow-lg rounded-3 py-2 px-3 d-flex align-items-center gap-2"
+          style={{ zIndex: 9999, fontSize: 13, minWidth: 280, animation: "fadeInUp 0.3s ease" }}>
+          {toast}
+        </div>
+      )}
 
-      {/* Stats */}
-      <div className="row g-3">
-        {[
-          { label: "Pending", value: pending.length, icon: "⏳", color: 'linear-gradient(135deg, #fbbf24, #f59e0b)' },
-          { label: "Approved", value: requests.filter(r => r.status === "approved").length, icon: "✓", color: 'linear-gradient(135deg, #10b981, #059669)' },
-          { label: "Rejected", value: requests.filter(r => r.status === "rejected").length, icon: "✕", color: 'linear-gradient(135deg, #dc2626, #f97316)' },
-        ].map(s => (
-          <div key={s.label} className="col-4">
-            <div className="card border-0 rounded-3 card-glow-border" style={{ background: s.color }}>
-              <div className="card-body p-3 text-center">
-                <div className="small mb-1" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.label}</div>
-                <div className="fw-black fs-3" style={{ color: 'white' }}>{s.value}</div>
-              </div>
-            </div>
+      <div><h2 className="fw-black fs-4 text-dark mb-1">Grade Requests</h2><p className="text-muted small mb-0">Student grade requests for {activeTerm}</p></div>
+
+      {/* Lock banner */}
+      {isGradeLocked && (
+        <div className="rounded-3 p-3 d-flex align-items-start gap-3" style={{ background: "#fef2f2", border: "1px solid #fecaca" }}>
+          <span style={{ fontSize: 22 }}>🔒</span>
+          <div>
+            <div className="fw-bold small text-danger">Actions Locked — {activeTerm} deadline passed</div>
+            <div className="text-muted small">Visit the <strong>Registrar&apos;s Office</strong> to restore access.</div>
           </div>
-        ))}
+        </div>
+      )}
+
+      {/* Pipeline workflow diagram */}
+      <div className="card border-0 shadow-sm rounded-3">
+        <div className="card-body p-3">
+          <div className="fw-bold small text-dark mb-3">📊 Grade Request Pipeline</div>
+          <div className="d-flex align-items-center justify-content-between gap-1 overflow-auto pb-1">
+            {[
+              { label: "Student\nRequested",    count: newRequests.length,     color: "#f59e0b" },
+              { label: "Teacher\nCalculating",  count: inProgress.length,      color: "#3b82f6" },
+              { label: "Sent to\nAdmin",        count: pendingAdmin.length,    color: "#8b5cf6" },
+              { label: "Admin\nVerified",       count: verifiedByAdmin.length, color: "#10b981" },
+              { label: "Released to\nStudent",  count: released.length,        color: "#059669" },
+            ].map((step, i, arr) => (
+              <div key={i} className="d-flex align-items-center gap-1 flex-shrink-0">
+                <div className="text-center" style={{ minWidth: 80 }}>
+                  <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-black mx-auto mb-1"
+                    style={{ width: 36, height: 36, background: step.color, fontSize: 16 }}>{step.count}</div>
+                  <div style={{ fontSize: 10, color: "#64748b", whiteSpace: "pre-line", lineHeight: 1.2 }}>{step.label}</div>
+                </div>
+                {i < arr.length - 1 && <div style={{ width: 20, height: 2, background: "#e2e8f0", flexShrink: 0 }} />}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Pending Requests */}
-      {pending.length > 0 && (
+      {/* STEP 1 — New student requests */}
+      {newRequests.length > 0 && (
         <div>
-          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>⏳ Pending Requests</h3>
+          <h3 className="fw-bold small text-dark mb-3">📨 New Student Requests — Action Required</h3>
           <div className="d-flex flex-column gap-2">
-            {pending.map(req => (
-              <div key={req.id} className="card border-0 shadow-sm rounded-3 card-glow-border" style={{ background: 'white' }}>
+            {newRequests.map(req => (
+              <div key={req.id} className="card border-0 shadow-sm rounded-3">
                 <div className="card-body p-4">
                   <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
                     <div>
-                      <div className="fw-bold" style={{ color: '#0f172a' }}>{req.student}</div>
-                      <div className="small" style={{ color: '#64748b' }}>{req.subject} · Requested {req.requestedAt}</div>
+                      <div className="fw-bold text-dark small">{req.student}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>{req.subject} · {req.term} · {req.requestedAt}</div>
                     </div>
-                    <span className="badge" style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: 'white' }}>Pending</span>
+                    <span className={`badge ${statusBadgeClass(req.status)}`} style={{ fontSize: 10 }}>{statusLabel(req.status)}</span>
                   </div>
-                  <div className="d-flex gap-2">
-                    <button
-                      onClick={() => handleRequest(req.id, "approve")}
-                      className="btn btn-sm flex-grow-1"
-                      style={{ fontSize: 12, background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: 'white' }}
-                    >
-                      ✓ Approve
-                    </button>
-                    <button
-                      onClick={() => handleRequest(req.id, "reject")}
-                      className="btn btn-sm flex-grow-1"
-                      style={{ fontSize: 12, background: 'linear-gradient(135deg, #dc2626, #f97316)', border: 'none', color: 'white' }}
-                    >
-                      ✕ Reject
-                    </button>
-                  </div>
+                  {isGradeLocked
+                    ? <div className="rounded-3 p-2 text-center small text-danger" style={{ background: "#fef2f2", border: "1px dashed #fca5a5" }}>🔒 Locked — visit Registrar&apos;s Office</div>
+                    : <div className="d-flex gap-2">
+                        <button onClick={() => acceptRequest(req.id)} className="btn btn-primary btn-sm flex-grow-1">📝 Accept &amp; Calculate</button>
+                        <button onClick={() => rejectRequest(req.id)} className="btn btn-outline-danger btn-sm">✕ Reject</button>
+                      </div>
+                  }
                 </div>
               </div>
             ))}
@@ -604,23 +675,136 @@ function RequestsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
         </div>
       )}
 
-      {/* Processed Requests */}
-      {processed.length > 0 && (
+      {/* STEP 2 — Teacher calculating, enter grade form */}
+      {inProgress.length > 0 && (
         <div>
-          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>✓ Processed Requests</h3>
+          <h3 className="fw-bold small text-dark mb-3">📝 Enter &amp; Submit Grades to Admin</h3>
           <div className="d-flex flex-column gap-2">
-            {processed.map(req => (
-              <div key={req.id} className="card border-0 shadow-sm rounded-3 opacity-75" style={{ background: 'white' }}>
-                <div className="card-body p-3">
-                  <div className="d-flex align-items-center justify-content-between">
+            {inProgress.map(req => (
+              <div key={req.id} className="card border-0 shadow-sm rounded-3" style={{ border: "1.5px solid #bfdbfe" }}>
+                <div className="card-body p-4">
+                  <div className="d-flex align-items-start justify-content-between gap-3 mb-3">
                     <div>
-                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{req.student}</div>
-                      <div style={{ fontSize: 11, color: '#64748b' }}>{req.subject}</div>
+                      <div className="fw-bold text-dark small">{req.student}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>{req.subject} · {req.term}</div>
                     </div>
-                    <span className="badge" style={req.status === "approved" ? { background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' } : { background: 'linear-gradient(135deg, #dc2626, #f97316)', color: 'white' }}>
-                      {req.status === "approved" ? "✓ Approved" : "✕ Rejected"}
-                    </span>
+                    <span className={`badge ${statusBadgeClass(req.status)}`} style={{ fontSize: 10 }}>{statusLabel(req.status)}</span>
                   </div>
+                  <div className="row g-2 mb-3">
+                    <div className="col-4">
+                      <label className="form-label fw-semibold text-uppercase mb-1" style={{ fontSize: 10 }}>Score (0–100)</label>
+                      <input type="number" min={0} max={100}
+                        value={grading[req.id]?.score ?? ""}
+                        onChange={e => setGrading(prev => ({ ...prev, [req.id]: { ...prev[req.id], score: e.target.value, remarks: prev[req.id]?.remarks ?? "" } }))}
+                        className="form-control form-control-sm rounded-3"
+                        placeholder="e.g. 91" />
+                    </div>
+                    <div className="col-8">
+                      <label className="form-label fw-semibold text-uppercase mb-1" style={{ fontSize: 10 }}>Remarks (optional)</label>
+                      <input type="text"
+                        value={grading[req.id]?.remarks ?? ""}
+                        onChange={e => setGrading(prev => ({ ...prev, [req.id]: { ...prev[req.id], remarks: e.target.value, score: prev[req.id]?.score ?? "" } }))}
+                        className="form-control form-control-sm rounded-3"
+                        placeholder="e.g. Excellent performance" />
+                    </div>
+                  </div>
+                  {grading[req.id]?.score && !isNaN(Number(grading[req.id].score)) && (
+                    <div className="mb-3 p-2 rounded-3 bg-success-subtle text-success small fw-semibold">
+                      Computed grade: <strong>
+                        {(() => { const s = Number(grading[req.id].score); return s >= 97 ? "A+" : s >= 93 ? "A" : s >= 90 ? "A-" : s >= 87 ? "B+" : s >= 83 ? "B" : s >= 80 ? "B-" : s >= 77 ? "C+" : s >= 73 ? "C" : s >= 70 ? "C-" : s >= 65 ? "D" : "F"; })()}
+                      </strong> ({grading[req.id].score}%)
+                    </div>
+                  )}
+                  {isGradeLocked
+                    ? <div className="rounded-3 p-2 text-center small text-danger" style={{ background: "#fef2f2", border: "1px dashed #fca5a5" }}>🔒 Locked — visit Registrar&apos;s Office</div>
+                    : <button onClick={() => submitToAdmin(req.id)} className="btn btn-primary btn-sm w-100">📤 Submit to Admin for Verification</button>
+                  }
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* STEP 3 — Waiting for admin */}
+      {pendingAdmin.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">⏳ Awaiting Admin Verification</h3>
+          <div className="d-flex flex-column gap-2">
+            {pendingAdmin.map(req => (
+              <div key={req.id} className="card border-0 shadow-sm rounded-3 opacity-85">
+                <div className="card-body p-3 d-flex align-items-center gap-3">
+                  <div className="rounded-3 bg-primary bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 40, height: 40, fontSize: 18 }}>📤</div>
+                  <div className="flex-grow-1">
+                    <div className="fw-bold small text-dark">{req.student} — {req.subject}</div>
+                    <div className="text-muted" style={{ fontSize: 11 }}>Score: {req.score}% ({req.letterGrade}) · Submitted: {req.submittedToAdminAt}</div>
+                  </div>
+                  <span className={`badge ${statusBadgeClass(req.status)}`} style={{ fontSize: 10 }}>{statusLabel(req.status)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* STEP 4 — Admin verified, teacher must release */}
+      {verifiedByAdmin.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">✅ Admin Verified — Release to Student</h3>
+          <div className="d-flex flex-column gap-2">
+            {verifiedByAdmin.map(req => (
+              <div key={req.id} className="card border-0 rounded-3" style={{ border: "1.5px solid #bbf7d0" }}>
+                <div className="card-body p-4">
+                  <div className="d-flex align-items-start justify-content-between gap-3 mb-2">
+                    <div>
+                      <div className="fw-bold text-dark small">{req.student} — {req.subject}</div>
+                      <div className="text-muted" style={{ fontSize: 11 }}>Score: {req.score}% ({req.letterGrade}) · Verified by {req.adminVerifiedBy} on {req.adminVerifiedAt}</div>
+                      {req.adminNote && <div className="text-muted fst-italic" style={{ fontSize: 11 }}>Admin note: {req.adminNote}</div>}
+                    </div>
+                    <span className={`badge ${statusBadgeClass(req.status)}`} style={{ fontSize: 10 }}>{statusLabel(req.status)}</span>
+                  </div>
+                  {isGradeLocked
+                    ? <div className="rounded-3 p-2 text-center small text-danger" style={{ background: "#fef2f2", border: "1px dashed #fca5a5" }}>🔒 Locked — visit Registrar&apos;s Office</div>
+                    : <button onClick={() => releaseToStudent(req.id)} className="btn btn-success btn-sm w-100">🎓 Release Grade to Student</button>
+                  }
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* STEP 5 — Released */}
+      {released.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">🎓 Released to Students</h3>
+          <div className="d-flex flex-column gap-2">
+            {released.map(req => (
+              <div key={req.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+                <div className="card-body p-3 d-flex align-items-center gap-3">
+                  <div className="rounded-3 bg-success bg-opacity-10 d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: 40, height: 40, fontSize: 18 }}>🎓</div>
+                  <div className="flex-grow-1">
+                    <div className="fw-bold small text-dark">{req.student} — {req.subject}</div>
+                    <div className="text-muted" style={{ fontSize: 11 }}>Final Grade: {req.letterGrade} ({req.score}%) · Released: {req.releasedAt}</div>
+                  </div>
+                  <span className="badge bg-success text-white" style={{ fontSize: 10 }}>🎓 Released</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Rejected */}
+      {rejected.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">✕ Rejected</h3>
+          <div className="d-flex flex-column gap-2">
+            {rejected.map(req => (
+              <div key={req.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+                <div className="card-body p-3 d-flex align-items-center justify-content-between">
+                  <div><div className="fw-bold small text-dark">{req.student} — {req.subject}</div><div className="text-muted" style={{ fontSize: 11 }}>Rejected by {req.rejectedBy}</div></div>
+                  <span className="badge bg-danger-subtle text-danger border border-danger-subtle" style={{ fontSize: 10 }}>✕ Rejected</span>
                 </div>
               </div>
             ))}
@@ -629,83 +813,39 @@ function RequestsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
       )}
 
       {requests.length === 0 && (
-        <div className="card border-0 shadow-sm rounded-3">
-          <div className="card-body p-4 text-center text-muted">
-            <p className="small mb-0">No grade requests at this time.</p>
-          </div>
-        </div>
+        <div className="card border-0 shadow-sm rounded-3"><div className="card-body p-4 text-center text-muted small">No grade requests at this time.</div></div>
       )}
     </div>
   );
 }
 
-/* ── Document Approvals Panel (Teacher) ── */
-function DocumentApprovalsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+/* ── Document Approvals ── */
+function DocumentApprovalsPanel() {
   const [docs, setDocs] = useState(documentApprovals);
-
-  function approveDocument(id: number) {
-    setDocs(prev =>
-      prev.map(d =>
-        d.id === id
-          ? { ...d, status: "approved", approvedAt: new Date().toLocaleDateString() }
-          : d
-      )
-    );
-  }
-
-  function rejectDocument(id: number) {
-    setDocs(prev => prev.filter(d => d.id !== id));
-  }
-
-  const pending = docs.filter(d => d.status === "pending");
+  const pending  = docs.filter(d => d.status === "pending");
   const approved = docs.filter(d => d.status === "approved");
-
   return (
-    <div className="d-flex flex-column gap-4 scroll-reveal">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 mb-0" style={{
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>Document Approvals</h2><p className="text-white-50 small mb-0">Verify and approve student document requests</p></div>
-      </div>
-
-      {/* Stats */}
+    <div className="d-flex flex-column gap-4">
+      <div><h2 className="fw-black fs-4 text-dark mb-1">Document Approvals</h2><p className="text-muted small mb-0">Verify and approve student document requests</p></div>
       <div className="row g-3">
-        {[
-          { label: "Pending", value: pending.length, icon: "⏳", color: 'linear-gradient(135deg, #fbbf24, #f59e0b)' },
-          { label: "Approved", value: approved.length, icon: "✓", color: 'linear-gradient(135deg, #10b981, #059669)' },
-        ].map(s => (
-          <div key={s.label} className="col-6">
-            <div className="card border-0 rounded-3 card-glow-border" style={{ background: s.color }}>
-              <div className="card-body p-3 text-center">
-                <div className="small mb-1" style={{ color: 'rgba(255,255,255,0.8)' }}>{s.label}</div>
-                <div className="fw-black fs-3" style={{ color: 'white' }}>{s.value}</div>
-              </div>
-            </div>
-          </div>
+        {[{ label: "Pending", value: pending.length, cls: "bg-warning-subtle border-warning-subtle text-warning" }, { label: "Approved", value: approved.length, cls: "bg-success-subtle border-success-subtle text-success" }].map(s => (
+          <div key={s.label} className="col-6"><div className={`card border rounded-3 ${s.cls}`}><div className="card-body p-3 text-center"><div className="small mb-1">{s.label}</div><div className="fw-black fs-3">{s.value}</div></div></div></div>
         ))}
       </div>
-
-      {/* Pending */}
       {pending.length > 0 && (
         <div>
-          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>⏳ Pending Approvals</h3>
+          <h3 className="fw-bold small text-dark mb-3">⏳ Pending Approvals</h3>
           <div className="d-flex flex-column gap-2">
             {pending.map(doc => (
-              <div key={doc.id} className="card border-0 shadow-sm rounded-3 card-glow-border" style={{ background: 'white' }}>
+              <div key={doc.id} className="card border-0 shadow-sm rounded-3">
                 <div className="card-body p-3">
                   <div className="d-flex align-items-center justify-content-between mb-2">
-                    <div>
-                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{doc.student}</div>
-                      <div style={{ fontSize: 11, color: '#64748b' }}>{doc.type} · Requested {doc.requestedAt}</div>
-                    </div>
-                    <span className="badge" style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', color: 'white' }}>Pending</span>
+                    <div><div className="fw-bold small text-dark">{doc.student}</div><div className="text-muted" style={{ fontSize: 11 }}>{doc.type} · {doc.requestedAt}</div></div>
+                    <span className="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
                   </div>
                   <div className="d-flex gap-2">
-                    <button onClick={() => approveDocument(doc.id)} className="btn btn-sm flex-grow-1" style={{ fontSize: 11, background: 'linear-gradient(135deg, #10b981, #059669)', border: 'none', color: 'white' }}>✓ Approve</button>
-                    <button onClick={() => rejectDocument(doc.id)} className="btn btn-sm flex-grow-1" style={{ fontSize: 11, background: 'linear-gradient(135deg, #dc2626, #f97316)', border: 'none', color: 'white' }}>✕ Reject</button>
+                    <button onClick={() => setDocs(prev => prev.map(d => d.id === doc.id ? { ...d, status: "approved", approvedAt: new Date().toLocaleDateString() } : d))} className="btn btn-success btn-sm flex-grow-1">✓ Approve</button>
+                    <button onClick={() => setDocs(prev => prev.filter(d => d.id !== doc.id))} className="btn btn-danger btn-sm flex-grow-1">✕ Reject</button>
                   </div>
                 </div>
               </div>
@@ -713,22 +853,15 @@ function DocumentApprovalsPanel({ setPanel }: { setPanel: (p: Panel) => void }) 
           </div>
         </div>
       )}
-
-      {/* Approved */}
       {approved.length > 0 && (
         <div>
-          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>✓ Approved Documents</h3>
+          <h3 className="fw-bold small text-dark mb-3">✅ Approved</h3>
           <div className="d-flex flex-column gap-2">
             {approved.map(doc => (
-              <div key={doc.id} className="card border-0 shadow-sm rounded-3 opacity-75" style={{ background: 'white' }}>
-                <div className="card-body p-3">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div>
-                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{doc.student}</div>
-                      <div style={{ fontSize: 11, color: '#64748b' }}>{doc.type} · Approved {doc.approvedAt}</div>
-                    </div>
-                    <span className="badge" style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}>✓ Approved</span>
-                  </div>
+              <div key={doc.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+                <div className="card-body p-3 d-flex align-items-center justify-content-between">
+                  <div><div className="fw-bold small text-dark">{doc.student}</div><div className="text-muted" style={{ fontSize: 11 }}>{doc.type} · Approved {doc.approvedAt}</div></div>
+                  <span className="badge bg-success-subtle text-success border border-success-subtle">✓ Approved</span>
                 </div>
               </div>
             ))}
@@ -739,50 +872,34 @@ function DocumentApprovalsPanel({ setPanel }: { setPanel: (p: Panel) => void }) 
   );
 }
 
-/* ── Notifications Panel (Teacher) ── */
-function TeacherNotificationsPanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+/* ── Notifications ── */
+function NotificationsPanel() {
   const [notifs, setNotifs] = useState(teacherNotifications);
-
-  function markAsRead(id: number) {
-    setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  }
-
-  function deleteNotification(id: number) {
-    setNotifs(prev => prev.filter(n => n.id !== id));
-  }
-
   const unread = notifs.filter(n => !n.read);
-  const read = notifs.filter(n => n.read);
-
+  const read   = notifs.filter(n => n.read);
   return (
-    <div className="d-flex flex-column gap-4 scroll-reveal">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 mb-0" style={{
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>Notifications</h2><p className="text-white-50 small mb-0">{unread.length} unread</p></div>
+    <div className="d-flex flex-column gap-4">
+      <div className="d-flex align-items-center justify-content-between">
+        <div><h2 className="fw-black fs-4 text-dark mb-1">Notifications</h2><p className="text-muted small mb-0">{unread.length} unread</p></div>
+        {unread.length > 0 && <button onClick={() => setNotifs(prev => prev.map(n => ({ ...n, read: true })))} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 12 }}>Mark all read</button>}
       </div>
-
-      {/* Unread */}
       {unread.length > 0 && (
         <div>
-          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>🔔 Unread</h3>
+          <h3 className="fw-bold small text-dark mb-3">🔔 Unread</h3>
           <div className="d-flex flex-column gap-2">
-            {unread.map(notif => (
-              <div key={notif.id} className="card border-0 shadow-sm rounded-3 card-glow-border" style={{ background: "rgba(220, 38, 38, 0.12)", border: "1px solid rgba(220, 38, 38, 0.3)" }}>
+            {unread.map(n => (
+              <div key={n.id} className="card border-0 shadow-sm rounded-3" style={{ background: "rgba(59,130,246,0.04)", border: "1px solid rgba(59,130,246,0.12)" }}>
                 <div className="card-body p-3">
                   <div className="d-flex align-items-start gap-3">
-                    <span style={{ fontSize: 18 }}>{notif.icon}</span>
+                    <span style={{ fontSize: 18 }}>{n.icon}</span>
                     <div className="flex-grow-1">
-                      <div className="fw-bold small" style={{ color: '#0f172a' }}>{notif.title}</div>
-                      <div className="small mt-1" style={{ color: '#64748b' }}>{notif.message}</div>
-                      <div className="small mt-2" style={{ fontSize: 11, color: '#64748b' }}>{notif.time}</div>
+                      <div className="fw-bold small text-dark">{n.title}</div>
+                      <div className="text-muted small mt-1">{n.message}</div>
+                      <div className="text-muted mt-1" style={{ fontSize: 11 }}>{n.time}</div>
                     </div>
-                    <div className="d-flex gap-1 flex-shrink-0">
-                      <button onClick={() => markAsRead(notif.id)} className="btn btn-link btn-sm p-0" style={{ fontSize: 11, color: '#dc2626' }}>✓</button>
-                      <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0" style={{ fontSize: 11, color: '#dc2626' }}>✕</button>
+                    <div className="d-flex gap-1">
+                      <button onClick={() => setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x))} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 12 }}>✓</button>
+                      <button onClick={() => setNotifs(prev => prev.filter(x => x.id !== n.id))} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize: 12 }}>✕</button>
                     </div>
                   </div>
                 </div>
@@ -791,25 +908,16 @@ function TeacherNotificationsPanel({ setPanel }: { setPanel: (p: Panel) => void 
           </div>
         </div>
       )}
-
-      {/* Read */}
       {read.length > 0 && (
         <div>
-          <h3 className="fw-bold small mb-3" style={{ color: '#0f172a' }}>✓ Read</h3>
+          <h3 className="fw-bold small text-dark mb-3">✅ Read</h3>
           <div className="d-flex flex-column gap-2">
-            {read.map(notif => (
-              <div key={notif.id} className="card border-0 shadow-sm rounded-3 opacity-75 card-glow-border" style={{ background: 'white' }}>
-                <div className="card-body p-3">
-                  <div className="d-flex align-items-start justify-content-between gap-3">
-                    <div className="d-flex align-items-start gap-3 flex-grow-1">
-                      <span style={{ fontSize: 16 }}>{notif.icon}</span>
-                      <div>
-                        <div className="fw-bold small" style={{ color: '#0f172a' }}>{notif.title}</div>
-                        <div className="small mt-1" style={{ color: '#64748b' }}>{notif.message}</div>
-                      </div>
-                    </div>
-                    <button onClick={() => deleteNotification(notif.id)} className="btn btn-link btn-sm p-0 flex-shrink-0" style={{ fontSize: 11, color: '#dc2626' }}>✕</button>
-                  </div>
+            {read.map(n => (
+              <div key={n.id} className="card border-0 shadow-sm rounded-3 opacity-75">
+                <div className="card-body p-3 d-flex align-items-start gap-3">
+                  <span style={{ fontSize: 16 }}>{n.icon}</span>
+                  <div className="flex-grow-1"><div className="fw-bold small text-dark">{n.title}</div><div className="text-muted small">{n.message}</div></div>
+                  <button onClick={() => setNotifs(prev => prev.filter(x => x.id !== n.id))} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize: 12 }}>✕</button>
                 </div>
               </div>
             ))}
@@ -821,54 +929,51 @@ function TeacherNotificationsPanel({ setPanel }: { setPanel: (p: Panel) => void 
 }
 
 /* ── Attendance Panel ── */
-function AttendancePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
+function AttendancePanel() {
   const [selectedSubject, setSelectedSubject] = useState(subjects[0].id);
   const subjectAttendance = attendance.filter(a => a.subject === subjects.find(s => s.id === selectedSubject)?.name);
   const avgAttendance = subjectAttendance.length > 0 ? Math.round(subjectAttendance.reduce((a, att) => a + att.percentage, 0) / subjectAttendance.length) : 0;
-
   return (
-    <div className="d-flex flex-column gap-4 scroll-reveal">
-      <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
-        <div><h2 className="fw-black fs-4 mb-0" style={{
-              background: 'linear-gradient(135deg, #dc2626, #f97316, #fbbf24)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>Attendance Management</h2><p className="text-white-50 small mb-0">Track and manage student attendance</p></div>
-      </div>
-      <div className="d-flex flex-column flex-sm-row gap-3">
+    <div className="d-flex flex-column gap-4">
+      <div><h2 className="fw-black fs-4 text-dark mb-1">Attendance Management</h2><p className="text-muted small mb-0">Track student attendance per subject</p></div>
+      <div className="d-flex gap-3 flex-wrap align-items-center">
         <div style={{ width: 220 }}>
-          <label className="form-label fw-semibold text-uppercase mb-1" style={{ fontSize: 11, color: '#0f172a' }}>Select Subject</label>
+          <label className="form-label fw-semibold text-uppercase mb-1" style={{ fontSize: 11 }}>Select Subject</label>
           <select value={selectedSubject} onChange={e => setSelectedSubject(Number(e.target.value))} className="form-select form-select-sm rounded-3">
             {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
-        <div className="flex-grow-1 rounded-3 p-3 d-flex align-items-center gap-3 card-glow-border" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(251, 191, 36, 0.1))', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-          <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0" style={{ width: 44, height: 44, fontSize: 16, background: 'linear-gradient(135deg, #10b981, #059669)' }}>✓</div>
-          <div className="flex-grow-1"><div className="fw-bold" style={{ color: '#0f172a' }}>{subjects.find(s => s.id === selectedSubject)?.name}</div><div className="small" style={{ color: '#64748b' }}>{subjectAttendance.length} students tracked</div></div>
-          <div className="text-end"><div className="fw-black fs-3" style={{ color: '#10b981' }}>{avgAttendance}%</div><div className="small" style={{ color: '#64748b' }}>Class Average</div></div>
+        <div className="card border-0 bg-success-subtle flex-grow-1 rounded-3">
+          <div className="card-body p-3 d-flex align-items-center gap-3">
+            <span style={{ fontSize: 24 }}>✅</span>
+            <div className="flex-grow-1"><div className="fw-bold text-dark small">{subjects.find(s => s.id === selectedSubject)?.name}</div><div className="text-muted" style={{ fontSize: 11 }}>{subjectAttendance.length} students tracked</div></div>
+            <div className="fw-black fs-3 text-success">{avgAttendance}%</div>
+          </div>
         </div>
       </div>
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden card-glow-border" style={{ background: 'white' }}>
+      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
         <div className="table-responsive">
           <table className="table table-hover mb-0">
-            <thead style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(251, 191, 36, 0.1))' }}>
+            <thead className="table-light">
               <tr>
-                <th className="small fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Student</th>
-                <th className="small fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>ID</th>
-                <th className="small fw-semibold text-uppercase text-center" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Present</th>
-                <th className="small fw-semibold text-uppercase text-center" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>Total</th>
-                <th className="small fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em", color: '#0f172a' }}>%</th>
+                <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Student</th>
+                <th className="small text-muted fw-semibold text-uppercase d-none d-sm-table-cell" style={{ letterSpacing: "0.05em" }}>Present</th>
+                <th className="small text-muted fw-semibold text-uppercase text-center" style={{ letterSpacing: "0.05em" }}>Action</th>
+                <th className="small text-muted fw-semibold text-uppercase text-end pe-4" style={{ letterSpacing: "0.05em" }}>%</th>
               </tr>
             </thead>
             <tbody>
               {subjectAttendance.map((a, i) => (
                 <tr key={i}>
-                  <td className="ps-4 small fw-medium" style={{ color: '#0f172a' }}>{a.name}</td>
-                  <td className="d-none d-sm-table-cell font-mono small" style={{ color: '#64748b' }}>{a.student_id}</td>
-                  <td className="text-center small" style={{ color: '#64748b' }}>{a.present}</td>
-                  <td className="text-center small" style={{ color: '#64748b' }}>{a.total}</td>
-                  <td className="text-end pe-4 fw-black small" style={{ color: '#10b981' }}>{a.percentage}%</td>
+                  <td className="ps-4 small fw-medium text-dark">{a.name}</td>
+                  <td className="d-none d-sm-table-cell small text-muted">{a.present}/{a.total}</td>
+                  <td className="text-center">
+                    <div className="d-flex justify-content-center gap-2">
+                      <button className="btn btn-success btn-sm" style={{ fontSize: 11 }}>✓ Present</button>
+                      <button className="btn btn-danger btn-sm"  style={{ fontSize: 11 }}>✕ Absent</button>
+                    </div>
+                  </td>
+                  <td className="text-end pe-4 fw-black small text-success">{a.percentage}%</td>
                 </tr>
               ))}
             </tbody>
@@ -879,35 +984,272 @@ function AttendancePanel({ setPanel }: { setPanel: (p: Panel) => void }) {
   );
 }
 
-/* ── Main Page ── */
-export default function TeacherDashboardPage() {
-  const [panel, setPanel] = useState<Panel>("overview");
+/* ── Time Log Panel ── */
+function TimeLogPanel() {
+  const [logs, setLogs] = useState<TimeLogEntry[]>([]);
+  const [currentSession, setCurrentSession] = useState<TimeLogEntry | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    const all = loadTimeLogs().filter(l => l.teacherId === teacherData.teacher_id);
+    setLogs(all);
+    const open = all.find(l => l.status === "in");
+    setCurrentSession(open || null);
+  }, []);
+
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(null), 3000); }
+
+  function handleTimeIn() {
+    const now = new Date();
+    const entry: TimeLogEntry = {
+      id: Date.now(),
+      teacherId: teacherData.teacher_id,
+      teacherName: teacherData.full_name,
+      date: now.toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" }),
+      timeIn: now.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      timeOut: null,
+      status: "in",
+    };
+    const all = loadTimeLogs();
+    all.push(entry);
+    saveTimeLogs(all);
+    const mine = all.filter(l => l.teacherId === teacherData.teacher_id);
+    setLogs(mine);
+    setCurrentSession(entry);
+    showToast("✅ Time In recorded successfully");
+  }
+
+  function handleTimeOut() {
+    if (!currentSession) return;
+    const now = new Date();
+    const timeOut = now.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const all = loadTimeLogs().map(l =>
+      l.id === currentSession.id ? { ...l, timeOut, status: "out" as const } : l
+    );
+    saveTimeLogs(all);
+    const mine = all.filter(l => l.teacherId === teacherData.teacher_id);
+    setLogs(mine);
+    setCurrentSession(null);
+    showToast("👋 Time Out recorded successfully");
+  }
+
+  const today = new Date().toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" });
+  const todayLogs = logs.filter(l => l.date === today);
 
   return (
-    <PremiumDashboardShell
-      portalTitle="INFORM"
-      portalSubtitle="Teacher Portal"
-      userName={teacherData.full_name}
-      userMeta={`${teacherData.department} · ${teacherData.teacher_id}`}
-      logoutHref="/teacher/login"
-      maxWidth={1000}
-    >
-      <div className="dash-glass overflow-hidden">
-        {panel === "overview" && <OverviewPanel setPanel={setPanel} />}
-        {panel !== "overview" && (
-          <div className="p-4">
-            <BackBtn onClick={() => setPanel("overview")} />
-            {panel === "subjects" && <SubjectsPanel setPanel={setPanel} />}
-            {panel === "schedule" && <SchedulePanel setPanel={setPanel} />}
-            {panel === "students" && <StudentsPanel setPanel={setPanel} />}
-            {panel === "grades" && <GradesPanel setPanel={setPanel} />}
-            {panel === "requests" && <RequestsPanel setPanel={setPanel} />}
-            {panel === "documents" && <DocumentApprovalsPanel setPanel={setPanel} />}
-            {panel === "notifications" && <TeacherNotificationsPanel setPanel={setPanel} />}
-            {panel === "attendance" && <AttendancePanel setPanel={setPanel} />}
+    <div className="d-flex flex-column gap-4">
+      {toast && (
+        <div className="position-fixed bottom-0 end-0 m-4 alert alert-dark shadow-lg rounded-3 py-2 px-3" style={{ zIndex: 9999, fontSize: 13, minWidth: 260, animation: "fadeInUp 0.3s ease" }}>
+          {toast}
+        </div>
+      )}
+
+      <div><h2 className="fw-black fs-4 text-dark mb-1">My Time Log</h2><p className="text-muted small mb-0">{today}</p></div>
+
+      {/* Current status card */}
+      <div className="card border-0 rounded-3" style={{ background: currentSession ? "linear-gradient(135deg,#059669,#10b981)" : "linear-gradient(135deg,#1e40af,#3b82f6)", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+        <div className="card-body p-4 text-white">
+          <div className="d-flex align-items-center gap-3 mb-3">
+            <span style={{ fontSize: 36 }}>{currentSession ? "🟢" : "🔴"}</span>
+            <div>
+              <div className="fw-black fs-5">{currentSession ? "Currently On Campus" : "Not Timed In"}</div>
+              {currentSession && <div className="text-white-50 small">Time In: {currentSession.timeIn}</div>}
+            </div>
           </div>
-        )}
+          <button
+            onClick={currentSession ? handleTimeOut : handleTimeIn}
+            className="btn btn-light fw-black w-100 rounded-3"
+            style={{ fontSize: 15, color: currentSession ? "#059669" : "#1e40af" }}
+          >
+            {currentSession ? "🚪 Time Out" : "🏫 Time In"}
+          </button>
+        </div>
       </div>
-    </PremiumDashboardShell>
+
+      {/* Today's log */}
+      {todayLogs.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">📅 Today&apos;s Log</h3>
+          <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+            <table className="table table-hover mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Date</th>
+                  <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing: "0.05em" }}>Time In</th>
+                  <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing: "0.05em" }}>Time Out</th>
+                  <th className="small text-muted fw-semibold text-uppercase pe-4" style={{ letterSpacing: "0.05em" }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {todayLogs.map(l => (
+                  <tr key={l.id}>
+                    <td className="ps-4 small fw-medium text-dark">{l.date}</td>
+                    <td className="small text-success fw-semibold">{l.timeIn}</td>
+                    <td className="small text-danger fw-semibold">{l.timeOut ?? <span className="text-muted fst-italic">—</span>}</td>
+                    <td className="pe-4">
+                      <span className={`badge ${l.status === "in" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}`}>
+                        {l.status === "in" ? "🟢 On Campus" : "✓ Completed"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Full history */}
+      {logs.length > 0 && (
+        <div>
+          <h3 className="fw-bold small text-dark mb-3">📋 Full History</h3>
+          <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+            <div className="table-responsive">
+              <table className="table table-hover mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th className="small text-muted fw-semibold text-uppercase ps-4" style={{ letterSpacing: "0.05em" }}>Date</th>
+                    <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing: "0.05em" }}>Time In</th>
+                    <th className="small text-muted fw-semibold text-uppercase" style={{ letterSpacing: "0.05em" }}>Time Out</th>
+                    <th className="small text-muted fw-semibold text-uppercase pe-4" style={{ letterSpacing: "0.05em" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...logs].reverse().map(l => (
+                    <tr key={l.id}>
+                      <td className="ps-4 small fw-medium text-dark">{l.date}</td>
+                      <td className="small text-success fw-semibold">{l.timeIn}</td>
+                      <td className="small text-danger fw-semibold">{l.timeOut ?? <span className="text-muted fst-italic">Not timed out</span>}</td>
+                      <td className="pe-4">
+                        <span className={`badge ${l.status === "in" ? "bg-success-subtle text-success border border-success-subtle" : "bg-secondary-subtle text-secondary border border-secondary-subtle"}`}>
+                          {l.status === "in" ? "🟢 On Campus" : "✓ Done"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {logs.length === 0 && (
+        <div className="card border-0 shadow-sm rounded-3"><div className="card-body p-4 text-center text-muted small">No time log entries yet. Click &quot;Time In&quot; when you arrive at campus.</div></div>
+      )}
+    </div>
+  );
+}
+
+/* ── Main Page ── */
+export default function TeacherDashboardPage() {
+  const [panel, setPanel]           = useState<Panel>("overview");
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [showNotif, setShowNotif]   = useState(false);
+  const [notifs, setNotifs]         = useState(teacherNotifications);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // Load live pending count from shared store
+  useEffect(() => {
+    const { loadRequests } = require("../../lib/gradeRequests");
+    const reqs = loadRequests();
+    const count = reqs.filter((r: { teacher: string; status: string }) =>
+      r.teacher === "Mr. Dela Cruz" &&
+      ["student_requested", "teacher_calculating"].includes(r.status)
+    ).length;
+    setPendingCount(count);
+  }, [panel]); // re-check when user navigates panels
+  const deadlinePassed = isDeadlinePassed();
+  const isGradeLocked  = deadlinePassed && pendingCount > 0;
+  const activeTerm     = getActiveTerm();
+  const unreadCount    = notifs.filter(n => !n.read).length;
+
+  function renderPanel() {
+    switch (panel) {
+      case "subjects":      return <SubjectsPanel />;
+      case "schedule":      return <SchedulePanel />;
+      case "students":      return <StudentsPanel />;
+      case "grades":        return <GradesPanel isGradeLocked={isGradeLocked} activeTerm={activeTerm} />;
+      case "requests":      return <RequestsPanel isGradeLocked={isGradeLocked} activeTerm={activeTerm} />;
+      case "attendance":    return <AttendancePanel />;
+      case "documents":     return <DocumentApprovalsPanel />;
+      case "notifications": return <NotificationsPanel />;
+      case "timelog":       return <TimeLogPanel />;
+      default:              return <Overview setActive={setPanel} isGradeLocked={isGradeLocked} activeTerm={activeTerm} />;
+    }
+  }
+
+  return (
+    <div className="d-flex" style={{ height: "100vh", overflow: "hidden", background: "#f0f4ff" }} suppressHydrationWarning>
+      <Sidebar active={panel} setActive={setPanel} show={mobileOpen} setShow={setMobileOpen} />
+
+      <div className="d-flex flex-column flex-grow-1 overflow-hidden" style={{ marginLeft: 80 }}>
+        {/* Topbar */}
+        <header className="bg-white border-bottom px-4 py-3 d-flex align-items-center gap-3 flex-shrink-0 shadow-sm">
+          <button className="btn btn-link text-muted p-1 d-lg-none" onClick={() => setMobileOpen(true)}>
+            <div style={{ width: 20, height: 2, background: "currentColor", marginBottom: 4 }} />
+            <div style={{ width: 20, height: 2, background: "currentColor", marginBottom: 4 }} />
+            <div style={{ width: 20, height: 2, background: "currentColor" }} />
+          </button>
+          <div className="fw-bold text-dark d-none d-sm-block">
+            {navItems.find(n => n.id === panel)?.label ?? "Overview"}
+          </div>
+          <div className="d-flex align-items-center gap-3 ms-auto">
+            <span className="badge bg-success-subtle text-success border border-success-subtle d-none d-sm-flex align-items-center gap-1">
+              <span className="rounded-circle bg-success d-inline-block" style={{ width: 7, height: 7 }} />Online
+            </span>
+            {isGradeLocked && (
+              <span className="badge bg-danger-subtle text-danger border border-danger-subtle d-none d-sm-flex align-items-center gap-1">
+                🔒 Grades Locked
+              </span>
+            )}
+            <button className="btn btn-link text-muted p-1 position-relative" onClick={() => setShowNotif(!showNotif)}>
+              <span style={{ fontSize: 20 }}>🔔</span>
+              {unreadCount > 0 && <span className="position-absolute top-0 end-0 rounded-circle bg-danger d-flex align-items-center justify-content-center text-white" style={{ width: 16, height: 16, fontSize: 9, fontWeight: "bold" }}>{unreadCount}</span>}
+            </button>
+            <div className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" style={{ width: 32, height: 32, fontSize: 12, background: "linear-gradient(135deg,#059669,#10b981)" }}>
+              {teacherData.full_name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-grow-1 overflow-auto p-3 p-sm-4">
+          {renderPanel()}
+        </main>
+      </div>
+
+      {/* Notification dropdown */}
+      {showNotif && (
+        <>
+          <div style={{ position: "fixed", top: 60, right: 20, width: 360, maxHeight: 480, background: "white", borderRadius: "0.75rem", border: "1px solid rgba(0,0,0,0.1)", boxShadow: "0 10px 40px rgba(0,0,0,0.15)", zIndex: 9999, overflowY: "auto" }}>
+            <div className="px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+              <div><div className="fw-bold text-dark small">Notifications</div><div className="text-muted" style={{ fontSize: 11 }}>{unreadCount} unread</div></div>
+              <div className="d-flex align-items-center gap-2">
+                {unreadCount > 0 && <button onClick={() => setNotifs(prev => prev.map(n => ({ ...n, read: true })))} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 11 }}>Mark all read</button>}
+                <button onClick={() => setShowNotif(false)} className="btn btn-link btn-sm p-0 text-muted" style={{ fontSize: 18 }}>✕</button>
+              </div>
+            </div>
+            {notifs.length === 0
+              ? <div className="px-4 py-5 text-center text-muted"><div style={{ fontSize: 32, marginBottom: 8 }}>🔔</div><small>No notifications</small></div>
+              : notifs.map(n => (
+                <div key={n.id} className="px-4 py-3 border-bottom d-flex gap-3" style={{ background: n.read ? "white" : "rgba(5,150,105,0.04)", opacity: n.read ? 0.7 : 1 }}>
+                  <div style={{ fontSize: 20, minWidth: 24 }}>{n.icon}</div>
+                  <div className="flex-grow-1">
+                    <div className="fw-bold small text-dark">{n.title}</div>
+                    <div className="text-muted" style={{ fontSize: 12, lineHeight: 1.4 }}>{n.message}</div>
+                    <div className="text-muted" style={{ fontSize: 11, marginTop: 4 }}>{n.time}</div>
+                  </div>
+                  <div className="d-flex gap-1 flex-shrink-0">
+                    {!n.read && <button onClick={() => setNotifs(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x))} className="btn btn-link btn-sm p-0 text-primary" style={{ fontSize: 12 }}>✓</button>}
+                    <button onClick={() => setNotifs(prev => prev.filter(x => x.id !== n.id))} className="btn btn-link btn-sm p-0 text-danger" style={{ fontSize: 14 }}>✕</button>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+          <div className="position-fixed top-0 start-0 w-100 h-100" style={{ zIndex: 9998 }} onClick={() => setShowNotif(false)} />
+        </>
+      )}
+    </div>
   );
 }

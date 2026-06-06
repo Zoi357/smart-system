@@ -8,7 +8,7 @@ const STUDENT_ACCOUNTS = [
   { id: "202400001", password: "jamie", name: "Jamie Santos",    course: "STEM Grade 11" },
   { id: "202400002", password: "maria", name: "Maria Reyes",     course: "HUMSS Grade 11" },
   { id: "202400003", password: "carlo", name: "Carlo Dela Cruz", course: "ABM Grade 12" },
-  { id: "202400004", password: "ana",   name: "Ana Villanueva",  course: "GAS Grade 11"  },
+  { id: "202400004", password: "ana",   name: "Ana Villanueva",  course: "TVL-TechPro Grade 11"  },
 ];
 
 export default function LoginPage() {

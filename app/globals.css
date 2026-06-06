@@ -1679,6 +1679,32 @@ html {
   border-width: 0;
 }
 
+/* ── UI Calm Mode ── */
+/* Activate by setting: localStorage.setItem('effects','calm') */
+/* This keeps your orange/red/yellow identity but reduces visual noise. */
+html[data-effects="calm"] *,
+html[data-effects="calm"] *::before,
+html[data-effects="calm"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+html[data-effects="calm"] .card-glow-border::before,
+html[data-effects="calm"] .btn-shimmer::after,
+html[data-effects="calm"] .landing-premium::before,
+html[data-effects="calm"] .landing-grid,
+html[data-effects="calm"] .landing-orb,
+html[data-effects="calm"] .mesh-blob {
+  animation: none !important;
+}
+
+html[data-effects="calm"] .scroll-reveal-3d,
+html[data-effects="calm"] .scroll-reveal-flip {
+  transform: none !important;
+  opacity: 1 !important;
+}
+
 /* ── Reduced Motion ── */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1690,6 +1716,7 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
 
 /* ── Print Styles ── */
 @media print {
@@ -1788,6 +1815,43 @@ html {
 .card-3d-tilt:hover .card-glow-border {
   transform: translateY(-8px) rotateX(var(--rotateX, 0deg)) rotateY(var(--rotateY, 0deg));
 }
+
+/* ── Glassmorphism for premium cards/tiles ── */
+.card-glass {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+[data-theme="dark"] .card-glass {
+  background: rgba(15, 23, 42, 0.35);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* ── Lightweight parallax helpers (no JS required) ── */
+.parallax-layer {
+  position: relative;
+  overflow: hidden;
+}
+
+.parallax-layer::before {
+  content: '';
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(ellipse 60% 40% at 30% 20%, rgba(220,38,38,0.12) 0%, transparent 55%),
+              radial-gradient(ellipse 50% 35% at 75% 30%, rgba(249,115,22,0.12) 0%, transparent 58%),
+              radial-gradient(ellipse 45% 30% at 50% 85%, rgba(251,191,36,0.10) 0%, transparent 60%);
+  transform: translateY(calc(var(--scroll-y, 0px) * 0.12));
+  pointer-events: none;
+  z-index: 0;
+}
+
+.parallax-layer > * {
+  position: relative;
+  z-index: 1;
+}
+
 
 /* Glowing Gradient Border Card */
 .card-glow-border {
@@ -3442,6 +3506,32 @@ html:not([data-theme="dark"]) .landing-premium .landing-headline-accent {
   border: 1px solid rgba(254, 242, 242, 0.15) !important;
   color: #fee2e2;
 }
+
+/* Ensure chatbot text stays visible on student/teacher dark dashboards */
+.dash-premium .chat-panel,
+.dash-premium .chat-panel * {
+  color: #0b0f1a !important;
+}
+
+/* If the initial JOBERT greeting is inside a white bubble, force it to near-black */
+.dash-premium .chat-panel .bg-white,
+.dash-premium .chat-panel .text-white {
+  color: #0b0f1a !important;
+}
+
+/* Keep user bubble text readable (it uses bg-primary text-white) */
+.dash-premium .chat-panel .bg-primary,
+.dash-premium .chat-panel .text-white {
+  color: #ffffff !important;
+}
+
+
+/* Keep user bubbles readable */
+.dash-premium .chat-panel .bg-primary.text-white,
+.dash-premium .chat-panel .text-white {
+  color: #ffffff !important;
+}
+
 
 .dash-premium .chat-panel .bg-white,
 .dash-premium .chat-panel .border {
